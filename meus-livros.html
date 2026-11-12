@@ -1,14 +1,449 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Aurora • Meus livros</title><meta name="theme-color" content="#21150f"><style>
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#533824,#1c110c 70%);color:#f4e5cb;font-family:Georgia,serif;min-height:100dvh}header{text-align:center;padding:20px 12px 10px}h1{font-weight:normal;margin:0;font-size:30px}p{font:13px system-ui;color:#d5b998}button,.button{background:#bd915c;color:#21150c;border:1px solid #e5bd83;border-radius:8px;padding:12px 16px;font:600 14px system-ui;cursor:pointer}.toolbar{display:flex;gap:10px;justify-content:center;padding:12px;flex-wrap:wrap}.shelf{max-width:1000px;margin:20px auto;padding:20px 14px 5px;background:linear-gradient(90deg,#3a2113,#21120b 10%,#3c2516 90%,#704629);border:9px ridge #80512c;box-shadow:0 16px 28px #000b;min-height:250px}.books{display:flex;gap:14px;overflow-x:auto;align-items:flex-end;min-height:190px;padding:8px 6px 0}.book{border:0;background:transparent;padding:0;flex:0 0 118px;height:168px;position:relative;box-shadow:7px 8px 9px #0009;overflow:hidden}.book img{width:100%;height:100%;object-fit:fill}.book .fallback{height:100%;background:linear-gradient(120deg,#183f45,#47716c);border:3px double #d9ba7e;display:flex;align-items:center;justify-content:center;padding:10px;color:#f9e3ba;font:17px Georgia;text-align:center}.plank{height:19px;background:linear-gradient(#d6a46c,#80502b,#4a2b17);margin:0 -14px -5px;box-shadow:0 12px 15px #000b}.hint{text-align:center;margin:15px}.reader{position:fixed;inset:0;z-index:20;background:#170e0a;display:none;flex-direction:column}.reader.active{display:flex}.readerhead{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;gap:10px;min-height:55px;font:13px system-ui}.readerhead button{padding:8px 12px}.viewport{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden}.flipbook{display:none}.flipbook.ready{display:block}.page{background:#f4e8d3;overflow:hidden;position:relative}.page canvas{width:100%;height:100%;object-fit:contain;display:block;background:white}.page.loading{display:flex;align-items:center;justify-content:center;color:#69573f;font:14px system-ui}.status{padding:8px;text-align:center;font:12px system-ui;color:#d7b88c;min-height:33px}input[type=file]{display:none}.notice{max-width:650px;margin:12px auto;padding:12px;text-align:center;font:12px system-ui;color:#cdb69a}
-</style></head><body><header><h1>✦ Meus livros • Aurora ✦</h1><p>Adicione um PDF do seu celular e leia como um livro</p></header><div class="toolbar"><button id="add">+ Adicionar livro PDF</button><button id="home">Estante principal</button></div><input id="file" type="file" accept=".pdf,application/pdf"><section class="shelf"><div id="books" class="books"></div><div class="plank"></div></section><p class="hint" id="hint">Seus livros ficam guardados neste navegador, neste aparelho.</p><p class="notice">Teste inicial com PDF. A capa é retirada da primeira página do arquivo; se o PDF não tiver capa, a estante mostrará um modelo simples. A aparência das páginas preserva o PDF original.</p><section class="reader" id="reader"><div class="readerhead"><button id="close">✕ Fechar</button><span id="title"></span><span id="count"></span></div><div class="viewport"><div id="flipbook" class="flipbook"></div></div><div id="status" class="status">Arraste o canto da página para folhear</div></section>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script><script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script><script>
-(async()=>{const $=id=>document.getElementById(id),status=$('status'),books=$('books');if(!window.pdfjsLib||!window.St?.PageFlip){$('hint').textContent='Erro ao carregar leitor PDF. Verifique sua conexão.';return}pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-const db=await new Promise((resolve,reject)=>{let r=indexedDB.open('aurora-pdf-library',1);r.onupgradeneeded=()=>r.result.createObjectStore('books',{keyPath:'id'});r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});function tx(mode='readonly'){return db.transaction('books',mode).objectStore('books')}function getAll(){return new Promise((resolve,reject)=>{let r=tx().getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}function save(obj){return new Promise((resolve,reject)=>{let r=tx('readwrite').put(obj);r.onsuccess=resolve;r.onerror=()=>reject(r.error)})}let list=await getAll(),activePdf=null,flip=null,activeId=null,rendering=new Set();
-function renderShelf(){books.replaceChildren();if(!list.length){books.innerHTML='<p>Nenhum livro ainda. Toque em Adicionar livro PDF.</p>';return}for(const b of list){let btn=document.createElement('button');btn.className='book';btn.title=b.name;if(b.cover){let img=document.createElement('img');img.src=b.cover;img.alt='Capa de '+b.name;btn.append(img)}else{let d=document.createElement('div');d.className='fallback';d.textContent=b.name;btn.append(d)}btn.onclick=()=>openBook(b.id);books.append(btn)}}renderShelf();
-$('add').onclick=()=>$('file').click();$('home').onclick=()=>location.href='./';$('close').onclick=()=>closeBook();
-$('file').onchange=async e=>{let file=e.target.files[0];if(!file)return;$('hint').textContent='Importando '+file.name+'...';try{let data=await file.arrayBuffer();let pdf=await pdfjsLib.getDocument({data:new Uint8Array(data.slice(0))}).promise;let cover=await imagePage(pdf,1,260);let item={id:crypto.randomUUID(),name:file.name.replace(/\.pdf$/i,''),data,cover,created:Date.now(),page:0};await save(item);list=await getAll();renderShelf();$('hint').textContent='Livro adicionado! Toque na capa para ler.';await openBook(item.id)}catch(err){$('hint').textContent='Não foi possível importar: '+err.message}e.target.value=''};
-async function imagePage(pdf,n,width){let p=await pdf.getPage(n),v=p.getViewport({scale:1}),scale=width/v.width,view=p.getViewport({scale}),canvas=document.createElement('canvas');canvas.width=Math.ceil(view.width);canvas.height=Math.ceil(view.height);await p.render({canvasContext:canvas.getContext('2d'),viewport:view}).promise;return canvas.toDataURL('image/jpeg',.82)}
-async function openBook(id){let b=list.find(x=>x.id===id);if(!b)return;activeId=id;$('reader').classList.add('active');$('title').textContent=b.name;status.textContent='Carregando páginas do PDF...';try{activePdf=await pdfjsLib.getDocument({data:new Uint8Array(b.data.slice(0))}).promise;let host=$('flipbook');if(flip){flip.destroy();flip=null}host.classList.remove('ready');host.replaceChildren();const total=activePdf.numPages;for(let i=1;i<=total;i++){let page=document.createElement('div');page.className='page loading';page.dataset.number=i;page.textContent='Página '+i;host.append(page)}let first=await activePdf.getPage(1),v=first.getViewport({scale:1}),ratio=v.width/v.height;const mobile=innerWidth<650;let height=mobile?Math.min(innerHeight-130,680):Math.min(innerHeight-135,760);let width=Math.round(height*ratio);width=Math.min(width,mobile?innerWidth-28:520);height=Math.round(width/ratio);flip=new St.PageFlip(host,{width,height,size:'fixed',showCover:false,drawShadow:true,maxShadowOpacity:.55,flippingTime:950,usePortrait:mobile,mobileScrollSupport:false});flip.loadFromHTML(host.querySelectorAll('.page'));host.classList.add('ready');let savedPage=Math.max(0,Math.min(total-1,b.page||0));if(savedPage)flip.turnToPage(savedPage);async function paintNearby(){if(!flip||!activePdf)return;let idx=flip.getCurrentPageIndex();$('count').textContent=(idx+1)+' / '+total;let jobs=[];for(let i=Math.max(0,idx-2);i<Math.min(total,idx+4);i++)jobs.push(paint(i+1));await Promise.allSettled(jobs)}async function paint(n){let el=host.querySelector('[data-number="'+n+'"]');if(!el||el.dataset.loaded||rendering.has(n))return;rendering.add(n);try{let page=await activePdf.getPage(n),view=page.getViewport({scale:Math.min(2,900/page.getViewport({scale:1}).width)}),canvas=document.createElement('canvas');canvas.width=Math.ceil(view.width);canvas.height=Math.ceil(view.height);await page.render({canvasContext:canvas.getContext('2d'),viewport:view}).promise;el.replaceChildren(canvas);el.classList.remove('loading');el.dataset.loaded='1'}catch(e){el.textContent='Falha na página '+n}finally{rendering.delete(n)}}flip.on('flip',async()=>{let b=list.find(x=>x.id===activeId);if(b){b.page=flip.getCurrentPageIndex();save(b).catch(()=>{})}paintNearby()});await paintNearby();status.textContent='Arraste a ponta da página para virar. A posição é salva automaticamente.'}catch(err){status.textContent='Erro ao abrir o PDF: '+err.message}}
-function closeBook(){if(flip){flip.destroy();flip=null}activePdf=null;activeId=null;rendering.clear();$('reader').classList.remove('active');$('flipbook').replaceChildren()}
-})();
-</script></body></html>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#21150f">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <title>Meus livros • Biblioteca Aurora</title>
+  <style>
+    :root{color-scheme:dark;--gold:#d1a16b;--paper:#fff5e4}*{box-sizing:border-box}
+    body{margin:0;min-height:100dvh;color:#f5e8d3;background:radial-gradient(ellipse at 50% -20%,#62432d 0%,#24160f 52%,#130b08 100%);font-family:Georgia,serif}
+    button,.button{cursor:pointer;background:linear-gradient(#d4a96e,#b8874e);color:#24170c;border:1px solid #f2cf92;border-radius:8px;padding:10px 14px;font:600 13px system-ui;text-decoration:none}
+    button:focus-visible,.button:focus-visible,input:focus-visible{outline:2px solid #ffe3b0;outline-offset:2px}
+    h1{font-size:clamp(27px,7vw,38px);font-weight:normal;margin:7px 0}.tophead{text-align:center;padding:29px 15px 11px}.eyebrow{font:11px system-ui;letter-spacing:4px;color:#f1c38a}.tophead p{color:#cbb495;font:13px system-ui;margin:5px 0}
+    .toolbar{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;padding:14px 12px 21px}.toolbar .light{background:#2b1d15;color:#f2d3aa;border-color:#7b5939}
+    input[type=file]{display:none}.shelf{max-width:900px;margin:10px auto 0;padding:19px 12px 4px;background:linear-gradient(90deg,#59351c,#21130c 12%,#1d110a 84%,#704729);border:9px ridge #86542d;box-shadow:0 20px 36px #000b;min-height:260px}
+    .books{display:flex;align-items:flex-end;gap:6px;overflow-x:auto;min-height:207px;padding:8px 5px 12px;scrollbar-width:thin}.book{position:relative;isolation:isolate;flex:0 0 44px;height:187px;padding:0;border:0;border-left:3px solid #25150e;border-right:3px solid #cb9c67;border-radius:3px 5px 5px 3px;background:linear-gradient(90deg,#1a110d,#5c3727,#a37147,#513124,#120c09);box-shadow:5px 7px 8px #0009;transition:transform .25s;overflow:hidden}
+    .book:nth-child(3n+2){height:176px;transform:rotate(-1.5deg)}.book:nth-child(3n){height:182px;transform:rotate(1deg)}.book:hover,.book:focus-visible{transform:translateY(-14px)}.book .art{position:absolute;inset:0;z-index:-1;background-position:center;background-size:cover;filter:brightness(.43)}.book .name{display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;transform:rotate(180deg);width:100%;height:100%;padding:9px 6px;color:#ffe6bd;text-shadow:1px 1px 3px #000,0 0 5px #000;font:600 12px/1.1 Georgia,serif;overflow:hidden}.book .mark{position:absolute;top:4px;right:2px;color:#e9c78d;font-size:11px}.book:after{content:"";position:absolute;inset:8px 4px;border-top:1px solid #eacb9280;border-bottom:1px solid #eacb9280;pointer-events:none}
+    .plank{height:19px;margin:0 -12px -4px;background:linear-gradient(#e1b27c,#956034 40%,#4b2b17);box-shadow:0 12px 14px #000b;border-top:3px solid #d7a16a}.hint,.notice{text-align:center;max-width:630px;margin:17px auto;color:#d9be9d;font:13px/1.5 system-ui;padding:0 16px}.notice{font-size:12px;color:#af987f}
+    /* O livro permanece físico e fechado até o usuário tocar na capa. */
+    .showcase{display:none;position:fixed;inset:0;z-index:20;background:radial-gradient(ellipse at 50% 30%,#62432e 0%,#24160f 54%,#0f0907 100%);flex-direction:column;align-items:center;overflow:auto;padding:env(safe-area-inset-top) 14px env(safe-area-inset-bottom)}.showcase.active{display:flex}
+    .showhead{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;max-width:770px;margin:12px 0 8px;font:14px system-ui}.showhead button{padding:9px 12px;flex-shrink:0}.showhead h2{font:normal 18px Georgia,serif;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0}.scene{flex:1;min-height:370px;width:100%;display:flex;justify-content:center;align-items:center;perspective:1150px;perspective-origin:50% 48%;touch-action:none;user-select:none}
+    .book3d{position:relative;width:min(61vw,285px);height:min(88vw,415px);transform-style:preserve-3d;transform:rotateX(-5deg) rotateY(-22deg);filter:drop-shadow(22px 27px 13px #0008);will-change:transform;cursor:grab}.book3d:active{cursor:grabbing}
+    .book3d .volume-back,.book3d .volume-paper,.book3d .volume-edge,.book3d .volume-spine,.book3d .volume-cover{position:absolute;display:block;backface-visibility:visible}.volume-back{inset:0;background:linear-gradient(115deg,#493225,#bd925c);border:3px solid #d5aa6b;border-radius:5px 12px 12px 4px;transform:translateZ(-18px)}
+    .volume-paper{inset:7px 3px 7px 7px;background:repeating-linear-gradient(0deg,#ead8b9 0px,#fff5df 1px,#d6c1a0 2px,#faf0d9 3px);border:1px solid #9d8465;border-radius:3px 8px 8px 3px;transform:translateZ(13px);box-shadow:inset -10px 0 8px #8b785842}
+    .volume-edge{right:0;top:7px;bottom:7px;width:36px;transform-origin:right center;transform:translateZ(-18px) rotateY(90deg);background:repeating-linear-gradient(90deg,#ddc6a2 0,#fdf0d5 1px,#c3ac86 2px,#efe0c2 3px);border:1px solid #a48b6b}
+    .volume-spine{left:0;top:0;bottom:0;width:36px;transform-origin:left center;transform:translateZ(-18px) rotateY(-90deg);background:linear-gradient(90deg,#291a14,#916344 25%,#e2b37a 50%,#573423 83%,#25160f);border:2px solid #c29a68}
+    .volume-cover{inset:0;transform-origin:0 50%;transform:translateZ(20px);border:4px solid #8e673e;border-left:10px solid #4e3424;border-radius:3px 10px 10px 4px;background:#4d3428;box-shadow:inset 9px 0 9px #0009,4px 3px 8px #0005;overflow:hidden;transition:transform .65s cubic-bezier(.22,.7,.25,1)}.volume-cover img{width:100%;height:100%;display:block;object-fit:fill}.volume-cover:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#160e0a6e,transparent 18%,#fff7d515 60%,#21130e25);pointer-events:none}.book3d.opening .volume-cover{transform:translateZ(20px) rotateY(-153deg)}
+    .showhint{font:13px/1.5 system-ui;color:#e7c79f;text-align:center;margin:0 0 15px}.showresume{font:12px system-ui;color:#bea88c;text-align:center;min-height:22px}
+    /* Leitura completa do PDF, com folha curvada, navegação rápida e marcador. */
+    .reader{position:fixed;inset:0;z-index:30;background:radial-gradient(ellipse at center,#382317,#130d09 90%);display:none;flex-direction:column;overflow:hidden;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}.reader.active{display:flex}
+    .readerhead{height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:3px 7px;font:12px system-ui}.readerhead button{padding:7px 9px}.readerhead .title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:50%;font-size:13px}.readerhead .count{white-space:nowrap;color:#e8c69a}
+    .readertools{display:flex;gap:5px;align-items:center;justify-content:center;flex-wrap:nowrap;padding:2px 5px 5px;min-height:39px;flex:none}.readertools button{font-size:12px;padding:6px 8px;border-radius:6px;white-space:nowrap}.readertools .pageinput{display:flex;align-items:center;gap:3px;font:11px system-ui;color:#e5c9a6}.pageinput input{color:#f6e8cf;background:#302117;border:1px solid #946c44;border-radius:5px;width:54px;height:29px;padding:3px 5px;font:13px system-ui;text-align:center}.readertools button.marked{background:linear-gradient(#bd5b48,#832b28);color:white;border-color:#f5b89c}.readertools button:disabled{opacity:.4}
+    .progressrow{display:flex;gap:9px;align-items:center;padding:0 12px 4px;font:11px system-ui;color:#bea486;flex:none;min-height:18px}.progressrow input{accent-color:#be8a4d;width:100%;min-width:0;height:13px}.progressrow span{white-space:nowrap}
+    .viewport{position:relative;flex:1;min-height:0;overflow:auto;display:flex;align-items:safe center;justify-content:safe center;touch-action:pan-x pan-y;scrollbar-width:thin;scrollbar-color:#926b47 transparent}.flipbook{display:none;flex-shrink:0;transform-origin:center;transition:transform .2s}.flipbook.ready{display:block}.page{background:#fffaed;overflow:hidden;position:relative}.page canvas{display:block;width:100%;height:100%;object-fit:contain;background:white}.page.loading{color:#806e59;font:13px system-ui;display:flex;align-items:center;justify-content:center}.page.bookmarked:after{content:"";position:absolute;z-index:6;top:0;right:12px;width:22px;height:56px;background:linear-gradient(90deg,#9a2a2a,#e05d43 45%,#8c211e);clip-path:polygon(0 0,100% 0,100% 100%,50% 78%,0 100%);filter:drop-shadow(1px 2px 2px #0009);pointer-events:none}
+    .status{flex:none;min-height:25px;padding:4px 8px 6px;text-align:center;color:#dfc29b;font:11px/1.25 system-ui}
+    @media(max-width:390px){.readertools{gap:3px}.readertools button{padding:6px 6px;font-size:11px}.pageinput input{width:44px}.readerhead .title{max-width:43%}}
+    @media(max-height:690px){.scene{min-height:275px}.book3d{height:min(76vw,315px);width:min(52vw,220px)}.showhint{margin-bottom:6px}}
+  </style>
+</head>
+<body>
+  <header class="tophead"><div class="eyebrow">SEU ACERVO PESSOAL</div><h1>✦ Meus livros • Aurora ✦</h1><p>Adicione seus livros PDF e guarde cada um pela lombada.</p></header>
+  <nav class="toolbar"><label class="button" for="file">＋ Adicionar livro PDF</label><a class="button light" href="./index.html">Estante principal</a></nav>
+  <input id="file" type="file" accept=".pdf,application/pdf">
+  <section class="shelf" aria-label="Meus livros importados"><div id="books" class="books"></div><div class="plank"></div></section>
+  <p id="hint" class="hint" role="status">Seus livros ficam guardados neste navegador, neste aparelho.</p>
+  <p class="notice">A capa e todas as páginas vêm do próprio arquivo PDF. Seus PDFs não são enviados para um servidor. Para encontrá-los depois, abra a Estante principal no mesmo navegador.</p>
+
+  <section id="showcase" class="showcase" role="dialog" aria-modal="true" aria-label="Livro em três dimensões">
+    <div class="showhead"><button id="back" type="button">← Estante</button><h2 id="showtitle"></h2></div>
+    <div id="scene" class="scene" aria-label="Arraste para girar; toque para abrir o livro">
+      <div id="book3d" class="book3d" role="button" tabindex="0" aria-label="Toque para abrir este livro">
+        <div class="volume-back"></div><div class="volume-spine"></div><div class="volume-edge"></div><div class="volume-paper"></div>
+        <div class="volume-cover"><img id="cover3d" alt="Capa original do livro"></div>
+      </div>
+    </div>
+    <p class="showhint">Arraste o livro para girar. <strong>Toque na capa para abrir.</strong></p>
+    <p id="showresume" class="showresume"></p>
+  </section>
+
+  <section id="reader" class="reader" role="dialog" aria-modal="true" aria-label="Leitor PDF">
+    <div class="readerhead"><button id="close" type="button">✕ Fechar</button><span id="title" class="title"></span><span id="count" class="count">1 / 1</span></div>
+    <div class="readertools" aria-label="Ferramentas de leitura">
+      <button id="minus10" type="button" title="Voltar dez páginas">−10</button>
+      <label class="pageinput" title="Número da página">Pág. <input id="pageNumber" type="number" min="1" step="1" inputmode="numeric" aria-label="Ir para a página"></label>
+      <button id="goto" type="button" title="Ir para a página digitada">Ir</button>
+      <button id="plus10" type="button" title="Avançar dez páginas">+10</button>
+      <button id="bookmark" type="button" title="Colocar ou remover marcador de página" aria-label="Marcar página">🔖</button>
+      <button id="zoomOut" type="button" title="Diminuir visualização do PDF" aria-label="Diminuir letra e página">A−</button>
+      <button id="zoomIn" type="button" title="Aumentar visualização do PDF" aria-label="Ampliar letra e página">A+</button>
+    </div>
+    <div class="progressrow"><input id="scrub" type="range" min="1" max="1" value="1" aria-label="Navegar rapidamente pelas páginas"><span id="position">Toque no canto para folhear</span></div>
+    <div id="viewport" class="viewport"><div id="flipbook" class="flipbook"></div></div>
+    <div id="status" class="status" role="status">Arraste a ponta da folha para virar.</div>
+  </section>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
+  <script>
+  (async () => {
+    'use strict';
+    const $ = id => document.getElementById(id);
+    const buttons = ['minus10','plus10','goto','bookmark','zoomOut','zoomIn'];
+    if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    let database, catalog = [], selectedId = null, active = null, down = null, rotation = {x:-5,y:-22}, generation = 0;
+    const originalRoute = new URLSearchParams(location.search).get('livro');
+
+    try {
+      database = await new Promise((resolve,reject) => {
+        const req = indexedDB.open('aurora-pdf-library', 2);
+        req.onupgradeneeded = () => {
+          const db = req.result;
+          if (!db.objectStoreNames.contains('books')) db.createObjectStore('books', {keyPath:'id'});
+          if (!db.objectStoreNames.contains('progress')) db.createObjectStore('progress', {keyPath:'id'});
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+        req.onblocked = () => reject(new Error('Feche outras abas da biblioteca e tente novamente.'));
+      });
+    } catch (error) {
+      $('hint').textContent = 'Não foi possível abrir o armazenamento dos livros: ' + error.message;
+      return;
+    }
+    const dbGet = (store, id) => new Promise((resolve,reject) => {
+      const req = database.transaction(store,'readonly').objectStore(store).get(id);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    const dbAll = store => new Promise((resolve,reject) => {
+      const req = database.transaction(store,'readonly').objectStore(store).getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => reject(req.error);
+    });
+    const dbPut = (store, object) => new Promise((resolve,reject) => {
+      const tx = database.transaction(store,'readwrite');
+      tx.objectStore(store).put(object);
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error);
+    });
+    const readableName = filename => filename.replace(/\.pdf$/i,'').replace(/[_-]+/g,' ').trim().replace(/(^|\s)\S/g, m => m.toUpperCase());
+    async function reloadCatalog() {
+      const [all,progress] = await Promise.all([dbAll('books'),dbAll('progress')]);
+      const byId = new Map(progress.map(p => [p.id,p]));
+      catalog = all.map(b => ({id:b.id,name:b.name || 'Livro sem título',cover:b.cover || '',total:b.total || 0,created:b.created || 0,page:byId.get(b.id)?.page ?? b.page ?? 0,bookmark:byId.get(b.id)?.bookmark ?? null}));
+      catalog.sort((a,b) => a.created - b.created);
+      renderCatalog();
+    }
+    function renderCatalog() {
+      const row = $('books');
+      row.replaceChildren();
+      if (!catalog.length) {
+        const p = document.createElement('p');
+        p.textContent = 'Sua estante está vazia. Toque em Adicionar livro PDF.';
+        p.style.cssText = 'color:#e1c399;font:13px system-ui;padding:30px 8px';
+        row.append(p);
+        return;
+      }
+      for (const b of catalog) {
+        const button = document.createElement('button');
+        button.className = 'book';
+        button.title = 'Pegar ' + b.name;
+        button.setAttribute('aria-label','Pegar ' + b.name);
+        if (b.cover) {
+          const art = document.createElement('span');
+          art.className = 'art';
+          art.style.backgroundImage = 'url(' + JSON.stringify(b.cover) + ')';
+          button.append(art);
+        }
+        const title = document.createElement('span');
+        title.className = 'name';
+        title.textContent = b.name;
+        button.append(title);
+        if (Number.isInteger(b.bookmark)) {
+          const mark = document.createElement('span');
+          mark.className = 'mark';
+          mark.textContent = '◆';
+          button.append(mark);
+        }
+        button.onclick = () => showBook(b.id);
+        row.append(button);
+      }
+    }
+
+    function updateRotation() {
+      $('book3d').style.transform = `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)`;
+    }
+    function showBook(id) {
+      const book = catalog.find(item => item.id === id);
+      if (!book) { $('hint').textContent = 'Este livro não está mais disponível neste navegador.'; return; }
+      selectedId = id;
+      $('showcase').classList.add('active');
+      $('showcase').setAttribute('aria-hidden','false');
+      $('showtitle').textContent = book.name;
+      $('cover3d').src = book.cover || '';
+      $('cover3d').alt = 'Capa original de ' + book.name;
+      $('showresume').textContent = book.page > 0 ? `Sua leitura está salva na página ${book.page + 1}. Toque para continuar.` : 'Toque na capa para começar a leitura.';
+      $('book3d').classList.remove('opening');
+      rotation = {x:-5,y:-22};
+      updateRotation();
+      document.body.style.overflow = 'hidden';
+    }
+    function hideBook() {
+      $('showcase').classList.remove('active');
+      selectedId = null;
+      document.body.style.overflow = '';
+    }
+    $('back').onclick = () => {
+      hideBook();
+      if (originalRoute) location.href = './index.html';
+    };
+    const model = $('book3d');
+    model.addEventListener('pointerdown', event => {
+      down = {x:event.clientX,y:event.clientY,startX:rotation.x,startY:rotation.y,id:event.pointerId};
+      model.setPointerCapture(event.pointerId);
+    });
+    model.addEventListener('pointermove', event => {
+      if (!down || event.pointerId !== down.id) return;
+      const dx = event.clientX - down.x, dy = event.clientY - down.y;
+      if (Math.abs(dx) + Math.abs(dy) < 6) return;
+      rotation.y = down.startY + dx*.6;
+      rotation.x = Math.max(-35,Math.min(35,down.startX - dy*.2));
+      updateRotation();
+    });
+    model.addEventListener('pointerup', event => {
+      if (!down || event.pointerId !== down.id) return;
+      const distance = Math.hypot(event.clientX-down.x,event.clientY-down.y);
+      down = null;
+      if (distance < 12 && selectedId) openReader(selectedId);
+    });
+    model.addEventListener('pointercancel',() => down = null);
+    model.addEventListener('keydown',event => {
+      if ((event.key === 'Enter' || event.key === ' ') && selectedId) {event.preventDefault();openReader(selectedId);}
+    });
+
+    const safePage = (number,total) => Math.max(0,Math.min(total-1,Math.round(number)));
+    async function importPDF(file) {
+      if (!window.pdfjsLib) throw new Error('O leitor PDF não carregou. Confira a conexão com a internet.');
+      if (!/\.pdf$/i.test(file.name) && file.type !== 'application/pdf') throw new Error('Escolha um arquivo PDF.');
+      const data = await file.arrayBuffer();
+      const task = pdfjsLib.getDocument({data:new Uint8Array(data.slice(0))});
+      const pdf = await task.promise;
+      try {
+        const cover = await renderImage(pdf,1,370);
+        const item = {id:crypto.randomUUID(),name:readableName(file.name),data,cover,total:pdf.numPages,created:Date.now(),page:0};
+        await dbPut('books',item);
+        return item.id;
+      } finally {
+        await pdf.destroy().catch(() => {});
+      }
+    }
+    async function renderImage(pdf,number,width) {
+      const page = await pdf.getPage(number);
+      const natural = page.getViewport({scale:1});
+      const viewport = page.getViewport({scale:width/natural.width});
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.ceil(viewport.width);
+      canvas.height = Math.ceil(viewport.height);
+      await page.render({canvasContext:canvas.getContext('2d',{alpha:false}),viewport}).promise;
+      return canvas.toDataURL('image/jpeg',.86);
+    }
+    $('file').addEventListener('change',async event => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      $('hint').textContent = 'Guardando ' + file.name + ' na estante…';
+      try {
+        const id = await importPDF(file);
+        await reloadCatalog();
+        $('hint').textContent = 'Livro guardado com capa original! Ele já aparece também na Estante principal.';
+        showBook(id);
+      } catch (error) {
+        $('hint').textContent = 'Não foi possível importar: ' + (error?.message || String(error));
+      } finally {event.target.value = '';}
+    });
+
+    function persistProgress(session) {
+      if (!session || session.closed) return;
+      const record = {id:session.id,page:session.page,bookmark:session.bookmark,updated:Date.now()};
+      dbPut('progress',record).catch(error => console.warn('Não foi possível salvar a página',error));
+      const meta = catalog.find(b => b.id === session.id);
+      if (meta) {meta.page = session.page;meta.bookmark = session.bookmark;}
+    }
+    function highlightBookmark(session) {
+      session.pages.forEach((element,index) => element.classList.toggle('bookmarked',index === session.bookmark));
+      $('bookmark').classList.toggle('marked',session.page === session.bookmark);
+      $('bookmark').title = session.page === session.bookmark ? 'Remover a fita desta página' : 'Colocar fita nesta página';
+    }
+    async function paintPage(session,number) {
+      if (session.closed || !session.pdf || number < 1 || number > session.total || session.rendering.has(number)) return;
+      const element = session.pages[number-1];
+      if (!element || element.dataset.loaded === 'yes') return;
+      session.rendering.add(number);
+      try {
+        const page = await session.pdf.getPage(number);
+        if (session.closed) return;
+        const natural = page.getViewport({scale:1});
+        const viewport = page.getViewport({scale:Math.min(2.4,1100/natural.width)});
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.ceil(viewport.width);
+        canvas.height = Math.ceil(viewport.height);
+        await page.render({canvasContext:canvas.getContext('2d',{alpha:false}),viewport}).promise;
+        if (session.closed) return;
+        element.replaceChildren(canvas);
+        element.classList.remove('loading');
+        element.dataset.loaded = 'yes';
+      } catch (error) {
+        if (!session.closed) element.textContent = 'Não foi possível mostrar a página ' + number;
+      } finally {session.rendering.delete(number);}
+    }
+    function paintNearby(session) {
+      if (session.closed) return;
+      const first = Math.max(1,session.page-2);
+      const last = Math.min(session.total,session.page+5);
+      for (let n = first;n <= last;n++) paintPage(session,n);
+      // A memória do celular não precisa guardar centenas de páginas renderizadas.
+      session.pages.forEach((element,index) => {
+        if (index+1 >= first-7 && index+1 <= last+7) return;
+        if (element.dataset.loaded !== 'yes') return;
+        element.replaceChildren('Página ' + (index+1));
+        element.dataset.loaded = '';
+        element.classList.add('loading');
+      });
+    }
+    function updateReader(session,persist=true) {
+      if (!session || session.closed || session !== active || !session.flip) return;
+      try {session.page = safePage(session.flip.getCurrentPageIndex(),session.total);} catch {return;}
+      $('count').textContent = `${session.page + 1} / ${session.total}`;
+      $('pageNumber').value = session.page+1;
+      $('scrub').value = session.page+1;
+      $('position').textContent = `${Math.round((session.page+1)/session.total*100)}%`;
+      highlightBookmark(session);
+      paintNearby(session);
+      if (persist) persistProgress(session);
+    }
+    function jumpPage(number) {
+      const session = active;
+      if (!session || !session.flip) return;
+      const index = safePage(number-1,session.total);
+      try {
+        session.flip.turnToPage(index);
+        // turnToPage é instantâneo; atualiza mesmo se a biblioteca não disparar flip.
+        updateReader(session);
+      } catch (error) {$('status').textContent = 'Não foi possível mudar de página: ' + error.message;}
+    }
+    async function openReader(id) {
+      if (!window.pdfjsLib || !window.St?.PageFlip) {
+        $('showresume').textContent = 'Não foi possível carregar o leitor PDF. Conecte à internet e tente novamente.';
+        return;
+      }
+      if (active) closeReader();
+      const meta = catalog.find(b => b.id === id);
+      if (!meta) return;
+      $('book3d').classList.add('opening');
+      const token = ++generation;
+      const session = {id,total:0,page:0,bookmark:null,pages:[],rendering:new Set(),pdf:null,flip:null,closed:false,zoom:1};
+      active = session;
+      $('reader').classList.add('active');
+      $('title').textContent = meta.name;
+      $('count').textContent = '…';
+      $('status').textContent = 'Abrindo o livro completo…';
+      buttons.forEach(name => $(name).disabled = true);
+      const host = $('flipbook');
+      host.classList.remove('ready');
+      host.replaceChildren();
+      host.style.transform = 'scale(1)';
+      try {
+        const [book,progress] = await Promise.all([dbGet('books',id),dbGet('progress',id)]);
+        if (!book?.data) throw new Error('O PDF não está mais salvo neste navegador.');
+        if (session !== active || token !== generation) return;
+        session.pdf = await pdfjsLib.getDocument({data:new Uint8Array(book.data.slice(0))}).promise;
+        if (session !== active || token !== generation) return;
+        session.total = session.pdf.numPages;
+        if (!session.total) throw new Error('Este PDF não contém páginas.');
+        session.page = safePage(progress?.page ?? book.page ?? 0,session.total);
+        session.bookmark = Number.isInteger(progress?.bookmark) ? safePage(progress.bookmark,session.total) : null;
+        const firstPage = await session.pdf.getPage(1);
+        if (session !== active || token !== generation) return;
+        const vp = firstPage.getViewport({scale:1});
+        const ratio = vp.width/vp.height;
+        const mobile = innerWidth < 670;
+        const availableWidth = mobile ? innerWidth-8 : Math.min(540,(innerWidth-60)/2);
+        const availableHeight = Math.max(270,$('viewport').clientHeight-10);
+        const width = Math.max(150,Math.floor(Math.min(availableWidth,availableHeight*ratio)));
+        const height = Math.max(200,Math.floor(width/ratio));
+        const fragment = document.createDocumentFragment();
+        for (let n=1;n<=session.total;n++) {
+          const page = document.createElement('div');
+          page.className = 'page loading';
+          page.textContent = 'Página ' + n;
+          page.dataset.number = n;
+          session.pages.push(page);
+          fragment.append(page);
+        }
+        host.append(fragment);
+        session.flip = new St.PageFlip(host,{
+          width,height,size:'fixed',showCover:true,drawShadow:true,maxShadowOpacity:.55,
+          flippingTime:900,usePortrait:mobile,mobileScrollSupport:false,swipeDistance:20
+        });
+        session.flip.loadFromHTML(session.pages);
+        host.classList.add('ready');
+        session.flip.on('flip',() => updateReader(session));
+        $('scrub').max = String(session.total);
+        $('pageNumber').max = String(session.total);
+        buttons.forEach(name => $(name).disabled = false);
+        if (session.page) session.flip.turnToPage(session.page);
+        updateReader(session);
+        $('status').textContent = 'Arraste o canto para folhear. A leitura fica salva automaticamente.';
+      } catch(error) {
+        if (session === active) $('status').textContent = 'Erro ao abrir o livro: ' + (error?.message || String(error));
+      }
+    }
+    function closeReader() {
+      generation++;
+      const session = active;
+      active = null;
+      if (session) {
+        session.closed = true;
+        if (session.flip) {try {session.flip.destroy();} catch (error) {console.warn('Fechando animação do livro',error);}}
+        if (session.pdf) session.pdf.destroy().catch(() => {});
+      }
+      $('flipbook').classList.remove('ready');
+      $('flipbook').replaceChildren();
+      $('reader').classList.remove('active');
+      $('book3d').classList.remove('opening');
+      renderCatalog();
+      if (selectedId) showBook(selectedId);
+    }
+    $('close').onclick = closeReader;
+    $('minus10').onclick = () => active && jumpPage(active.page-9);
+    $('plus10').onclick = () => active && jumpPage(active.page+11);
+    $('goto').onclick = () => jumpPage(Number($('pageNumber').value) || 1);
+    $('pageNumber').addEventListener('keydown',event => {if (event.key === 'Enter') {$('goto').click();event.target.blur();}});
+    $('scrub').addEventListener('change',() => jumpPage(Number($('scrub').value)));
+    $('scrub').addEventListener('input',() => $('position').textContent = 'Ir à página ' + $('scrub').value);
+    $('bookmark').onclick = () => {
+      if (!active?.flip) return;
+      active.bookmark = active.bookmark === active.page ? null : active.page;
+      highlightBookmark(active);
+      persistProgress(active);
+      $('status').textContent = active.bookmark === null ? 'Marcador removido.' : `Fitinha colocada na página ${active.page+1}.`;
+    };
+    function zoom(amount) {
+      if (!active?.flip) return;
+      active.zoom = Math.max(1,Math.min(1.8,Math.round((active.zoom+amount)*10)/10));
+      $('flipbook').style.transform = `scale(${active.zoom})`;
+      $('status').textContent = active.zoom === 1 ? 'Página no tamanho original.' : `Ampliação de ${Math.round(active.zoom*100)}%. Arraste para ver o restante da página.`;
+      $('zoomOut').disabled = active.zoom === 1;
+      $('zoomIn').disabled = active.zoom === 1.8;
+    }
+    $('zoomOut').onclick = () => zoom(-.2);
+    $('zoomIn').onclick = () => zoom(.2);
+    document.addEventListener('keydown',event => {
+      if (!$('reader').classList.contains('active')) return;
+      if (event.target?.tagName === 'INPUT') return;
+      if (event.key === 'ArrowRight') jumpPage((active?.page ?? 0)+2);
+      if (event.key === 'ArrowLeft') jumpPage(active?.page ?? 0);
+      if (event.key === 'Escape') closeReader();
+    });
+
+    await reloadCatalog();
+    if (originalRoute) {
+      if (catalog.some(item => item.id === originalRoute)) showBook(originalRoute);
+      else $('hint').textContent = 'Este livro não foi encontrado. Abra-o no mesmo celular e navegador em que foi importado.';
+    }
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
+  })();
+  </script>
+</body>
+</html>
