@@ -14,7 +14,7 @@ jobs:
       - name: Baixar texto integral do Project Gutenberg
         run: |
           mkdir -p livros
-          curl --fail --location --retry 3 --max-time 90 'https://raw.githubusercontent.com/Insper/cd19/master/aula08_bayes/textos/pg55752_domcasmurro.txt' -o livros/dom-casmurro.txt
+          curl --fail --location --retry 3 --max-time 90 'https://www.gutenberg.org/cache/epub/55752/pg55752.txt' -o livros/dom-casmurro.txt
           test "$(wc -c < livros/dom-casmurro.txt)" -gt 100000
       - name: Salvar texto no repositorio
         run: |
