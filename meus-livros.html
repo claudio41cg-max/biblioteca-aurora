@@ -322,6 +322,16 @@
         updateReader(session);
       } catch (error) {$('status').textContent = 'Não foi possível mudar de página: ' + error.message;}
     }
+    function freshFlipbook() {
+      // StPageFlip.destroy() pode retirar o elemento-raiz do DOM. Recriá-lo
+      // impede o erro classList de null ao trocar ou reabrir um livro.
+      const container = $('viewport');
+      const host = document.createElement('div');
+      host.id = 'flipbook';
+      host.className = 'flipbook';
+      container.replaceChildren(host);
+      return host;
+    }
     async function openReader(id) {
       if (!window.pdfjsLib || !window.St?.PageFlip) {
         $('showresume').textContent = 'Não foi possível carregar o leitor PDF. Conecte à internet e tente novamente.';
@@ -339,9 +349,7 @@
       $('count').textContent = '…';
       $('status').textContent = 'Abrindo o livro completo…';
       buttons.forEach(name => $(name).disabled = true);
-      const host = $('flipbook');
-      host.classList.remove('ready');
-      host.replaceChildren();
+      const host = freshFlipbook();
       host.style.transform = 'scale(1)';
       try {
         const [book,progress] = await Promise.all([dbGet('books',id),dbGet('progress',id)]);
@@ -398,8 +406,7 @@
         if (session.flip) {try {session.flip.destroy();} catch (error) {console.warn('Fechando animação do livro',error);}}
         if (session.pdf) session.pdf.destroy().catch(() => {});
       }
-      $('flipbook').classList.remove('ready');
-      $('flipbook').replaceChildren();
+      freshFlipbook();
       $('reader').classList.remove('active');
       $('book3d').classList.remove('opening');
       renderCatalog();
