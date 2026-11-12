@@ -36,11 +36,33 @@
     .status{flex:none;min-height:25px;padding:4px 8px 6px;text-align:center;color:#dfc29b;font:11px/1.25 system-ui}
     @media(max-width:390px){.readertools{gap:3px}.readertools button{padding:6px 6px;font-size:11px}.pageinput input{width:44px}.readerhead .title{max-width:43%}}
     @media(max-height:690px){.scene{min-height:275px}.book3d{height:min(76vw,315px);width:min(52vw,220px)}.showhint{margin-bottom:6px}}
+    /* O volume WebGL substitui o CSS 3D, com contracapa e miolo reais. */
+    .scene.three-ready .book3d{display:none}
+    .aurora-webgl{display:block;width:100%;height:100%;touch-action:none;cursor:grab;outline:none}
+    .aurora-webgl:active{cursor:grabbing}
+    .aurora-webgl:focus-visible{outline:2px solid #f1d4a6;outline-offset:-4px;border-radius:12px}
+    .volume-cover{backface-visibility:hidden!important}
+    .volume-back{transform:translateZ(-26px) rotateY(180deg)}
+    .category-picker,.category-editor{display:flex;align-items:center;justify-content:center;gap:8px;color:#f2d3a5;font:12px system-ui,sans-serif}
+    .category-picker select,.category-editor select{max-width:178px;padding:8px;border-radius:7px;background:#302117;border:1px solid #9d7849;color:#f8e5c8;font:12px system-ui,sans-serif}
+    .category-editor{margin:5px auto 2px}
+    @media(max-width:500px){.toolbar{padding:12px 9px;gap:6px}.category-picker{flex-basis:100%}.category-picker select{max-width:none;width:min(230px,67vw)}}
   </style>
 </head>
 <body>
   <header class="tophead"><div class="eyebrow">SEU ACERVO PESSOAL</div><h1>✦ Meus livros • Aurora ✦</h1><p>Adicione seus livros PDF e guarde cada um pela lombada.</p></header>
-  <nav class="toolbar"><label class="button" for="file">＋ Adicionar livro PDF</label><a class="button light" href="./index.html">Estante principal</a></nav>
+  <nav class="toolbar">
+    <label class="button" for="file">＋ Adicionar livro PDF</label>
+    <a class="button light" href="./index.html">Estante principal</a>
+    <label class="category-picker">Categoria
+      <select id="importCategory" aria-label="Categoria do PDF ao importar">
+        <option value="romance">Romances</option>
+        <option value="adulto">Romances picantes</option>
+        <option value="ficcao">Ficção e aventuras</option>
+        <option value="brasileiros">Autores brasileiros</option>
+      </select>
+    </label>
+  </nav>
   <input id="file" type="file" accept=".pdf,application/pdf">
   <section class="shelf" aria-label="Meus livros importados"><div id="books" class="books"></div><div class="plank"></div></section>
   <p id="hint" class="hint" role="status">Seus livros ficam guardados neste navegador, neste aparelho.</p>
@@ -48,13 +70,21 @@
 
   <section id="showcase" class="showcase" role="dialog" aria-modal="true" aria-label="Livro em três dimensões">
     <div class="showhead"><button id="back" type="button">← Estante</button><h2 id="showtitle"></h2></div>
+    <label class="category-editor">Guardar em:
+      <select id="bookCategory" aria-label="Mudar a categoria deste livro">
+        <option value="romance">Romances</option>
+        <option value="adulto">Romances picantes</option>
+        <option value="ficcao">Ficção e aventuras</option>
+        <option value="brasileiros">Autores brasileiros</option>
+      </select>
+    </label>
     <div id="scene" class="scene" aria-label="Arraste para girar; toque para abrir o livro">
       <div id="book3d" class="book3d" role="button" tabindex="0" aria-label="Toque para abrir este livro">
         <div class="volume-back"></div><div class="volume-spine"></div><div class="volume-edge"></div><div class="volume-paper"></div>
         <div class="volume-cover"><img id="cover3d" alt="Capa original do livro"></div>
       </div>
     </div>
-    <p class="showhint">Arraste o livro para girar. <strong>Toque na capa para abrir.</strong></p>
+    <p class="showhint">Gire o volume com o dedo em 360°. <strong>Toque para abrir e ler.</strong></p>
     <p id="showresume" class="showresume"></p>
   </section>
 
@@ -83,7 +113,19 @@
     const buttons = ['minus10','plus10','goto','bookmark','zoomOut','zoomIn'];
     if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     let database, catalog = [], selectedId = null, active = null, down = null, rotation = {x:-5,y:-22}, generation = 0;
-    const originalRoute = new URLSearchParams(location.search).get('livro');
+    const routeParams = new URLSearchParams(location.search);
+    const originalRoute = routeParams.get('livro');
+    const validCategories = ['romance','adulto','ficcao','brasileiros'];
+    const requestedCategory=routeParams.get('categoria');
+    if(validCategories.includes(requestedCategory)) $('importCategory').value=requestedCategory;
+    const normalize = value => String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+    const guessCategory = name => {
+      const title=normalize(name);
+      if(/orgulho|preconceito|sensibilidade|austen|moreninha|senhora|romance|amor/.test(title)) return 'romance';
+      if(/desejo|picante|seducao|erotico|sensual|noitesdeverao/.test(title)) return 'adulto';
+      if(/domcasmurro|cortico|iracema|memoriaspostumas|machadodeassis/.test(title)) return 'brasileiros';
+      return 'ficcao';
+    };
 
     try {
       database = await new Promise((resolve,reject) => {
@@ -122,7 +164,7 @@
     async function reloadCatalog() {
       const [all,progress] = await Promise.all([dbAll('books'),dbAll('progress')]);
       const byId = new Map(progress.map(p => [p.id,p]));
-      catalog = all.map(b => ({id:b.id,name:b.name || 'Livro sem título',cover:b.cover || '',total:b.total || 0,created:b.created || 0,page:byId.get(b.id)?.page ?? b.page ?? 0,bookmark:byId.get(b.id)?.bookmark ?? null}));
+      catalog = all.map(b => ({id:b.id,name:b.name || 'Livro sem título',cover:b.cover || '',total:b.total || 0,created:b.created || 0,category:validCategories.includes(b.category)?b.category:guessCategory(b.name),page:byId.get(b.id)?.page ?? b.page ?? 0,bookmark:byId.get(b.id)?.bookmark ?? null}));
       catalog.sort((a,b) => a.created - b.created);
       renderCatalog();
     }
@@ -174,10 +216,13 @@
       $('showtitle').textContent = book.name;
       $('cover3d').src = book.cover || '';
       $('cover3d').alt = 'Capa original de ' + book.name;
+      $('bookCategory').value = book.category;
       $('showresume').textContent = book.page > 0 ? `Sua leitura está salva na página ${book.page + 1}. Toque para continuar.` : 'Toque na capa para começar a leitura.';
       $('book3d').classList.remove('opening');
       rotation = {x:-5,y:-22};
       updateRotation();
+      window.__auroraSelectedBook={id:book.id,name:book.name,cover:book.cover,total:book.total};
+      window.dispatchEvent(new CustomEvent('aurora:book-selected',{detail:window.__auroraSelectedBook}));
       document.body.style.overflow = 'hidden';
     }
     function hideBook() {
@@ -189,6 +234,20 @@
       hideBook();
       if (originalRoute) location.href = './index.html';
     };
+    $('bookCategory').addEventListener('change',async event=>{
+      if(!selectedId) return;
+      try {
+        const record=await dbGet('books',selectedId);
+        if(!record) return;
+        record.category=event.target.value;
+        await dbPut('books',record);
+        await reloadCatalog();
+        $('showresume').textContent='Categoria atualizada. O livro já ficará na prateleira correspondente.';
+      } catch(error) {
+        $('showresume').textContent='Não foi possível salvar a categoria: '+error.message;
+      }
+    });
+    window.addEventListener('aurora:open-book',()=>{if(selectedId) openReader(selectedId);});
     const model = $('book3d');
     model.addEventListener('pointerdown', event => {
       down = {x:event.clientX,y:event.clientY,startX:rotation.x,startY:rotation.y,id:event.pointerId};
@@ -222,7 +281,7 @@
       const pdf = await task.promise;
       try {
         const cover = await renderImage(pdf,1,370);
-        const item = {id:crypto.randomUUID(),name:readableName(file.name),data,cover,total:pdf.numPages,created:Date.now(),page:0};
+        const item = {id:crypto.randomUUID(),name:readableName(file.name),data,cover,total:pdf.numPages,created:Date.now(),page:0,category:$('importCategory').value};
         await dbPut('books',item);
         return item.id;
       } finally {
@@ -452,5 +511,6 @@
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
   })();
   </script>
+  <script type="module" src="./aurora-livro-3d.mjs"></script>
 </body>
 </html>

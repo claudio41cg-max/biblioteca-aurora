@@ -1,5 +1,10 @@
-const CACHE = 'aurora-v3';
-const CORE = ['./', './index.html', './meus-livros.html', './aurora-importados.js', './aurora-importados.css', './manifest.webmanifest'];
+const CACHE = 'aurora-v4';
+const CORE = [
+  './', './index.html', './meus-livros.html',
+  './aurora-estante.css', './aurora-estante.js', './aurora-importados.js',
+  './aurora-livro-3d.mjs', './assets/estante-nogueira.webp',
+  './assets/lombadas-couro.webp', './manifest.webmanifest'
+];
 
 self.addEventListener('install', event => {
   self.skipWaiting();

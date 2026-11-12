@@ -1,0 +1,73 @@
+:root{color-scheme:dark;--gold:#d9ae70;--cream:#f6ead4;--ink:#0a1e1c}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 0%,#214442 0%,#092321 52%,#09100f 100%);color:var(--cream);font-family:Georgia,"Times New Roman",serif}
+button,select,a{touch-action:manipulation}
+button:focus-visible,a:focus-visible,select:focus-visible,.import-option:focus-within{outline:2px solid #ffdb9e;outline-offset:3px}
+.tophead{text-align:center;position:relative;padding:32px 16px 18px;background:radial-gradient(ellipse at 50% 0%,#38514b 0%,transparent 75%)}
+.eyebrow{margin:0;color:#d6ad77;letter-spacing:4px;font:600 10px system-ui,sans-serif}
+h1{font-size:clamp(37px,7vw,56px);font-weight:normal;line-height:1.1;letter-spacing:-1.4px;margin:10px 0 7px}
+h1 em{font-weight:normal;color:#e8c18a;font-style:italic}
+.subtitle{font:13px/1.5 system-ui,sans-serif;color:#c4c3b2;margin:0 0 21px}
+.import-area{display:inline-block;position:relative;z-index:5}
+.import-trigger,.btn{cursor:pointer;border:1px solid #96734c;border-radius:10px;background:#302219;color:#f4d8ac;box-shadow:inset 0 1px #ffffff18,0 5px 15px #0004;padding:10px 16px;font:600 13px system-ui,sans-serif}
+.import-trigger{display:flex;align-items:center;gap:10px}
+.import-plus{font:24px/12px Georgia,serif;color:#e8bd80}
+.import-trigger:hover,.btn:hover{background:#4b3222}
+.import-menu{position:absolute;width:min(310px,calc(100vw - 24px));top:calc(100% + 9px);left:50%;transform:translateX(-50%);padding:14px;background:#1a2520;border:1px solid #aa8150;border-radius:12px;box-shadow:0 16px 40px #000c;text-align:left}
+.import-menu[hidden]{display:none}
+.menu-label{display:block;font:11px system-ui,sans-serif;letter-spacing:.5px;color:#dbc39f;margin:0 0 6px}
+.import-menu select{width:100%;height:36px;margin-bottom:12px;padding:0 9px;border-radius:7px;border:1px solid #796444;color:#fff1d4;background:#293830;font:13px system-ui,sans-serif}
+.import-option{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-top:7px;padding:11px 12px;border:1px solid #70593c;border-radius:8px;color:#f7e5c6;text-decoration:none;background:#34413a;font:600 13px system-ui,sans-serif;cursor:pointer}
+.import-option span:first-child{font-size:20px;color:#e3b579}
+.import-option span:last-child{margin-left:auto;color:#d2b18a}
+.import-option:hover{background:#485347}
+input[type=file]{display:none}
+.library{max-width:940px;margin:4px auto 0;padding:0 clamp(12px,3vw,26px) 26px}
+.category{margin:19px 0 31px}
+.section-title{margin:0 1px 12px;display:flex;align-items:center;gap:11px}
+.section-title h2{font:normal clamp(21px,5vw,29px) Georgia,serif;color:#edc895;margin:0;white-space:nowrap}
+.section-title:after{content:"";height:1px;flex:1;background:linear-gradient(90deg,#866843,#86684300)}
+.section-title .count{order:3;flex:0 0 auto;font:11px system-ui,sans-serif;color:#d9be9b}
+.cabinet{position:relative;isolation:isolate;padding:30px 15px 0;min-height:228px;border:8px solid #4f2d19;border-top:12px solid #74462c;border-bottom:0;border-radius:5px 5px 1px 1px;box-shadow:inset 0 0 0 2px #9c6534,inset 0 24px 30px #000a,0 20px 20px #0007;background-image:url('./assets/estante-nogueira.webp');background-repeat:no-repeat;background-size:100% 720px;background-position:center 12%;overflow:visible}
+.cabinet-1{background-position:center 38%}
+.cabinet-2{background-position:center 65%}
+.cabinet-3{background-position:center 93%}
+.cabinet:before{content:"";pointer-events:none;position:absolute;inset:0;background:linear-gradient(90deg,#0009,transparent 10%,transparent 90%,#0007),linear-gradient(180deg,#0008,transparent 40%)}
+.bookrow{position:relative;z-index:1;display:flex;align-items:flex-end;gap:2px;overflow-x:auto;overflow-y:hidden;padding:7px 8px 2px;min-height:171px;scrollbar-width:thin;scrollbar-color:#ad764a transparent}
+.book-spine{position:relative;display:block;flex:0 0 var(--book-width,46px);height:var(--book-height,166px);border:0;border-left:2px solid #22140e;border-right:2px solid #b68655;border-radius:3px 4px 4px 2px;background-color:#422c27;background-image:url('./assets/lombadas-couro.webp');background-repeat:no-repeat;background-size:800% 100%;background-position:var(--spine-pos,0%) center;box-shadow:inset 3px 0 5px #0008,inset -2px 0 4px #d6af7730,4px 4px 5px #000a;filter:saturate(.88);cursor:pointer;transition:transform .22s,filter .22s;transform:rotate(var(--tilt,0deg));color:#ffe8b8;padding:0;margin:0;text-align:center}
+.book-spine:hover,.book-spine:focus-visible{transform:translateY(-11px) rotate(0);filter:brightness(1.18);z-index:3;outline:2px solid #e8c48a;outline-offset:1px}
+.book-spine:after{content:"";pointer-events:none;position:absolute;inset:0;background:linear-gradient(90deg,#0007 0,transparent 20%,#fff5c012 70%,#0006 100%)}
+.spine-title{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;transform:rotate(180deg);width:100%;height:100%;overflow:hidden;padding:22px 5px 25px;font:bold clamp(10px,2.8vw,12px)/1.06 Georgia,serif;color:#ffe9bc;text-shadow:1px 2px 3px #000,0 0 5px #000}
+.book-spine[data-source="pdf"] .spine-title,.book-spine[data-source="txt"] .spine-title{color:#fff6d9}
+.spine-source{position:absolute;z-index:2;bottom:5px;left:50%;transform:translateX(-50%);font:8px system-ui,sans-serif;letter-spacing:.4px;color:#e9c388;background:#130d0b8a;padding:2px 3px;border-radius:3px}
+.spine-bookmark{position:absolute;z-index:2;top:2px;right:2px;color:#f8e5b3;font-size:10px;text-shadow:0 2px 2px #000}
+.shelf-lip{height:22px;position:relative;z-index:2;margin:0 -22px;background:linear-gradient(180deg,#c18a55 0%,#845029 28%,#4b2918 80%,#1c110c 100%);border-top:3px solid #d5a36a;border-bottom:2px solid #1c110e;box-shadow:0 7px 10px #000a}
+.footnote{font:12px/1.6 system-ui,sans-serif;text-align:center;color:#aaac9d;padding:6px 22px 36px;max-width:600px;margin:auto}
+/* O leitor TXT existente continua disponível, com progresso e narração. */
+.overlay{display:none;position:fixed;inset:0;z-index:20;background:radial-gradient(ellipse at 50% 0%,#384d42,#0b1311 75%);padding:15px;overflow:auto}
+.overlay.show{display:block}
+.reader-head{display:flex;justify-content:space-between;align-items:center;gap:9px;max-width:880px;margin:0 auto 13px}
+.reader-head h2{font:normal 18px Georgia,serif;margin:0;text-align:center;overflow:hidden;text-overflow:ellipsis}
+.reader-intro{text-align:center;color:#dbc5a2;font:12px system-ui,sans-serif;margin:10px auto 18px}
+.stage{max-width:860px;margin:auto;perspective:1300px}
+.book-open{position:relative;display:flex;min-height:min(66vh,590px);border:9px solid #704832;border-radius:5px 16px 16px 5px;overflow:hidden;box-shadow:0 19px 44px #000d}
+.paper{width:50%;padding:clamp(12px,3vw,30px);white-space:pre-wrap;overflow-wrap:anywhere;overflow:hidden;background:linear-gradient(90deg,#d6bd96,#fff4da 9%,#f1e3c7 95%,#bca57b);color:#32291e;font:clamp(13px,2.6vw,17px)/1.65 Georgia,serif}
+.paper.right{background:linear-gradient(90deg,#c4a77b,#fff7e3 12%,#f3e7ce 97%)}
+.paper.flip{animation:turn .5s ease-in-out;transform-origin:left center}
+@keyframes turn{0%{transform:rotateY(0)}50%{transform:rotateY(-70deg)}100%{transform:rotateY(0)}}
+.reader-actions{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:9px;padding:17px 0}
+.pagecount{font:12px system-ui,sans-serif;color:#eacda6}
+@media(max-width:550px){
+  .tophead{padding-top:24px}
+  .library{padding:0 13px 22px}
+  .category{margin-top:18px;margin-bottom:27px}
+  .cabinet{padding:19px 8px 0;min-height:214px;border-width:7px;border-bottom:0;border-top-width:10px;background-size:100% 635px}
+  .bookrow{min-height:176px;padding:4px 8px 1px;gap:1px}
+  .book-spine{flex-basis:var(--book-width,42px)}
+  .spine-title{font-size:11px}
+  .shelf-lip{margin:0 -15px;height:20px}
+  .book-open{min-height:57vh;border-width:5px}
+  .paper{font-size:13px;line-height:1.5;padding:13px}
+}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
