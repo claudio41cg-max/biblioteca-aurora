@@ -1,9 +1,11 @@
-const CACHE = 'aurora-v4';
+const CACHE = 'aurora-v5';
 const CORE = [
   './', './index.html', './meus-livros.html',
   './aurora-estante.css', './aurora-estante.js', './aurora-importados.js',
-  './aurora-livro-3d.mjs', './assets/estante-nogueira.webp',
-  './assets/lombadas-couro.webp', './manifest.webmanifest'
+  './aurora-livro-3d.mjs', './assets/prateleira-romances.webp',
+  './assets/prateleira-picantes.webp', './assets/prateleira-ficcao.webp',
+  './assets/prateleira-brasileiros.webp', './assets/lombadas-couro.webp',
+  './manifest.webmanifest'
 ];
 
 self.addEventListener('install', event => {

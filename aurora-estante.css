@@ -29,10 +29,10 @@ input[type=file]{display:none}
 .section-title h2{font:normal clamp(21px,5vw,29px) Georgia,serif;color:#edc895;margin:0;white-space:nowrap}
 .section-title:after{content:"";height:1px;flex:1;background:linear-gradient(90deg,#866843,#86684300)}
 .section-title .count{order:3;flex:0 0 auto;font:11px system-ui,sans-serif;color:#d9be9b}
-.cabinet{position:relative;isolation:isolate;padding:30px 15px 0;min-height:228px;border:8px solid #4f2d19;border-top:12px solid #74462c;border-bottom:0;border-radius:5px 5px 1px 1px;box-shadow:inset 0 0 0 2px #9c6534,inset 0 24px 30px #000a,0 20px 20px #0007;background-image:url('./assets/estante-nogueira.webp');background-repeat:no-repeat;background-size:100% 720px;background-position:center 12%;overflow:visible}
-.cabinet-1{background-position:center 38%}
-.cabinet-2{background-position:center 65%}
-.cabinet-3{background-position:center 93%}
+.cabinet{position:relative;isolation:isolate;padding:30px 15px 0;min-height:228px;border:8px solid #4f2d19;border-top:12px solid #74462c;border-bottom:0;border-radius:5px 5px 1px 1px;box-shadow:inset 0 0 0 2px #9c6534,inset 0 24px 30px #000a,0 20px 20px #0007;background-image:url('./assets/prateleira-romances.webp');background-repeat:no-repeat;background-size:100% 100%;background-position:center;overflow:visible}
+.cabinet-1{background-image:url('./assets/prateleira-picantes.webp')}
+.cabinet-2{background-image:url('./assets/prateleira-ficcao.webp')}
+.cabinet-3{background-image:url('./assets/prateleira-brasileiros.webp')}
 .cabinet:before{content:"";pointer-events:none;position:absolute;inset:0;background:linear-gradient(90deg,#0009,transparent 10%,transparent 90%,#0007),linear-gradient(180deg,#0008,transparent 40%)}
 .bookrow{position:relative;z-index:1;display:flex;align-items:flex-end;gap:2px;overflow-x:auto;overflow-y:hidden;padding:7px 8px 2px;min-height:171px;scrollbar-width:thin;scrollbar-color:#ad764a transparent}
 .book-spine{position:relative;display:block;flex:0 0 var(--book-width,46px);height:var(--book-height,166px);border:0;border-left:2px solid #22140e;border-right:2px solid #b68655;border-radius:3px 4px 4px 2px;background-color:#422c27;background-image:url('./assets/lombadas-couro.webp');background-repeat:no-repeat;background-size:800% 100%;background-position:var(--spine-pos,0%) center;box-shadow:inset 3px 0 5px #0008,inset -2px 0 4px #d6af7730,4px 4px 5px #000a;filter:saturate(.88);cursor:pointer;transition:transform .22s,filter .22s;transform:rotate(var(--tilt,0deg));color:#ffe8b8;padding:0;margin:0;text-align:center}
@@ -62,7 +62,7 @@ input[type=file]{display:none}
   .tophead{padding-top:24px}
   .library{padding:0 13px 22px}
   .category{margin-top:18px;margin-bottom:27px}
-  .cabinet{padding:19px 8px 0;min-height:214px;border-width:7px;border-bottom:0;border-top-width:10px;background-size:100% 635px}
+  .cabinet{padding:19px 8px 0;min-height:214px;border-width:7px;border-bottom:0;border-top-width:10px;background-size:100% 100%}
   .bookrow{min-height:176px;padding:4px 8px 1px;gap:1px}
   .book-spine{flex-basis:var(--book-width,42px)}
   .spine-title{font-size:11px}
