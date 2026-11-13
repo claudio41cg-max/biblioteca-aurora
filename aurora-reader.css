@@ -44,9 +44,8 @@
 }
 .reader .progressrow input{height:19px;accent-color:#cba371;cursor:pointer}
 .reader .progressrow span{min-width:38px;text-align:right;color:#e2cbab;font:600 11px system-ui,sans-serif}
-.reader .viewport{margin:5px 0 1px;padding-bottom:36px;box-sizing:border-box;overflow:auto;touch-action:pan-x pan-y}
-.reader.zoomed .viewport{overflow:hidden;touch-action:none;cursor:grab}
-.reader.zoomed .viewport:active{cursor:grabbing}
+.reader .viewport{margin:2px 0 1px;padding-bottom:48px;box-sizing:border-box;overflow:auto;touch-action:pan-x pan-y}
+.reader.zoomed .viewport{overflow:hidden;touch-action:none}
 .reader .flipbook{transition:transform .18s ease;will-change:transform}
 .reader .page canvas{filter:var(--reader-page-filter)}
 .reader .page.text-page{background:var(--reader-text-bg)!important;overflow:auto!important;overscroll-behavior:contain}
@@ -96,6 +95,6 @@
   .reader .readerhead #readerSettings{min-width:34px}
   .readerhead-actions{gap:4px}
   .reader .readerhead .title{font-size:12px}
-  .reader .viewport{margin-top:4px;padding-bottom:32px}
+  .reader .viewport{margin-top:2px;padding-bottom:46px}
 }
 @media(prefers-reduced-motion:reduce){.reader .flipbook{transition:none}}

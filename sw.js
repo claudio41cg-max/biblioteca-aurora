@@ -1,10 +1,10 @@
-const CACHE = 'aurora-v19';
+const CACHE = 'aurora-v20';
 const CORE = [
-  './', './index.html', './index.html?v=18', './meus-livros.html?v=18',
+  './', './index.html', './index.html?v=19', './meus-livros.html?v=19',
   './aurora-estante.css?v=15', './aurora-avancado.css?v=4', './aurora-sala-3d.css?v=2', './aurora-edicao.css?v=1',
-  './aurora-vitrine.css?v=5', './aurora-reader.css?v=2', './aurora-sinopses.js?v=2',
-  './aurora-estante.js?v=4', './aurora-sala-3d.js?v=4', './aurora-importados.js?v=18', './aurora-avancado.js?v=3',
-  './aurora-pdf-covers.js?v=1', './aurora-pdf-import.js?v=4',
+  './aurora-vitrine.css?v=5', './aurora-reader.css?v=3', './aurora-sinopses.js?v=2',
+  './aurora-estante.js?v=4', './aurora-sala-3d.js?v=5', './aurora-importados.js?v=19', './aurora-avancado.js?v=3',
+  './aurora-pdf-covers.js?v=1', './aurora-pdf-import.js?v=5',
   './aurora-livro-3d.mjs?v=4', './aurora-edition-surfaces.js?v=1', './assets/prateleira-romances.webp',
   './assets/prateleira-picantes.webp', './assets/prateleira-ficcao.webp',
   './assets/prateleira-brasileiros.webp', './assets/lombadas-couro.webp',
@@ -30,7 +30,7 @@ self.addEventListener('fetch', event => {
     // O endereço raiz pode permanecer no cache do GitHub Pages após um deploy.
     // A entrada versionada abre a edição atual também nos PWAs já instalados.
     const isAppRoot = new URL(request.url).pathname === new URL(self.registration.scope).pathname;
-    const resource = isAppRoot ? new Request(new URL('./index.html?v=18',self.registration.scope)) : request;
+    const resource = isAppRoot ? new Request(new URL('./index.html?v=19',self.registration.scope)) : request;
     event.respondWith(fetch(resource).then(response => {
       if (response.ok) {
         const copy = response.clone();

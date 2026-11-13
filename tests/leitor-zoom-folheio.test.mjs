@@ -20,7 +20,7 @@ const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
 const readingPrefs={size:16};
 const applyReaderZoom=new Function('$','clamp','readingPrefs',zoomSource+';return applyReaderZoom;')($,clamp,readingPrefs);
 
-const session={zoom:1,textMode:true,panX:0,panY:0};
+const session={zoom:1,textMode:true};
 applyReaderZoom(session,1.8);
 assert.equal(session.zoom,1.8);
 assert.equal(elements.flipbook.style.transform,'translate(0px,0px) scale(1)','A folha não pode aumentar além da tela no texto adaptado');
@@ -32,6 +32,7 @@ session.textMode=false;
 applyReaderZoom(session,1.2);
 assert.match(elements.flipbook.style.transform,/scale\(1\.2\)$/,'PDF original continua ampliando o volume');
 assert.equal(readerClasses.zoomed,true);
+assert.equal(elements.flipbook.style.transform,'scale(1.2)','O PDF original deve ficar ancorado no centro com zoom');
 
 const events=new Map();
 let captures=0,forward=0,backward=0;
@@ -44,6 +45,8 @@ new Function('$','active','applyReaderZoom',gestureSource)($,session,applyReader
 const pointer=(type,x,y)=>({type,pointerId:1,clientX:x,clientY:y,stopPropagation(){},preventDefault(){}});
 
 events.get('pointerdown')(pointer('pointerdown',250,200));
+events.get('pointermove')(pointer('pointermove',210,206));
+assert.equal(elements.flipbook.style.transform,'scale(1.2)','Arrastar a página não pode deslocar a folha ampliada');
 events.get('pointerup')(pointer('pointerup',130,210));
 assert.equal(forward,1,'O gesto lateral vira a folha para frente com zoom');
 events.get('pointerdown')(pointer('pointerdown',100,200));
@@ -55,5 +58,5 @@ applyReaderZoom(session,1.3);
 events.get('pointerdown')(pointer('pointerdown',250,200));
 assert.equal(captures,2,'No texto adaptado, os gestos continuam com o motor físico de folhas');
 assert.match(css,/box-sizing:border-box;width:100%;height:100%;overflow:auto/,'Texto ampliado permanece dentro da folha com rolagem vertical');
-assert.match(css,/padding-bottom:36px/,'Folha usa melhor a altura da tela');
+assert.match(css,/padding-bottom:48px/,'Folha usa melhor a altura da tela');
 console.log('Zoom e folheio: páginas navegáveis até 200%, texto dentro da folha e margens ajustadas.');

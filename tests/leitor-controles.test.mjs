@@ -23,12 +23,15 @@ assert.match(html,/active\.zoom===1\|\|active\.textMode/,'O zoom do texto não b
 assert.match(html,/active\.flip\.flipNext\('bottom'\)/,'O PDF ampliado deve poder virar folhas para frente');
 assert.match(html,/active\.flip\.flipPrev\('bottom'\)/,'O PDF ampliado deve poder virar folhas para trás');
 assert.match(html,/persistProgress\(active\)/,'Marcador continua salvando progresso');
-assert.match(html,/aurora-reader\.css\?v=2/);
+assert.match(html,/aurora-reader\.css\?v=3/);
 assert.match(css,/\.reader-prefs\[hidden\]/);
 assert.match(css,/\.reader\.zoomed \.viewport/);
 assert.match(css,/\.reader \.(?:page|pdf-readable-text)/);
-assert.match(sw,/\.\/aurora-reader\.css\?v=2/);
-assert.match(read('manifest.webmanifest'),/index\.html\?v=18/);
+assert.match(sw,/\.\/aurora-reader\.css\?v=3/);
+assert.match(read('manifest.webmanifest'),/index\.html\?v=19/);
+for(const font of ['serif','sans','times','palatino','handwritten','mono']){
+  assert.match(html,new RegExp(`<option value="${font}"`),`A fonte ${font} deve estar disponível`);
+}
 const embedded=[...html.matchAll(/<script(?:\s+[^>]*)?>([\s\S]*?)<\/script>/g)]
   .map(match=>match[1]).filter(Boolean);
 for(const code of embedded)new Function(code);

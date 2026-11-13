@@ -9,7 +9,7 @@
   <script>
     // A estante principal é a única entrada. Esta página serve só de visor 3D.
     if(!new URLSearchParams(location.search).get('livro'))
-      location.replace('./index.html?v=18');
+      location.replace('./index.html?v=19');
   </script>
   <style>
     :root{color-scheme:dark;--gold:#d1a16b;--paper:#fff5e4}*{box-sizing:border-box}
@@ -70,13 +70,13 @@
   </style>
   <link rel="stylesheet" href="./aurora-edicao.css?v=1">
   <link rel="stylesheet" href="./aurora-vitrine.css?v=5">
-  <link rel="stylesheet" href="./aurora-reader.css?v=2">
+  <link rel="stylesheet" href="./aurora-reader.css?v=3">
 </head>
 <body>
   <header class="tophead"><div class="eyebrow">SEU ACERVO PESSOAL</div><h1>✦ Meus livros • Aurora ✦</h1><p>Adicione seus livros PDF e guarde cada um pela lombada.</p></header>
   <nav class="toolbar">
     <label class="button" for="file">＋ Adicionar livro PDF</label>
-    <a class="button light" href="./index.html?v=18">Estante principal</a>
+    <a class="button light" href="./index.html?v=19">Estante principal</a>
     <label class="category-picker">Categoria
       <select id="importCategory" aria-label="Categoria do PDF ao importar">
         <option value="romance">Romances</option>
@@ -150,7 +150,14 @@
       <label class="reader-text-toggle"><input id="readerTextMode" type="checkbox"> Texto adaptado</label>
       <p class="reader-pref-hint">Opcional: permite mudar letras e espaçamento nos PDFs que contêm texto selecionável. A página original permanece disponível.</p>
       <div id="readerTextPrefs" class="reader-text-prefs" hidden>
-        <label for="readerFont">Fonte <select id="readerFont"><option value="serif">Clássica</option><option value="sans">Simples</option></select></label>
+        <label for="readerFont">Fonte <select id="readerFont">
+          <option value="serif">Clássica</option>
+          <option value="sans">Moderna</option>
+          <option value="times">Tradicional</option>
+          <option value="palatino">Elegante</option>
+          <option value="handwritten">Manuscrita</option>
+          <option value="mono">Máquina de escrever</option>
+        </select></label>
         <div class="reader-pref-line"><label for="readerFontSize">Tamanho das letras</label><output id="readerFontSizeValue" for="readerFontSize">16</output></div>
         <input id="readerFontSize" type="range" min="13" max="23" step="1" value="16">
         <div class="reader-pref-line"><label for="readerLineHeight">Espaçamento das linhas</label><output id="readerLineHeightValue" for="readerLineHeight">1,6</output></div>
@@ -173,9 +180,17 @@
     const buttons = ['goto','bookmark'];
     const prefsKey='aurora-reader-preferences-v1';
     const savedPrefs=(()=>{try{return JSON.parse(localStorage.getItem(prefsKey)||'{}')||{};}catch{return {};}})();
+    const readerFonts={
+      serif:'Georgia, "Noto Serif", serif',
+      sans:'system-ui, Roboto, sans-serif',
+      times:'"Times New Roman", Times, serif',
+      palatino:'"Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif',
+      handwritten:'cursive',
+      mono:'ui-monospace, "Courier New", monospace'
+    };
     const readingPrefs={
       theme:['original','sepia','night'].includes(savedPrefs.theme)?savedPrefs.theme:'original',
-      font:savedPrefs.font==='sans'?'sans':'serif',
+      font:Object.hasOwn(readerFonts,savedPrefs.font)?savedPrefs.font:'serif',
       size:Math.max(13,Math.min(23,Number(savedPrefs.size)||16)),
       line:Math.max(13,Math.min(21,Number(savedPrefs.line)||16))
     };
@@ -183,7 +198,7 @@
     function saveReadingPrefs(){try{localStorage.setItem(prefsKey,JSON.stringify(readingPrefs));}catch{}}
     function applyReadingPrefs(){
       $('reader').dataset.readerTheme=readingPrefs.theme;
-      $('reader').style.setProperty('--reader-text-font',readingPrefs.font==='sans'?'system-ui, sans-serif':'Georgia, serif');
+      $('reader').style.setProperty('--reader-text-font',readerFonts[readingPrefs.font]);
       $('reader').style.setProperty('--reader-text-size',readingPrefs.size+'px');
       $('reader').style.setProperty('--reader-text-line',String(readingPrefs.line/10));
       $('readerFont').value=readingPrefs.font;
@@ -435,7 +450,7 @@
     }
     $('back').onclick = () => {
       hideBook();
-      location.href = './index.html?v=18';
+      location.href = './index.html?v=19';
     };
     $('bookCategory').addEventListener('change',async event=>{
       if(!selectedId) return;
@@ -664,26 +679,22 @@
     function applyReaderZoom(session,ratio){
       if(!session)return;
       session.zoom=clamp(Math.round(ratio*10)/10,1,2);
-      if(session.zoom===1||session.textMode){session.panX=0;session.panY=0;}
       const host=$('flipbook');
-      const stage=$('viewport');
       if(session.textMode){
         // Mantém a geometria do livro e a interação física do StPageFlip:
         // apenas as letras crescem, com quebra de linha dentro da mesma folha.
         host.style.transform='translate(0px,0px) scale(1)';
         $('reader').style.setProperty('--reader-text-zoomed-size',(readingPrefs.size*session.zoom).toFixed(1)+'px');
       }else{
-        const maxX=Math.max(0,(host.offsetWidth*session.zoom-stage.clientWidth)/2);
-        const maxY=Math.max(0,(host.offsetHeight*session.zoom-stage.clientHeight)/2);
-        session.panX=clamp(session.panX||0,-maxX,maxX);
-        session.panY=clamp(session.panY||0,-maxY,maxY);
-        host.style.transform=`translate(${session.panX}px,${session.panY}px) scale(${session.zoom})`;
+        // A folha ampliada permanece centralizada: o gesto vira a página,
+        // sem deslocar o volume para os lados durante a animação.
+        host.style.transform=`scale(${session.zoom})`;
       }
       $('reader').classList.toggle('zoomed',session.zoom>1&&!session.textMode);
       $('readerZoom').value=String(Math.round(session.zoom*100));
       $('readerZoomValue').textContent=Math.round(session.zoom*100)+'%';
       if(session.textMode&&session.zoom>1)$('status').textContent='Texto ampliado dentro da folha. Arraste o canto para folhear.';
-      else if(session.zoom>1)$('status').textContent='Deslize para os lados para folhear; arraste para explorar o PDF ampliado.';
+      else if(session.zoom>1)$('status').textContent='Folha ampliada e fixa no centro. Deslize para os lados para folhear.';
       else $('status').textContent='Arraste o canto para virar a folha. Seu progresso é salvo automaticamente.';
     }
     async function openReader(id) {
@@ -696,7 +707,7 @@
       if (!meta) return;
       $('book3d').classList.add('opening');
       const token = ++generation;
-      const session = {id,total:0,page:0,bookmark:null,pages:[],rendering:new Set(),pdf:null,flip:null,closed:false,zoom:1,panX:0,panY:0,textMode:false};
+      const session = {id,total:0,page:0,bookmark:null,pages:[],rendering:new Set(),pdf:null,flip:null,closed:false,zoom:1,textMode:false};
       active = session;
       $('reader').classList.add('active');
       $('reader').classList.remove('zoomed');
@@ -728,7 +739,7 @@
         const vp = firstPage.getViewport({scale:1});
         const ratio = vp.width/vp.height;
         const mobile = innerWidth < 670;
-        const availableWidth = mobile ? innerWidth-8 : Math.min(540,(innerWidth-60)/2);
+        const availableWidth = mobile ? innerWidth-2 : Math.min(540,(innerWidth-60)/2);
         const availableHeight = Math.max(270,$('viewport').clientHeight-45);
         const width = Math.max(150,Math.floor(Math.min(availableWidth,availableHeight*ratio)));
         const height = Math.max(200,Math.floor(width/ratio));
@@ -808,7 +819,7 @@
       });
     });
     $('readerFont').addEventListener('change',event=>{
-      readingPrefs.font=event.target.value==='sans'?'sans':'serif';
+      readingPrefs.font=Object.hasOwn(readerFonts,event.target.value)?event.target.value:'serif';
       applyReadingPrefs();saveReadingPrefs();
     });
     $('readerFontSize').addEventListener('input',event=>{
@@ -848,41 +859,36 @@
       $('status').textContent=session.textMode?'Texto adaptado ativado. Arraste o canto para folhear.':'Página original do PDF restaurada.';
     });
     const viewport=$('viewport');
-    let pan=null;
+    let gesture=null;
     viewport.addEventListener('pointerdown',event=>{
       // No texto adaptado, os eventos ficam com o StPageFlip mesmo com zoom.
       if(!active?.flip||active.zoom===1||active.textMode)return;
-      pan={id:event.pointerId,x:event.clientX,y:event.clientY,ox:active.panX,oy:active.panY,session:active};
+      gesture={id:event.pointerId,x:event.clientX,y:event.clientY,session:active};
       viewport.setPointerCapture(event.pointerId);
       event.stopPropagation();event.preventDefault();
     },true);
     viewport.addEventListener('pointermove',event=>{
-      if(!pan||pan.id!==event.pointerId||pan.session!==active)return;
-      active.panX=pan.ox+event.clientX-pan.x;
-      active.panY=pan.oy+event.clientY-pan.y;
-      applyReaderZoom(active,active.zoom);
+      if(!gesture||gesture.id!==event.pointerId||gesture.session!==active)return;
+      // Apenas acompanha o gesto; nunca movimenta a folha ampliada.
       event.stopPropagation();event.preventDefault();
     },true);
-    const stopPan=event=>{
-      if(!pan||pan.id!==event.pointerId)return;
-      const gesture=pan;
-      pan=null;
-      if(event.type==='pointerup'&&gesture.session===active){
-        const dx=event.clientX-gesture.x;
-        const dy=event.clientY-gesture.y;
+    const stopGesture=event=>{
+      if(!gesture||gesture.id!==event.pointerId)return;
+      const completed=gesture;
+      gesture=null;
+      if(event.type==='pointerup'&&completed.session===active){
+        const dx=event.clientX-completed.x;
+        const dy=event.clientY-completed.y;
         if(Math.abs(dx)>44&&Math.abs(dx)>Math.abs(dy)*1.25){
           // A ampliação do PDF não pode desativar o folheio com curva e sombra.
-          active.panX=gesture.ox;
-          active.panY=gesture.oy;
-          applyReaderZoom(active,active.zoom);
           if(dx<0)active.flip.flipNext('bottom');
           else active.flip.flipPrev('bottom');
         }
       }
       event.stopPropagation();
     };
-    viewport.addEventListener('pointerup',stopPan,true);
-    viewport.addEventListener('pointercancel',stopPan,true);
+    viewport.addEventListener('pointerup',stopGesture,true);
+    viewport.addEventListener('pointercancel',stopGesture,true);
     ['touchstart','touchmove','touchend'].forEach(name=>{
       viewport.addEventListener(name,event=>{
         if(active?.zoom>1&&!active.textMode){event.stopPropagation();if(name==='touchmove')event.preventDefault();}
@@ -902,7 +908,7 @@
       if (catalog.some(item => item.id === originalRoute)) {
         showBook(originalRoute);
         if(routeParams.get('open')==='1')void openReader(originalRoute);
-      } else location.replace('./index.html?v=18');
+      } else location.replace('./index.html?v=19');
     }
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
   })();

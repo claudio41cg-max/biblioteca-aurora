@@ -10,7 +10,7 @@ assert.match(main,/id="pdfImportStatus"/);
 assert.match(main,/class="back-to-shelf"/);
 assert.match(main,/id="arrangeBack"/);
 assert.doesNotMatch(main,/id="pdfLink"[^>]*href=/);
-assert.match(viewer,/location\.replace\('\.\/index\.html\?v=18'\)/);
+assert.match(viewer,/location\.replace\('\.\/index\.html\?v=19'\)/);
 assert.match(viewer,/recoverOriginalBack\(id\)/);
 assert.match(viewer,/aurora-edition-surfaces\.js\?v=1/);
 assert.match(read('aurora-importados.js'),/AuroraShelfViewer\.open/);
