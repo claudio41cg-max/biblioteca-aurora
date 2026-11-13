@@ -103,7 +103,33 @@ input[type=file]{display:none}
 }
 /* Não desenhar um nome que não consta na fotografia da edição. */
 .book-spine[data-has-real-cover="true"] .spine-source{display:none}
-.book-spine[data-cover-derived="true"] .spine-title{display:none}
+/* O título continua legível mesmo quando a lombada vem de um recorte da capa. */
+.book-spine[data-cover-derived="true"] .spine-title{
+  display:flex;
+  color:#fff5dc;
+  font-family:Georgia,"Times New Roman",serif;
+  font-weight:700;
+  letter-spacing:.25px;
+  text-shadow:0 2px 3px #100905,0 0 7px #100905,1px 0 2px #100905;
+  background:linear-gradient(90deg,#10090570,transparent 24%,#10090535 78%,#10090585);
+}
+.book-spine[data-real-spine="true"] .spine-title{
+  color:#fff4da;
+  text-shadow:0 1px 3px #120b07,0 0 6px #120b07;
+}
+.aurora-book-flight{
+  position:fixed!important;z-index:9999!important;pointer-events:none!important;
+  margin:0!important;transform-origin:center center!important;
+  overflow:visible!important;will-change:transform,opacity;
+  filter:drop-shadow(12px 18px 15px #000b);
+}
+.aurora-flight-backdrop{
+  position:fixed;inset:0;z-index:9998;pointer-events:none;
+  background:#130b0880;opacity:0;
+}
+@media(prefers-reduced-motion:reduce){
+  .aurora-book-flight,.aurora-flight-backdrop{animation:none!important}
+}
 .shelf-book-cover{
   display:block;position:absolute;pointer-events:none;
   top:-1px;left:calc(100% - 1px);
