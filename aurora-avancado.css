@@ -36,7 +36,7 @@ body[data-plants="off"] .cabinet-1{background-image:url('./assets/prateleira-fic
 .book-spine[data-real-spine="true"]{background-size:100% 100%;background-position:center;filter:none}
 .book-spine[data-real-spine="true"] .spine-title,.book-spine[data-real-spine="true"] .spine-source{display:none}
 .book-spine[data-real-spine="true"]:after{background:none}
-.book-spine[data-source="pdf"][data-cover-derived="true"]{background-size:210% 100%;background-position:center}
+.book-spine[data-source="pdf"][data-cover-derived="true"]{background-size:900% 100%;background-position:0 50%}
 @media(max-width:520px){
   .library-tools{gap:6px}
   .library-tools button{font-size:11px;padding:8px}

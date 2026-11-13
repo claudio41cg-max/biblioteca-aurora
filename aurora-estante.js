@@ -44,19 +44,41 @@
     button.dataset.source = item.source || 'demo';
     button.title = item.title + (item.source === 'demo' ? ' • livro demonstrativo' : ' • tocar para pegar');
     button.setAttribute('aria-label', 'Pegar ' + item.title);
-    const bookHeight=151+seed%24;
-    const estimatedWidth=item.source==='pdf'?Math.max(29,Math.min(64,29+Number(item.total||0)/25)):37+seed%13;
+    const realPDF=item.source==='pdf';
+    const bookHeight=realPDF?160+seed%17:151+seed%24;
+    const estimatedWidth=realPDF?Math.max(28,Math.min(62,27+Number(item.total||0)/27)):37+seed%13;
     const naturalWidth=item.spineAspect?Math.max(22,Math.min(68,bookHeight*Number(item.spineAspect))):estimatedWidth;
+    const format=Math.max(.59,Math.min(.84,Number(item.ratio)||.72));
     button.style.setProperty('--book-width',naturalWidth+'px');
     button.style.setProperty('--book-height',bookHeight+'px');
+    button.style.setProperty('--cover-width',Math.round(bookHeight*format)+'px');
     button.style.setProperty('--tilt',((seed%5)-2)*.35+'deg');
     button.style.setProperty('--spine-pos',((seed%8)/7*100)+'%');
-    if(item.source==='pdf' && item.spine){
+    if(realPDF && item.spine){
       button.dataset.realSpine='true';
       button.style.backgroundImage='url('+JSON.stringify(item.spine)+')';
-    } else if(item.source==='pdf' && item.cover){
+    } else if(realPDF && item.cover){
       button.dataset.coverDerived='true';
       button.style.backgroundImage='url('+JSON.stringify(item.cover)+')';
+    }
+    // A capa é uma face distinta do volume. Somente a imagem original do PDF
+    // pode aparecer nela; jamais montamos uma capa fictícia com o título.
+    if(realPDF && item.cover){
+      const cover=document.createElement('span');
+      cover.className='shelf-book-cover';
+      cover.setAttribute('aria-hidden','true');
+      const image=document.createElement('img');
+      image.src=item.cover;
+      image.alt='';
+      image.loading='lazy';
+      image.decoding='async';
+      cover.append(image);
+      button.append(cover);
+      const pages=document.createElement('span');
+      pages.className='shelf-book-pages';
+      pages.setAttribute('aria-hidden','true');
+      button.append(pages);
+      button.dataset.hasRealCover='true';
     }
     const label=document.createElement('span');
     label.className='spine-title';
@@ -137,7 +159,7 @@
   document.addEventListener('keydown',event=>{
     if (event.key==='Escape') toggleMenu(false);
   });
-  importCategory.addEventListener('change',()=>{$('pdfLink').href='./meus-livros.html?categoria='+encodeURIComponent(importCategory.value)+'&v=9';});
+  importCategory.addEventListener('change',()=>{$('pdfLink').href='./meus-livros.html?categoria='+encodeURIComponent(importCategory.value)+'&v=10';});
   $('txtFile').addEventListener('change',async event=>{
     const file=event.target.files?.[0];
     if (!file) return;

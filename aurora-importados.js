@@ -27,6 +27,7 @@
         cover:book.cover||'',
         spine:book.spine||'',
         spineAspect:book.spineAspect||0,
+        ratio:book.ratio||.72,
         total:book.total||0,
         status:book.status||'quero-ler',
         category:shelf.getCategory(book.category,book.name),
@@ -44,12 +45,13 @@
           cover:book.cover,
           spine:book.spine,
           spineAspect:book.spineAspect,
+          ratio:book.ratio,
           bookmarked:book.bookmarked
         });
         button.dataset.bookId=book.id;
         button.title=book.title+' • tocar para ver a capa original em 3D';
         button.addEventListener('click',()=>{
-          location.href='./meus-livros.html?livro='+encodeURIComponent(book.id)+'&v=9';
+          location.href='./meus-livros.html?livro='+encodeURIComponent(book.id)+'&v=10';
         });
         // Um título do catálogo demonstrativo dá lugar à edição realmente baixada.
         const duplicate=Array.from(row.querySelectorAll('.book-spine')).find(node=>

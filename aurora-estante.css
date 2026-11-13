@@ -71,3 +71,74 @@ input[type=file]{display:none}
   .paper{font-size:13px;line-height:1.5;padding:13px}
 }
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+/* Livro físico individual: capa original na lateral, páginas e contato com a madeira.
+   Sem foto da lombada, a imagem usada vem da borda da capa do próprio PDF. */
+.bookrow{perspective:1050px;perspective-origin:50% 64%;padding-top:20px;min-height:197px}
+.book-spine{
+  transform-style:preserve-3d;
+  transform-origin:50% 100%;
+  backface-visibility:visible;
+  box-shadow:inset 4px 0 7px #090604b8,inset -3px 0 5px #fff2d32c,3px 7px 6px #000b;
+  transition:transform .38s cubic-bezier(.22,.8,.2,1),filter .32s,box-shadow .32s;
+}
+.book-spine::before{
+  content:"";position:absolute;pointer-events:none;z-index:-1;
+  left:-5px;right:-5px;bottom:-7px;height:8px;
+  border-radius:50%;background:#080503d9;filter:blur(4px);
+  transform:translateZ(-5px);
+}
+.book-spine[data-has-real-cover="true"]{
+  isolation:auto;
+  border-right:1px solid #241712;
+  filter:none;
+  transform:rotateY(-5deg) rotateZ(var(--tilt,0deg));
+}
+.book-spine[data-cover-derived="true"]{
+  background-size:900% 100%;
+  background-position:0 50%;
+}
+/* Não desenhar um nome que não consta na fotografia da edição. */
+.book-spine[data-has-real-cover="true"] .spine-source{display:none}
+.book-spine[data-cover-derived="true"] .spine-title{display:none}
+.shelf-book-cover{
+  display:block;position:absolute;pointer-events:none;
+  top:-1px;left:calc(100% - 1px);
+  height:calc(100% + 2px);width:var(--cover-width,120px);
+  transform-origin:0 50%;transform:rotateY(90deg);
+  background:#34271d;
+  border:2px solid #302015;border-left:3px solid #1f130e;
+  border-radius:2px 5px 5px 2px;
+  overflow:hidden;
+  box-shadow:inset 7px 0 9px #0007,6px 9px 15px #0009;
+  backface-visibility:hidden;
+}
+.shelf-book-cover img{display:block;width:100%;height:100%;object-fit:fill}
+.shelf-book-cover::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(90deg,#130b0845,transparent 16%,#fff8e70a 73%,#120c081a);
+}
+.shelf-book-pages{
+  display:block;position:absolute;pointer-events:none;
+  left:2px;top:2px;
+  width:calc(100% - 4px);height:calc(var(--cover-width,120px) - 6px);
+  transform-origin:center top;transform:rotateX(-90deg);
+  background:repeating-linear-gradient(90deg,#f6ebd6 0px,#e2d3ba 1px,#fcf4e5 2px,#c8b69b 3px);
+  border:1px solid #ab9471;
+  box-shadow:inset 0 7px 12px #7660444d;
+}
+@media(hover:hover) and (pointer:fine){
+  body:not(.arranging) .book-spine[data-has-real-cover="true"]:hover{
+    transform:translateY(-9px) translateZ(54px) rotateY(-58deg) rotateX(3deg);
+    box-shadow:inset 4px 0 7px #090604b8,18px 24px 23px #000d;
+    filter:none;z-index:20;
+  }
+}
+body:not(.arranging) .book-spine[data-has-real-cover="true"]:focus-visible{
+  transform:translateY(-9px) translateZ(54px) rotateY(-58deg) rotateX(3deg);
+  filter:none;z-index:20;
+}
+@media(max-width:550px){
+  .bookrow{min-height:195px;padding-top:19px}
+  .book-spine[data-has-real-cover="true"]:active{transform:translateY(-5px) translateZ(14px) rotateY(-19deg)}
+}

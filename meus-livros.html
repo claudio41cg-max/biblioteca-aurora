@@ -63,7 +63,7 @@
   <header class="tophead"><div class="eyebrow">SEU ACERVO PESSOAL</div><h1>✦ Meus livros • Aurora ✦</h1><p>Adicione seus livros PDF e guarde cada um pela lombada.</p></header>
   <nav class="toolbar">
     <label class="button" for="file">＋ Adicionar livro PDF</label>
-    <a class="button light" href="./index.html?v=9">Estante principal</a>
+    <a class="button light" href="./index.html?v=10">Estante principal</a>
     <label class="category-picker">Categoria
       <select id="importCategory" aria-label="Categoria do PDF ao importar">
         <option value="romance">Romances</option>
@@ -310,7 +310,7 @@
     }
     $('back').onclick = () => {
       hideBook();
-      if (originalRoute) location.href = './index.html?v=9';
+      if (originalRoute) location.href = './index.html?v=10';
     };
     $('bookCategory').addEventListener('change',async event=>{
       if(!selectedId) return;
