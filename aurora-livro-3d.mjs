@@ -20,6 +20,12 @@ function initialize(){
   renderer.domElement.setAttribute('role','button');
   renderer.domElement.tabIndex=0;
   stage.append(renderer.domElement);
+  renderer.domElement.addEventListener('webglcontextlost',event=>{
+    event.preventDefault();
+    // Em celulares que perdem o contexto gráfico, a capa original continua
+    // disponível no livro CSS, sem mostrar a capa provisória marrom.
+    stage.classList.remove('three-ready');
+  });
 
   const scene=new THREE.Scene();
   const camera=new THREE.PerspectiveCamera(36,1,.1,80);
@@ -140,6 +146,41 @@ function initialize(){
     };
     img.src=url;
   }
+  function loadOriginalFront(material,url,token,bookId){
+    if(typeof url!=='string'||!url.trim())return;
+    const img=new Image();
+    img.decoding='async';
+    img.onload=()=>{
+      if(token!==modelGeneration || !img.naturalWidth || !img.naturalHeight)return;
+      // A fotografia original é a própria textura WebGL. Não recriamos uma capa
+      // marrom nem imprimimos o nome do livro sobre a imagem do PDF.
+      const realTexture=new THREE.Texture(img);
+      realTexture.colorSpace=THREE.SRGBColorSpace;
+      realTexture.anisotropy=Math.min(renderer.capabilities.getMaxAnisotropy(),8);
+      realTexture.needsUpdate=true;
+      const provisional=material.map;
+      material.map=realTexture;
+      material.needsUpdate=true;
+      try {
+        resize();
+        render();
+        provisional?.dispose();
+        // Só escondemos o livro CSS depois de o WebGL já ter a capa original.
+        stage.classList.add('three-ready');
+      } catch(error) {
+        material.map=provisional;
+        material.needsUpdate=true;
+        realTexture.dispose();
+        console.warn('A capa original continuará no livro 3D compatível:',error);
+      }
+    };
+    img.onerror=()=>{
+      if(token!==modelGeneration)return;
+      console.warn('A imagem original do PDF não pôde ser decodificada pelo 3D.');
+      window.dispatchEvent(new CustomEvent('aurora:cover-error',{detail:{id:bookId}}));
+    };
+    img.src=url;
+  }
   function clearModel(){
     while(group.children.length) {
       const child=group.children[0];
@@ -201,7 +242,7 @@ function initialize(){
       group.add(trim);
     });
 
-    paintPhoto(coverSurface,book.cover,token);
+    loadOriginalFront(frontMaterial,book.cover,token,book.id);
     paintPhoto(backSurface,book.back,token);
     paintPhoto(spineTexture,book.spine,token,true);
     group.rotation.set(rotation.x,rotation.y,0);
@@ -211,8 +252,8 @@ function initialize(){
     currentBook=book;
     opening=false;
     rotation={x:-.09,y:.28};
+    stage.classList.remove('three-ready');
     makeModel(book);
-    stage.classList.add('three-ready');
     resize();
   }
   function reset(){

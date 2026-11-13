@@ -1,10 +1,10 @@
-const CACHE = 'aurora-v12';
+const CACHE = 'aurora-v13';
 const CORE = [
-  './', './index.html', './index.html?v=10', './meus-livros.html',
+  './', './index.html', './index.html?v=11', './meus-livros.html',
   './aurora-estante.css?v=6', './aurora-avancado.css?v=2', './aurora-edicao.css?v=1',
-  './aurora-vitrine.css?v=3', './aurora-sinopses.js?v=2',
+  './aurora-vitrine.css?v=4', './aurora-sinopses.js?v=2',
   './aurora-estante.js?v=2', './aurora-importados.js?v=2', './aurora-avancado.js',
-  './aurora-livro-3d.mjs', './assets/prateleira-romances.webp',
+  './aurora-livro-3d.mjs?v=2', './assets/prateleira-romances.webp',
   './assets/prateleira-picantes.webp', './assets/prateleira-ficcao.webp',
   './assets/prateleira-brasileiros.webp', './assets/lombadas-couro.webp',
   './manifest.webmanifest'
@@ -29,7 +29,7 @@ self.addEventListener('fetch', event => {
     // O endereço raiz pode permanecer no cache do GitHub Pages após um deploy.
     // A entrada versionada abre a edição atual também nos PWAs já instalados.
     const isAppRoot = new URL(request.url).pathname === new URL(self.registration.scope).pathname;
-    const resource = isAppRoot ? new Request(new URL('./index.html?v=10',self.registration.scope)) : request;
+    const resource = isAppRoot ? new Request(new URL('./index.html?v=11',self.registration.scope)) : request;
     event.respondWith(fetch(resource).then(response => {
       if (response.ok) {
         const copy = response.clone();

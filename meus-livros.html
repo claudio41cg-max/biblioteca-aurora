@@ -57,13 +57,13 @@
     @media(max-width:500px){.toolbar{padding:12px 9px;gap:6px}.category-picker{flex-basis:100%}.category-picker select{max-width:none;width:min(230px,67vw)}}
   </style>
   <link rel="stylesheet" href="./aurora-edicao.css?v=1">
-  <link rel="stylesheet" href="./aurora-vitrine.css?v=3">
+  <link rel="stylesheet" href="./aurora-vitrine.css?v=4">
 </head>
 <body>
   <header class="tophead"><div class="eyebrow">SEU ACERVO PESSOAL</div><h1>✦ Meus livros • Aurora ✦</h1><p>Adicione seus livros PDF e guarde cada um pela lombada.</p></header>
   <nav class="toolbar">
     <label class="button" for="file">＋ Adicionar livro PDF</label>
-    <a class="button light" href="./index.html?v=10">Estante principal</a>
+    <a class="button light" href="./index.html?v=11">Estante principal</a>
     <label class="category-picker">Categoria
       <select id="importCategory" aria-label="Categoria do PDF ao importar">
         <option value="romance">Romances</option>
@@ -140,6 +140,7 @@
     if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     let database, catalog = [], selectedId = null, active = null, down = null, rotation = {x:-5,y:-22}, generation = 0;
     const recoveringCovers = new Set();
+    const retriedBrokenCovers = new Set();
     const routeParams = new URLSearchParams(location.search);
     const originalRoute = routeParams.get('livro');
     const validCategories = ['romance','adulto','ficcao','brasileiros'];
@@ -245,6 +246,24 @@
     function updateRotation() {
       $('book3d').style.transform = `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)`;
     }
+    $('cover3d').addEventListener('load',()=>{
+      const current=catalog.find(item=>item.id===selectedId);
+      if(!current?.cover || $('cover3d').getAttribute('src')!==current.cover)return;
+      $('scene').classList.remove('cover-loading');
+      $('coverNotice').textContent='';
+    });
+    $('cover3d').addEventListener('error',()=>{
+      const current=catalog.find(item=>item.id===selectedId);
+      if(!current?.cover)return;
+      $('scene').classList.add('cover-loading');
+      $('coverNotice').textContent='Recuperando novamente a capa original do PDF…';
+      if(!retriedBrokenCovers.has(selectedId)){
+        retriedBrokenCovers.add(selectedId);
+        void recoverOriginalCover(selectedId,true);
+      }else{
+        $('coverNotice').textContent='Não foi possível ler a capa deste arquivo. Importe novamente o PDF original.';
+      }
+    });
     function showBook(id) {
       const book = catalog.find(item => item.id === id);
       if (!book) { $('hint').textContent = 'Este livro não está mais disponível neste navegador.'; return; }
@@ -254,8 +273,12 @@
       const known=window.AuroraBookInfo?.find(book.name);
       $('showtitle').textContent = known?.title||book.name.replace(/[_-]+/g,' ');
       $('showauthor').textContent = 'por '+(known?.author||book.author||'Autor não informado');
+      $('scene').classList.remove('three-ready');
+      $('scene').classList.add('cover-loading');
       $('cover3d').src = book.cover || '';
       $('cover3d').alt = 'Capa original de ' + book.name;
+      if(book.cover && $('cover3d').complete && $('cover3d').naturalWidth>0)
+        $('scene').classList.remove('cover-loading');
       const format=Math.max(.59,Math.min(.84,Number(book.ratio)||.72));
       $('book3d').style.setProperty('--book-ratio',String(format));
       $('book3d').style.width = 'min('+(65*format/.72).toFixed(1)+'vw,'+Math.round(326*format/.72)+'px)';
@@ -280,13 +303,13 @@
       document.body.style.overflow = 'hidden';
       if(!book.cover) void recoverOriginalCover(id);
     }
-    async function recoverOriginalCover(id) {
+    async function recoverOriginalCover(id,force=false) {
       if(recoveringCovers.has(id))return;
       recoveringCovers.add(id);
       try {
         const record=await dbGet('books',id);
         if(!record?.data || !window.pdfjsLib)throw new Error('Arquivo PDF indisponível');
-        if(record.cover){await reloadCatalog();if(selectedId===id)showBook(id);return;}
+        if(record.cover && !force){await reloadCatalog();if(selectedId===id)showBook(id);return;}
         const task=pdfjsLib.getDocument({data:new Uint8Array(record.data.slice(0))});
         const pdf=await task.promise;
         try {
@@ -310,7 +333,7 @@
     }
     $('back').onclick = () => {
       hideBook();
-      if (originalRoute) location.href = './index.html?v=10';
+      if (originalRoute) location.href = './index.html?v=11';
     };
     $('bookCategory').addEventListener('change',async event=>{
       if(!selectedId) return;
@@ -326,7 +349,15 @@
       }
     });
     window.addEventListener('aurora:cover-error',event=>{
-      if(event.detail?.id===selectedId)$('coverNotice').textContent='Não foi possível exibir a capa original. Experimente importar novamente este PDF.';
+      if(event.detail?.id!==selectedId)return;
+      // O renderizador 3D pode falhar em alguns aparelhos. Se o <img> original
+      // abriu, o modo CSS continua mostrando essa capa sem pedir reimportação.
+      if($('cover3d').naturalWidth>0)return;
+      $('coverNotice').textContent='A imagem original está sendo recuperada do PDF…';
+      if(!retriedBrokenCovers.has(selectedId)){
+        retriedBrokenCovers.add(selectedId);
+        void recoverOriginalCover(selectedId,true);
+      }
     });
     window.addEventListener('aurora:open-book',()=>{if(selectedId) openReader(selectedId);});
     const model = $('book3d');
@@ -607,6 +638,6 @@
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
   })();
   </script>
-  <script type="module" src="./aurora-livro-3d.mjs"></script>
+  <script type="module" src="./aurora-livro-3d.mjs?v=2"></script>
 </body>
 </html>

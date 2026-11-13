@@ -64,6 +64,8 @@
   touch-action:pan-y;
 }
 .scene .aurora-webgl,.scene .book3d{touch-action:pan-y}
+.scene:not(.three-ready) .aurora-webgl{display:none}
+.scene.cover-loading .book3d{visibility:hidden}
 .book3d{
   height:auto;
   width:min(65vw,326px);

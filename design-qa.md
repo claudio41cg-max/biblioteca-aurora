@@ -40,3 +40,13 @@ Data: 13/11/2026
 O desenho está implementado, mas a verificação visual de fidelidade foi bloqueada pela prévia indisponível e pela falta do PDF importado no navegador de teste. Não classificar como réplica perfeita até conferir a mesma edição no celular.
 
 **final result: blocked**
+
+## Correção posterior: capa original do PDF na vitrine (13/11/2026)
+
+- **Evidência do usuário:** `/workspace/scratch/27706d36a83f/upload/04-289382.jpg` mostra uma capa inteiramente marrom no WebGL, apesar de `/workspace/scratch/27706d36a83f/upload/02-289359.jpg` mostrar a capa impressa real de «Orgulho e Preconceito» em uma versão anterior.
+- **Causa de código identificada:** `aurora-livro-3d.mjs` habilitava `three-ready` antes de a imagem original terminar de carregar. Quando o carregamento falhava, o canvas WebGL substituía prematuramente o HTML com `<img>` da capa real.
+- **Correção:** a classe `three-ready` agora só é ativada depois de a textura original ser criada e renderizada; usa `THREE.Texture` diretamente da imagem do PDF. CSS e WebGL não ficam visíveis ao mesmo tempo. Se o WebGL falhar ou perder contexto, o HTML 3D com a imagem do PDF continua em uso. O HTML também espera a carga da imagem em vez de mostrar a capa provisória e tenta reconstruir capas inválidas a partir do PDF IndexedDB existente.
+- **Verificações:** sintaxe de módulo, do script embutido e do service worker passou; as chamadas de recuperação preservam o `ArrayBuffer` integral e o progresso do livro. A aba do navegador de inspeção não possui o PDF original do S24, portanto não é possível validar o carregamento WebGL com a edição real sem teste do usuário.
+- **P1 pendente:** inspecionar no S24 FE a capa real após carregamento, girar o volume e abrir o leitor. Se a capa não aparecer, obter o erro específico e verificar se o PDF original está disponível no IndexedDB do navegador do usuário.
+
+**final result: blocked**
