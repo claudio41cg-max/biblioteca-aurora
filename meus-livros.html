@@ -458,7 +458,7 @@
     });
 
     function persistProgress(session) {
-      if (!session || session.closed) return;
+      if (!session || session.closed || !session.total) return;
       const elapsed=Math.max(0,Math.floor((Date.now()-(session.startedAt||Date.now()))/1000));
       const record = {id:session.id,page:session.page,bookmark:session.bookmark,
         seconds:(session.initialSeconds||0)+elapsed,updated:Date.now()};
