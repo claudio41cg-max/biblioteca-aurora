@@ -34,7 +34,7 @@ function initialize(){
   const group=new THREE.Group();
   scene.add(group);
 
-  let currentBook=null,frontHinge=null,down=null,rotation={x:-.09,y:.28},opening=false;
+  let currentBook=null,frontHinge=null,down=null,rotation={x:-.09,y:.28},opening=false,modelGeneration=0;
   let scheduled=false,requestId=0;
   const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
   const render=()=>renderer.render(scene,camera);
@@ -72,7 +72,7 @@ function initialize(){
     ctx.strokeStyle='#ba9155';ctx.lineWidth=8;ctx.strokeRect(18,17,476,684);
     ctx.strokeStyle='#7c5631';ctx.lineWidth=2;ctx.strokeRect(32,32,448,655);
     ctx.fillStyle='#dcc193';ctx.textAlign='center';
-    ctx.font='28px Georgia';ctx.fillText(back?'BIBLIOTECA AURORA':'MINHA BIBLIOTECA',256,100);
+    ctx.font='28px Georgia';ctx.fillText(back?'':'MINHA BIBLIOTECA',256,100);
     const words=String(name).split(/\s+/),lines=[];
     let line='';
     words.forEach(word=>{
@@ -80,9 +80,18 @@ function initialize(){
       else line+=(line?' ':'')+word;
     });
     if(line) lines.push(line);
-    ctx.fillStyle='#f4d6a0';ctx.font='bold 42px Georgia';
-    lines.slice(0,5).forEach((text,index)=>ctx.fillText(text,256,300+index*55,450));
-    ctx.font='20px Georgia';ctx.fillText(back?'Acervo pessoal':'Edição pessoal',256,643);
+    if(!back){
+      ctx.fillStyle='#f4d6a0';ctx.font='bold 42px Georgia';
+      lines.slice(0,5).forEach((text,index)=>ctx.fillText(text,256,300+index*55,450));
+      ctx.font='20px Georgia';ctx.fillText('Edição pessoal',256,643);
+    }else{
+      // Sem fotografia da contracapa, a superfície é neutra.
+      // Nunca inventamos arte que seria atribuída à edição original.
+      const ornament=ctx.createRadialGradient(256,365,20,256,365,215);
+      ornament.addColorStop(0,'#a27d4b33');ornament.addColorStop(1,'#a27d4b00');
+      ctx.fillStyle=ornament;ctx.fillRect(35,140,440,480);
+      ctx.strokeStyle='#ad8a5655';ctx.lineWidth=2;ctx.strokeRect(72,75,368,570);
+    }
     return canvas;
   }
   function edgeCanvas(){
@@ -124,6 +133,26 @@ function initialize(){
   const darkLeather=new THREE.MeshStandardMaterial({color:0x28180f,roughness:.85});
   const gold=new THREE.MeshStandardMaterial({color:0xa9814f,roughness:.45,metalness:.45});
   const parchment=new THREE.MeshStandardMaterial({color:0xf3e4c8,roughness:1});
+  function paintPhoto(texture,url,token,spine=false){
+    if(!url)return;
+    const img=new Image();
+    img.onload=()=>{
+      if(token!==modelGeneration)return;
+      const canvas=document.createElement('canvas');
+      canvas.width=spine?256:512;
+      canvas.height=spine?960:720;
+      const ctx=canvas.getContext('2d',{alpha:false});
+      ctx.fillStyle='#302016';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      // Preenche a face correspondente. Fotos já recortadas da edição preservam a arte.
+      ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      texture.image=canvas;
+      texture.needsUpdate=true;
+      queueRender();
+    };
+    img.onerror=()=>console.warn('Não foi possível carregar a foto desta face do exemplar.');
+    img.src=url;
+  }
   function clearModel(){
     while(group.children.length) {
       const child=group.children[0];
@@ -143,8 +172,9 @@ function initialize(){
   }
   function makeModel(book){
     clearModel();
-    const width=2.28,height=3.13;
-    const thickness=clamp(.22+(Number(book.total||180)/1200),.26,.52);
+    const token=++modelGeneration;
+    const height=3.13,width=height*clamp(Number(book.ratio)||.72,.59,.84);
+    const thickness=clamp(.25+(Number(book.total||180)/1000),.34,.72);
     const paper=new THREE.Mesh(new THREE.BoxGeometry(width-.12,height-.11,thickness-.075),[
       pageMaterial,pageMaterial,pageMaterial,pageMaterial,parchment,parchment
     ]);
@@ -152,7 +182,7 @@ function initialize(){
     group.add(paper);
 
     const coverSurface=canvasTexture(faceCanvas(book.name));
-    const frontMaterial=new THREE.MeshStandardMaterial({map:coverSurface,roughness:.81,metalness:0});
+    const frontMaterial=new THREE.MeshPhysicalMaterial({map:coverSurface,roughness:.56,metalness:0,clearcoat:.28,clearcoatRoughness:.34});
     const faceSides=[darkLeather,leather,gold,leather,frontMaterial,leather];
     frontHinge=new THREE.Group();
     frontHinge.position.set(-width/2,0,thickness/2+.028);
@@ -162,7 +192,7 @@ function initialize(){
     group.add(frontHinge);
 
     const backSurface=canvasTexture(faceCanvas(book.name,true));
-    const backMaterial=new THREE.MeshStandardMaterial({map:backSurface,roughness:.88,metalness:0});
+    const backMaterial=new THREE.MeshPhysicalMaterial({map:backSurface,roughness:.71,metalness:0,clearcoat:.18});
     const backMesh=new THREE.Mesh(new THREE.BoxGeometry(width,height,.055),[
       leather,leather,gold,leather,leather,backMaterial
     ]);
@@ -170,7 +200,7 @@ function initialize(){
     group.add(backMesh);
 
     const spineTexture=spineCanvas(book.name);
-    const spineMaterial=new THREE.MeshStandardMaterial({map:spineTexture,roughness:.83,metalness:.04});
+    const spineMaterial=new THREE.MeshPhysicalMaterial({map:spineTexture,roughness:.65,metalness:.02,clearcoat:.24});
     const spineMesh=new THREE.Mesh(new THREE.BoxGeometry(.14,height-.02,thickness+.09),[
       leather,spineMaterial,gold,gold,leather,darkLeather
     ]);
@@ -184,22 +214,9 @@ function initialize(){
       group.add(trim);
     });
 
-    if(book.cover){
-      const image=new Image();
-      image.onload=()=>{
-        if(currentBook?.id!==book.id) return;
-        const canvas=document.createElement('canvas');
-        canvas.width=512;canvas.height=720;
-        const ctx=canvas.getContext('2d');
-        ctx.fillStyle='#261911';ctx.fillRect(0,0,512,720);
-        ctx.drawImage(image,6,6,500,708);
-        ctx.strokeStyle='#8c673b';ctx.lineWidth=5;ctx.strokeRect(3,3,506,714);
-        coverSurface.image=canvas;
-        coverSurface.needsUpdate=true;
-        queueRender();
-      };
-      image.src=book.cover;
-    }
+    paintPhoto(coverSurface,book.cover,token);
+    paintPhoto(backSurface,book.back,token);
+    paintPhoto(spineTexture,book.spine,token,true);
     group.rotation.set(rotation.x,rotation.y,0);
     queueRender();
   }

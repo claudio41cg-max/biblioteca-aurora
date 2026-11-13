@@ -44,10 +44,20 @@
     button.dataset.source = item.source || 'demo';
     button.title = item.title + (item.source === 'demo' ? ' • livro demonstrativo' : ' • tocar para pegar');
     button.setAttribute('aria-label', 'Pegar ' + item.title);
-    button.style.setProperty('--book-width',(37+seed%13)+'px');
-    button.style.setProperty('--book-height',(151+seed%24)+'px');
+    const bookHeight=151+seed%24;
+    const estimatedWidth=item.source==='pdf'?Math.max(29,Math.min(64,29+Number(item.total||0)/25)):37+seed%13;
+    const naturalWidth=item.spineAspect?Math.max(22,Math.min(68,bookHeight*Number(item.spineAspect))):estimatedWidth;
+    button.style.setProperty('--book-width',naturalWidth+'px');
+    button.style.setProperty('--book-height',bookHeight+'px');
     button.style.setProperty('--tilt',((seed%5)-2)*.35+'deg');
     button.style.setProperty('--spine-pos',((seed%8)/7*100)+'%');
+    if(item.source==='pdf' && item.spine){
+      button.dataset.realSpine='true';
+      button.style.backgroundImage='url('+JSON.stringify(item.spine)+')';
+    } else if(item.source==='pdf' && item.cover){
+      button.dataset.coverDerived='true';
+      button.style.backgroundImage='url('+JSON.stringify(item.cover)+')';
+    }
     const label=document.createElement('span');
     label.className='spine-title';
     label.textContent=item.title.replace(/[-_]+/g,' ');

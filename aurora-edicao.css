@@ -1,0 +1,25 @@
+/* Ficha do exemplar. Os detalhes ficam recolhidos para manter o volume em destaque. */
+.edition-panel{width:min(100%,690px);flex:none;margin:5px auto 12px;padding:0 15px;border:1px solid #8e6741;border-radius:11px;background:linear-gradient(120deg,#302016,#1a110e);box-shadow:0 7px 24px #0007;color:#e9d3b3;font:13px/1.5 system-ui,sans-serif}
+.edition-panel summary{padding:13px 3px;color:#f2c998;font:600 13px system-ui,sans-serif;cursor:pointer}
+.edition-panel[open] summary{border-bottom:1px solid #745436}
+.edition-help{color:#cbb492;font:12px/1.55 system-ui,sans-serif;margin:13px 0}
+.edition-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding-bottom:15px}
+.edition-fields label{display:flex;flex-direction:column;gap:6px;color:#e3c39c;font:12px system-ui,sans-serif}
+.edition-fields input,.edition-fields select,.notes-panel textarea{min-width:0;width:100%;padding:10px;border:1px solid #876545;border-radius:7px;background:#201711;color:#f7e6ce;font:13px system-ui,sans-serif}
+.edition-fields input:focus-visible,.edition-fields select:focus-visible,.notes-panel textarea:focus-visible{outline:2px solid #edc088;outline-offset:2px}
+.edition-images{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.edition-upload{display:flex;min-width:0;min-height:78px;align-items:center;justify-content:center;flex-direction:column;gap:6px;text-align:center;padding:11px 7px;border:1px dashed #ba9161;border-radius:8px;background:#433020;color:#ffe3b4;cursor:pointer;font:600 12px system-ui,sans-serif}
+.edition-upload:hover,.edition-upload:focus-within{background:#63452b;border-color:#efca94}
+.edition-upload input{display:block;position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.volume-back{background-position:center;background-size:100% 100%;background-repeat:no-repeat}
+.volume-spine{background-position:center;background-size:100% 100%;background-repeat:no-repeat}
+.book[data-real-spine="true"] .art{filter:none;background-size:100% 100%}
+.book[data-real-spine="true"] .name{display:none}
+.book[data-real-spine="true"]:after{display:none}
+.edition-upload small{font:11px/1.3 system-ui,sans-serif;color:#c6b18f;overflow-wrap:anywhere}
+.edition-message{margin:12px 0 15px;font:11px/1.45 system-ui,sans-serif;color:#cdb898}
+.notes-panel{margin-bottom:20px}
+.notes-panel label{display:block;margin:13px 0 8px;color:#dfc49d}
+.notes-panel textarea{resize:vertical;min-height:115px;line-height:1.55}
+.notes-panel .edition-message{margin:8px 0 14px}
+@media(max-width:510px){.edition-fields{grid-template-columns:1fr}.edition-panel{padding:0 12px}.edition-images{gap:5px}.edition-upload{font-size:11px;padding:8px 4px}}

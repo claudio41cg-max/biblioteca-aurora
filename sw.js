@@ -1,7 +1,8 @@
-const CACHE = 'aurora-v6';
+const CACHE = 'aurora-v7';
 const CORE = [
   './', './index.html', './meus-livros.html',
-  './aurora-estante.css?v=5', './aurora-estante.js', './aurora-importados.js',
+  './aurora-estante.css?v=5', './aurora-avancado.css?v=1', './aurora-edicao.css?v=1',
+  './aurora-estante.js', './aurora-importados.js', './aurora-avancado.js',
   './aurora-livro-3d.mjs', './assets/prateleira-romances.webp',
   './assets/prateleira-picantes.webp', './assets/prateleira-ficcao.webp',
   './assets/prateleira-brasileiros.webp', './assets/lombadas-couro.webp',

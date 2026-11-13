@@ -25,6 +25,10 @@
         id:book.id,
         title:book.name||'Livro sem título',
         cover:book.cover||'',
+        spine:book.spine||'',
+        spineAspect:book.spineAspect||0,
+        total:book.total||0,
+        status:book.status||'quero-ler',
         category:shelf.getCategory(book.category,book.name),
         created:book.created||0,
         bookmarked:Number.isInteger(lastPages.get(book.id)?.bookmark)
@@ -36,6 +40,10 @@
         const button=shelf.makeSpine({
           title:book.title,
           source:'pdf',
+          total:book.total,
+          cover:book.cover,
+          spine:book.spine,
+          spineAspect:book.spineAspect,
           bookmarked:book.bookmarked
         });
         button.dataset.bookId=book.id;
@@ -57,6 +65,7 @@
         }
         shelf.refreshCount(book.category);
       }
+      document.dispatchEvent(new CustomEvent('aurora:library-data',{detail:{books:imported,progress}}));
     }).catch(error=>console.warn('Não foi possível montar os livros importados:',error));
   };
 })();

@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#081d1d">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="stylesheet" href="./aurora-estante.css?v=5">
+  <link rel="stylesheet" href="./aurora-avancado.css?v=1">
   <title>Biblioteca Aurora • Minha estante</title>
 </head>
 <body>
@@ -30,9 +31,46 @@
         <input id="txtFile" type="file" accept=".txt,text/plain">
       </div>
     </div>
+    <nav class="library-tools" aria-label="Ferramentas da biblioteca">
+      <button type="button" id="arrangeButton" aria-pressed="false">Organizar livros</button>
+      <button type="button" id="roomButton" aria-expanded="false">Meu ambiente</button>
+      <button type="button" id="statsButton" aria-expanded="false">Minhas leituras</button>
+    </nav>
+    <section id="roomPanel" class="utility-panel" hidden aria-label="Personalizar ambiente">
+      <h2>Personalizar a estante</h2>
+      <div class="utility-fields">
+        <label>Estilo
+          <select id="roomTheme">
+            <option value="aurora">Aurora original</option>
+            <option value="classico">Madeira aconchegante</option>
+            <option value="noturno">Biblioteca noturna</option>
+          </select>
+        </label>
+        <label>Iluminação <input id="roomLight" type="range" min="70" max="120" value="100" step="5"></label>
+        <label class="checkline"><input id="roomPlants" type="checkbox" checked> Manter as plantinhas</label>
+      </div>
+    </section>
+    <section id="statsPanel" class="utility-panel" hidden aria-label="Acompanhar leituras">
+      <h2>Minhas leituras</h2>
+      <div class="reading-stats">
+        <p><strong id="statBooks">0</strong><span>Livros importados</span></p>
+        <p><strong id="statStarted">0</strong><span>Em leitura</span></p>
+        <p><strong id="statFinished">0</strong><span>Concluídos</span></p>
+        <p><strong id="statMinutes">0</strong><span>Minutos lendo</span></p>
+      </div>
+      <label class="goal-line">Minha meta de leitura: <input id="readingGoal" type="number" min="1" max="500" value="12" inputmode="numeric"> livros</label>
+      <p id="goalProgress" class="goal-progress"></p>
+    </section>
   </header>
 
   <main class="library" id="library" aria-label="Estantes por categoria"></main>
+  <aside class="arrange-bar" id="arrangeBar" hidden aria-live="polite">
+    <span id="arrangeSelection">Toque em um livro para mudar sua posição.</span>
+    <div>
+      <button id="moveLeft" type="button" disabled>Mover para esquerda</button>
+      <button id="moveRight" type="button" disabled>Mover para direita</button>
+    </div>
+  </aside>
   <footer class="footnote">Seus livros importados ficam guardados neste aparelho. Toque numa lombada para pegar o volume.</footer>
 
   <section class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Leitor de livros em texto" aria-hidden="true">
@@ -54,5 +92,6 @@
   </section>
   <script src="./aurora-estante.js" defer></script>
   <script src="./aurora-importados.js" defer></script>
+  <script src="./aurora-avancado.js" defer></script>
 </body>
 </html>
