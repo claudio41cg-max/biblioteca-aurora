@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#081d1d">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="stylesheet" href="./aurora-estante.css?v=15">
-  <link rel="stylesheet" href="./aurora-avancado.css?v=3">
-  <link rel="stylesheet" href="./aurora-sala-3d.css?v=1">
+  <link rel="stylesheet" href="./aurora-avancado.css?v=4">
+  <link rel="stylesheet" href="./aurora-sala-3d.css?v=2">
   <title>Biblioteca Aurora • Minha estante</title>
 </head>
 <body>
@@ -69,8 +69,11 @@
   <main class="library" id="library" aria-label="Estantes por categoria"></main>
   <aside class="arrange-bar" id="arrangeBar" hidden aria-live="polite">
     <span id="arrangeSelection">Toque em um livro para mudar sua posição.</span>
-    <button id="arrangeBack" class="arrange-back" type="button">← Estante</button>
-    <div>
+    <div class="arrange-actions">
+      <button id="arrangeBack" class="arrange-back" type="button">← Estante</button>
+      <button id="deleteBook" class="arrange-delete" type="button" disabled>Excluir</button>
+    </div>
+    <div class="arrange-moves">
       <button id="moveLeft" type="button" disabled>Mover para esquerda</button>
       <button id="moveRight" type="button" disabled>Mover para direita</button>
     </div>
@@ -81,7 +84,7 @@
   <section id="auroraShowcase" class="aurora-showcase" role="dialog" aria-modal="true" aria-label="Livro em três dimensões" hidden>
     <nav class="aurora-show-controls" aria-label="Opções do livro">
       <button type="button" id="auroraShowBack">← Estante</button>
-      <label>Guardar em:
+      <label class="aurora-category-control"><span class="visually-hidden">Categoria do livro</span>
         <select id="auroraShowCategory" aria-label="Categoria do livro">
           <option value="romance">Romances</option>
           <option value="adulto">Romances picantes</option>
@@ -127,13 +130,13 @@
     </div>
   </section>
   <script src="./aurora-sinopses.js?v=2" defer></script>
-  <script src="./aurora-estante.js?v=3" defer></script>
-  <script src="./aurora-sala-3d.js?v=1" defer></script>
-  <script src="./aurora-importados.js?v=15" defer></script>
-  <script src="./aurora-avancado.js?v=2" defer></script>
+  <script src="./aurora-estante.js?v=4" defer></script>
+  <script src="./aurora-sala-3d.js?v=2" defer></script>
+  <script src="./aurora-importados.js?v=16" defer></script>
+  <script src="./aurora-avancado.js?v=3" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
   <script src="./aurora-pdf-covers.js?v=1" defer></script>
-  <script src="./aurora-pdf-import.js?v=1" defer></script>
+  <script src="./aurora-pdf-import.js?v=2" defer></script>
   <script src="./aurora-edition-surfaces.js?v=1" defer></script>
   <script type="module" src="./aurora-livro-3d.mjs?v=4"></script>
 </body>

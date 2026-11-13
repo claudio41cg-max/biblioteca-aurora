@@ -15,16 +15,18 @@ body.aurora-showcase-open{overflow:hidden}
 .aurora-showcase.arriving::before,.aurora-showcase.settled::before{opacity:1}
 .aurora-show-controls{
   width:min(100%,740px);display:flex;align-items:center;justify-content:center;
-  flex-wrap:wrap;gap:10px;flex:none;margin:16px auto 14px;
+  flex-wrap:nowrap;gap:12px;flex:none;margin:14px auto 15px;
 }
 .aurora-show-controls button,.aurora-show-controls select{
-  border:1px solid #edcb92;border-radius:10px;color:#27170d;
-  background:linear-gradient(160deg,#dcb580,#bb8649);box-shadow:0 4px 9px #0005;
-  padding:11px 15px;font:600 14px system-ui,sans-serif;
+  height:41px;min-width:0;border:1px solid #f0d3a1;border-radius:13px;color:#362211;
+  background:linear-gradient(160deg,#e0bd8c,#c69a62);box-shadow:inset 0 1px #fff5db70,0 3px 8px #0004;
+  padding:9px 13px;font:600 13px system-ui,sans-serif;
 }
-.aurora-show-controls button{cursor:pointer}
-.aurora-show-controls label{display:flex;align-items:center;gap:7px;font:12px system-ui,sans-serif;color:#e9cfb1}
-.aurora-show-controls select{max-width:min(56vw,195px);cursor:pointer}
+.aurora-show-controls button{flex:0 1 138px;cursor:pointer}
+.aurora-show-controls .aurora-category-control{display:block;flex:0 1 166px;min-width:0}
+.aurora-show-controls select{display:block;width:100%;max-width:100%;cursor:pointer;text-align:center;text-overflow:ellipsis}
+.aurora-show-controls button:hover,.aurora-show-controls select:hover{background:linear-gradient(160deg,#e9cca0,#d3a874)}
+.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .aurora-show-heading{width:min(100%,740px);text-align:center;flex:none}
 .aurora-show-heading h2{font:normal clamp(27px,7vw,42px)/1.15 Georgia,serif;letter-spacing:-.6px;margin:4px auto 8px;color:#fff1db}
 .aurora-show-heading p{font:14px/1.5 system-ui,sans-serif;color:#d8baa0;margin:0}
@@ -100,4 +102,5 @@ body.aurora-showcase-open{overflow:hidden}
 .aurora-description-text{padding:0 20px 18px;line-height:1.7}
 .aurora-description-text p{margin:10px 0}
 @media(max-height:690px){.aurora-show-scene{height:clamp(285px,47svh,400px)}.aurora-show-controls{margin:8px auto}}
+@media(max-width:350px){.aurora-show-controls{gap:8px}.aurora-show-controls button,.aurora-show-controls select{padding:9px 8px;font-size:12px}}
 @media(prefers-reduced-motion:reduce){.aurora-showcase::before,.aurora-show-controls,.aurora-show-heading,.aurora-show-description{transition:none}}

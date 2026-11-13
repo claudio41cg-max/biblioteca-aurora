@@ -77,6 +77,7 @@
   function updateMoveButtons(){
     $('moveLeft').disabled=!selected||!selected.previousElementSibling;
     $('moveRight').disabled=!selected||!selected.nextElementSibling;
+    $('deleteBook').disabled=!selected;
   }
   $('arrangeButton').addEventListener('click',()=>{
     arranging=!arranging;
@@ -119,6 +120,55 @@
   }
   $('moveLeft').addEventListener('click',()=>move(-1));
   $('moveRight').addEventListener('click',()=>move(1));
+  async function deleteImportedPDF(id){
+    const db=await new Promise((resolve,reject)=>{
+      const request=indexedDB.open('aurora-pdf-library',2);
+      request.onsuccess=()=>resolve(request.result);
+      request.onerror=()=>reject(request.error||new Error('Não foi possível abrir o acervo.'));
+      request.onblocked=()=>reject(new Error('Feche as outras abas da Biblioteca Aurora e tente novamente.'));
+    });
+    try{
+      await new Promise((resolve,reject)=>{
+        const tx=db.transaction(['books','progress'],'readwrite');
+        tx.objectStore('books').delete(id);
+        tx.objectStore('progress').delete(id);
+        tx.oncomplete=resolve;
+        tx.onerror=()=>reject(tx.error||new Error('Não foi possível excluir o livro.'));
+        tx.onabort=()=>reject(tx.error||new Error('A exclusão foi interrompida.'));
+      });
+    }finally{db.close();}
+  }
+  $('deleteBook').addEventListener('click',async()=>{
+    if(!arranging||!selected)return;
+    const book=selected;
+    const title=book.dataset.rawTitle||book.getAttribute('aria-label')?.replace(/^Pegar /,'')||'este livro';
+    const source=book.dataset.source;
+    const message='Excluir "'+title+'" da Biblioteca Aurora?\n\nO livro e seu progresso serão removidos do aplicativo. O arquivo original no celular não será apagado.';
+    if(!confirm(message))return;
+    $('deleteBook').disabled=true;
+    try{
+      if(source==='pdf'){
+        if(!book.dataset.bookId)throw new Error('Este livro não tem identificação para exclusão.');
+        await deleteImportedPDF(book.dataset.bookId);
+        libraryBooks=libraryBooks.filter(item=>String(item.id)!==book.dataset.bookId);
+        progress=progress.filter(item=>String(item.id)!==book.dataset.bookId);
+        shelf.hideTitle(title);
+      }else if(source==='txt'){
+        if(!shelf.removeTextBook(title))throw new Error('Não foi possível localizar o livro em texto.');
+      }else{
+        shelf.hideTitle(title);
+      }
+      const category=book.closest('.bookrow')?.id?.slice(6);
+      book.remove();
+      selected=null;
+      shelf.refreshCount(category);
+      saveOrder();
+      refreshStats();
+      $('arrangeSelection').textContent='"'+title+'" foi excluído da estante.';
+    }catch(error){
+      $('arrangeSelection').textContent='Não foi possível excluir: '+(error?.message||String(error));
+    }finally{updateMoveButtons();}
+  });
   document.addEventListener('aurora:shelves-drawn',applyOrder);
   document.addEventListener('aurora:library-data',event=>{
     libraryBooks=event.detail.books||[];

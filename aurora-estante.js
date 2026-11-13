@@ -22,6 +22,7 @@
   };
   const saved = safeRead('aurora-books',{});
   const txtCategories = safeRead('aurora-txt-categories',{});
+  const hiddenTitles = new Set(safeRead('aurora-hidden-books',[]));
   const texts = Object.assign({},saved);
   const knownCategories = new Map();
   categories.forEach(cat => cat.books.forEach(([title]) => knownCategories.set(normalize(title),cat.id)));
@@ -41,6 +42,7 @@
     button.className = 'book-spine';
     button.type = 'button';
     button.dataset.title = normalize(item.title);
+    button.dataset.rawTitle = item.title;
     button.dataset.source = item.source || 'demo';
     button.title = item.title + (item.source === 'demo' ? ' • livro demonstrativo' : ' • tocar para pegar');
     button.setAttribute('aria-label', 'Pegar ' + item.title);
@@ -124,7 +126,9 @@
       row.className='bookrow';
       row.id='shelf-'+category.id;
       row.setAttribute('aria-label','Livros de '+category.name);
-      const shelfBooks=new Map(category.books.map(([name,author])=>[normalize(name),{title:name,author,source:'demo'}]));
+      const shelfBooks=new Map(category.books
+        .filter(([name])=>!hiddenTitles.has(normalize(name)))
+        .map(([name,author])=>[normalize(name),{title:name,author,source:'demo'}]));
       Object.keys(saved).forEach(name=>{
         if(getCategory(txtCategories[name],name)===category.id) {
           shelfBooks.set(normalize(name),{title:name,author:'Meu arquivo',source:'txt'});
@@ -145,7 +149,21 @@
     });
     document.dispatchEvent(new Event('aurora:shelves-drawn'));
   }
-  window.AuroraShelf={categories,normalize,guessCategory,getCategory,makeSpine,refreshCount,draw};
+  function persistHidden(){
+    try{localStorage.setItem('aurora-hidden-books',JSON.stringify([...hiddenTitles]));}catch{}
+  }
+  function hideTitle(title){hiddenTitles.add(normalize(title));persistHidden();}
+  function restoreTitle(title){hiddenTitles.delete(normalize(title));persistHidden();}
+  function removeTextBook(title){
+    if(!Object.prototype.hasOwnProperty.call(texts,title))return false;
+    delete texts[title];delete saved[title];delete txtCategories[title];
+    localStorage.setItem('aurora-books',JSON.stringify(saved));
+    localStorage.setItem('aurora-txt-categories',JSON.stringify(txtCategories));
+    localStorage.removeItem('aurora-page:'+title);
+    hideTitle(title);
+    return true;
+  }
+  window.AuroraShelf={categories,normalize,guessCategory,getCategory,makeSpine,refreshCount,draw,hideTitle,removeTextBook};
 
   const importTrigger=$('importTrigger'),importMenu=$('importMenu'),importCategory=$('importCategory');
   function toggleMenu(open) {
@@ -169,6 +187,7 @@
       texts[title]=content;
       saved[title]=content;
       txtCategories[title]=importCategory.value;
+      restoreTitle(title);
       try {
         localStorage.setItem('aurora-books',JSON.stringify(saved));
         localStorage.setItem('aurora-txt-categories',JSON.stringify(txtCategories));

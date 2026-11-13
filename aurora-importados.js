@@ -13,7 +13,7 @@
   // O livro físico segue no MESMO visor WebGL até o centro da tela.
   function takeBookFromShelf(button,book){
     if(window.AuroraShelfViewer?.open)window.AuroraShelfViewer.open(button,book);
-    else location.href='./meus-livros.html?livro='+encodeURIComponent(book.id)+'&v=15';
+    else location.href='./meus-livros.html?livro='+encodeURIComponent(book.id)+'&v=16';
   }
   request.onsuccess=()=>{
     const db=request.result;
