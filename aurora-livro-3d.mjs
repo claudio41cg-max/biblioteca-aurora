@@ -23,8 +23,8 @@ function initialize(){
 
   const scene=new THREE.Scene();
   const camera=new THREE.PerspectiveCamera(36,1,.1,80);
-  // Câmera mais próxima para o livro ocupar a maior parte da vitrine.
-  camera.position.set(0,.08,5.65);
+  // Distância constante: rolar a página não pode ampliar ou reduzir o exemplar.
+  camera.position.set(0,.08,6.4);
   scene.add(new THREE.HemisphereLight(0xffedce,0x281d16,2.5));
   const key=new THREE.DirectionalLight(0xffebc9,3.1);
   key.position.set(-3.5,5,6);
@@ -47,7 +47,6 @@ function initialize(){
   function resize(){
     const width=Math.max(stage.clientWidth,280),height=Math.max(stage.clientHeight,340);
     camera.aspect=width/height;
-    camera.position.z=height<435?6.05:5.65;
     camera.updateProjectionMatrix();
     renderer.setSize(width,height,false);
     queueRender();
@@ -61,7 +60,7 @@ function initialize(){
     texture.anisotropy=Math.min(renderer.capabilities.getMaxAnisotropy(),8);
     return texture;
   }
-  function faceCanvas(name,back=false){
+  function neutralCoverCanvas(back=false){
     const canvas=document.createElement('canvas');
     canvas.width=512;canvas.height=720;
     const ctx=canvas.getContext('2d');
@@ -70,29 +69,12 @@ function initialize(){
     fade.addColorStop(.65,back?'#251911':'#443126');
     fade.addColorStop(1,'#160f0b');
     ctx.fillStyle=fade;ctx.fillRect(0,0,512,720);
-    ctx.strokeStyle='#ba9155';ctx.lineWidth=8;ctx.strokeRect(18,17,476,684);
-    ctx.strokeStyle='#7c5631';ctx.lineWidth=2;ctx.strokeRect(32,32,448,655);
-    ctx.fillStyle='#dcc193';ctx.textAlign='center';
-    ctx.font='28px Georgia';ctx.fillText(back?'':'MINHA BIBLIOTECA',256,100);
-    const words=String(name).split(/\s+/),lines=[];
-    let line='';
-    words.forEach(word=>{
-      if((line+' '+word).length>17 && line){lines.push(line);line=word;}
-      else line+=(line?' ':'')+word;
-    });
-    if(line) lines.push(line);
-    if(!back){
-      ctx.fillStyle='#f4d6a0';ctx.font='bold 42px Georgia';
-      lines.slice(0,5).forEach((text,index)=>ctx.fillText(text,256,300+index*55,450));
-      ctx.font='20px Georgia';ctx.fillText('Edição pessoal',256,643);
-    }else{
-      // Sem fotografia da contracapa, a superfície é neutra.
-      // Nunca inventamos arte que seria atribuída à edição original.
-      const ornament=ctx.createRadialGradient(256,365,20,256,365,215);
-      ornament.addColorStop(0,'#a27d4b33');ornament.addColorStop(1,'#a27d4b00');
-      ctx.fillStyle=ornament;ctx.fillRect(35,140,440,480);
-      ctx.strokeStyle='#ad8a5655';ctx.lineWidth=2;ctx.strokeRect(72,75,368,570);
-    }
+    // Não criamos títulos nem ilustrações fictícias. A imagem real substitui
+    // esta superfície neutra assim que termina de carregar.
+    const shadow=ctx.createLinearGradient(0,0,65,0);
+    shadow.addColorStop(0,'#100b09b8');shadow.addColorStop(1,'#100b0900');
+    ctx.fillStyle=shadow;ctx.fillRect(0,0,65,720);
+    if(back){ctx.fillStyle='#c8a97d33';ctx.fillRect(30,25,452,1);}
     return canvas;
   }
   function edgeCanvas(){
@@ -151,7 +133,11 @@ function initialize(){
       texture.needsUpdate=true;
       queueRender();
     };
-    img.onerror=()=>console.warn('Não foi possível carregar a foto desta face do exemplar.');
+    img.onerror=()=>{
+      console.warn('Não foi possível carregar a foto desta face do exemplar.');
+      if(!spine && url===currentBook?.cover)
+        window.dispatchEvent(new CustomEvent('aurora:cover-error',{detail:{id:currentBook.id}}));
+    };
     img.src=url;
   }
   function clearModel(){
@@ -182,7 +168,7 @@ function initialize(){
     paper.position.x=.04;
     group.add(paper);
 
-    const coverSurface=canvasTexture(faceCanvas(book.name));
+    const coverSurface=canvasTexture(neutralCoverCanvas());
     const frontMaterial=new THREE.MeshPhysicalMaterial({map:coverSurface,roughness:.56,metalness:0,clearcoat:.28,clearcoatRoughness:.34});
     const faceSides=[darkLeather,leather,gold,leather,frontMaterial,leather];
     frontHinge=new THREE.Group();
@@ -192,7 +178,7 @@ function initialize(){
     frontHinge.add(frontMesh);
     group.add(frontHinge);
 
-    const backSurface=canvasTexture(faceCanvas(book.name,true));
+    const backSurface=canvasTexture(neutralCoverCanvas(true));
     const backMaterial=new THREE.MeshPhysicalMaterial({map:backSurface,roughness:.71,metalness:0,clearcoat:.18});
     const backMesh=new THREE.Mesh(new THREE.BoxGeometry(width,height,.055),[
       leather,leather,gold,leather,leather,backMaterial
