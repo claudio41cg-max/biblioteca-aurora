@@ -65,7 +65,9 @@
   margin:2px auto 0;
   perspective:1300px;
   perspective-origin:50% 50%;
+  touch-action:pan-y;
 }
+.scene .aurora-webgl,.scene .book3d{touch-action:pan-y}
 .book3d{
   height:auto;
   width:min(81vw,396px);
@@ -134,7 +136,7 @@
   .book-heading{margin:0 auto}
   .book-heading h2{font-size:clamp(29px,7.8vw,37px)}
   .book-author{font-size:13px}
-  .scene{height:clamp(395px,60dvh,570px);margin:0 auto}
+  .scene{height:clamp(395px,53dvh,560px);margin:0 auto}
   .about-book{padding:22px 18px 18px;border-radius:13px}
   .about-text{font-size:15px;line-height:1.7}
   .about-book h3{font-size:14px}

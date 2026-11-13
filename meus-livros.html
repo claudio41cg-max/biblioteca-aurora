@@ -57,7 +57,7 @@
     @media(max-width:500px){.toolbar{padding:12px 9px;gap:6px}.category-picker{flex-basis:100%}.category-picker select{max-width:none;width:min(230px,67vw)}}
   </style>
   <link rel="stylesheet" href="./aurora-edicao.css?v=1">
-  <link rel="stylesheet" href="./aurora-vitrine.css?v=1">
+  <link rel="stylesheet" href="./aurora-vitrine.css?v=2">
 </head>
 <body>
   <header class="tophead"><div class="eyebrow">SEU ACERVO PESSOAL</div><h1>✦ Meus livros • Aurora ✦</h1><p>Adicione seus livros PDF e guarde cada um pela lombada.</p></header>
@@ -259,10 +259,11 @@
       $('showresume').textContent = book.page > 0 ? `Sua leitura está salva na página ${book.page + 1}. Toque para continuar.` : 'Toque na capa para começar a leitura.';
       const synopsis=known?.description||book.description||'Ainda não há uma sinopse disponível para este livro. Você pode abrir o volume e começar a leitura.';
       $('aboutText').textContent=synopsis;
-      $('aboutText').classList.remove('expanded');
+      const canExpand=synopsis.length>220;
+      $('aboutText').classList.toggle('expanded',!canExpand);
       $('aboutToggle').setAttribute('aria-expanded','false');
       $('aboutToggle').firstChild.textContent='Ver descrição completa ';
-      $('aboutToggle').hidden=synopsis.length<=220;
+      $('aboutToggle').hidden=!canExpand;
       $('book3d').classList.remove('opening');
       rotation = {x:-5,y:-22};
       updateRotation();
