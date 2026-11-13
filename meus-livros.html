@@ -9,7 +9,7 @@
   <script>
     // A estante principal é a única entrada. Esta página serve só de visor 3D.
     if(!new URLSearchParams(location.search).get('livro'))
-      location.replace('./index.html?v=16');
+      location.replace('./index.html?v=17');
   </script>
   <style>
     :root{color-scheme:dark;--gold:#d1a16b;--paper:#fff5e4}*{box-sizing:border-box}
@@ -70,12 +70,13 @@
   </style>
   <link rel="stylesheet" href="./aurora-edicao.css?v=1">
   <link rel="stylesheet" href="./aurora-vitrine.css?v=5">
+  <link rel="stylesheet" href="./aurora-reader.css?v=1">
 </head>
 <body>
   <header class="tophead"><div class="eyebrow">SEU ACERVO PESSOAL</div><h1>✦ Meus livros • Aurora ✦</h1><p>Adicione seus livros PDF e guarde cada um pela lombada.</p></header>
   <nav class="toolbar">
     <label class="button" for="file">＋ Adicionar livro PDF</label>
-    <a class="button light" href="./index.html?v=16">Estante principal</a>
+    <a class="button light" href="./index.html?v=17">Estante principal</a>
     <label class="category-picker">Categoria
       <select id="importCategory" aria-label="Categoria do PDF ao importar">
         <option value="romance">Romances</option>
@@ -126,19 +127,39 @@
   </section>
 
   <section id="reader" class="reader" role="dialog" aria-modal="true" aria-label="Leitor PDF">
-    <div class="readerhead"><button id="close" type="button">✕ Fechar</button><span id="title" class="title"></span><span id="count" class="count">1 / 1</span></div>
-    <div class="readertools" aria-label="Ferramentas de leitura">
-      <button id="minus10" type="button" title="Voltar dez páginas">−10</button>
-      <label class="pageinput" title="Número da página">Pág. <input id="pageNumber" type="number" min="1" step="1" inputmode="numeric" aria-label="Ir para a página"></label>
-      <button id="goto" type="button" title="Ir para a página digitada">Ir</button>
-      <button id="plus10" type="button" title="Avançar dez páginas">+10</button>
-      <button id="bookmark" type="button" title="Colocar ou remover marcador de página" aria-label="Marcar página">🔖</button>
-      <button id="zoomOut" type="button" title="Diminuir visualização do PDF" aria-label="Diminuir letra e página">A−</button>
-      <button id="zoomIn" type="button" title="Aumentar visualização do PDF" aria-label="Ampliar letra e página">A+</button>
+    <div class="readerhead">
+      <button id="close" type="button">← Voltar</button>
+      <span id="title" class="title"></span>
+      <div class="readerhead-actions">
+        <span id="count" class="count">1 / 1</span>
+        <button id="bookmark" type="button" title="Marcar esta página" aria-label="Marcar página">🔖</button>
+        <button id="readerSettings" type="button" aria-controls="readerPrefs" aria-expanded="false" aria-label="Configurações de leitura">Aa</button>
+      </div>
     </div>
-    <div class="progressrow"><input id="scrub" type="range" min="1" max="1" value="1" aria-label="Navegar rapidamente pelas páginas"><span id="position">Toque no canto para folhear</span></div>
+    <div class="progressrow"><input id="scrub" type="range" min="1" max="1" value="1" aria-label="Progresso de leitura"><span id="position">0%</span></div>
+    <section id="readerPrefs" class="reader-prefs" hidden aria-label="Configurações de leitura">
+      <div class="reader-prefs-heading"><h2>Personalizar leitura</h2><button id="readerPrefsClose" type="button" aria-label="Fechar configurações">Fechar</button></div>
+      <div class="reader-pref-line"><label for="readerZoom">Zoom do PDF</label><output id="readerZoomValue" for="readerZoom">100%</output></div>
+      <input id="readerZoom" type="range" min="100" max="200" step="10" value="100" aria-label="Ampliação do PDF de cem a duzentos por cento">
+      <p class="reader-pref-hint">Em 100%, arraste o canto para folhear. Ampliado, arraste a página para explorar e volte a 100% para folhear.</p>
+      <fieldset class="reader-theme-options"><legend>Ambiente de leitura</legend>
+        <button type="button" data-reader-theme="original" aria-pressed="true">Claro</button>
+        <button type="button" data-reader-theme="sepia" aria-pressed="false">Sépia</button>
+        <button type="button" data-reader-theme="night" aria-pressed="false">Noturno</button>
+      </fieldset>
+      <label class="reader-text-toggle"><input id="readerTextMode" type="checkbox"> Texto adaptado</label>
+      <p class="reader-pref-hint">Opcional: permite mudar letras e espaçamento nos PDFs que contêm texto selecionável. A página original permanece disponível.</p>
+      <div id="readerTextPrefs" class="reader-text-prefs" hidden>
+        <label for="readerFont">Fonte <select id="readerFont"><option value="serif">Clássica</option><option value="sans">Simples</option></select></label>
+        <div class="reader-pref-line"><label for="readerFontSize">Tamanho das letras</label><output id="readerFontSizeValue" for="readerFontSize">16</output></div>
+        <input id="readerFontSize" type="range" min="13" max="23" step="1" value="16">
+        <div class="reader-pref-line"><label for="readerLineHeight">Espaçamento das linhas</label><output id="readerLineHeightValue" for="readerLineHeight">1,6</output></div>
+        <input id="readerLineHeight" type="range" min="13" max="21" step="1" value="16">
+      </div>
+      <div class="reader-page-jump"><label for="pageNumber">Ir para a página</label><input id="pageNumber" type="number" min="1" step="1" inputmode="numeric" aria-label="Número da página"><button id="goto" type="button">Ir</button></div>
+    </section>
     <div id="viewport" class="viewport"><div id="flipbook" class="flipbook"></div></div>
-    <div id="status" class="status" role="status">Arraste a ponta da folha para virar.</div>
+    <div id="status" class="status" role="status" aria-live="polite">Arraste a ponta da folha para virar.</div>
   </section>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -149,7 +170,35 @@
   (async () => {
     'use strict';
     const $ = id => document.getElementById(id);
-    const buttons = ['minus10','plus10','goto','bookmark','zoomOut','zoomIn'];
+    const buttons = ['goto','bookmark'];
+    const prefsKey='aurora-reader-preferences-v1';
+    const savedPrefs=(()=>{try{return JSON.parse(localStorage.getItem(prefsKey)||'{}')||{};}catch{return {};}})();
+    const readingPrefs={
+      theme:['original','sepia','night'].includes(savedPrefs.theme)?savedPrefs.theme:'original',
+      font:savedPrefs.font==='sans'?'sans':'serif',
+      size:Math.max(13,Math.min(23,Number(savedPrefs.size)||16)),
+      line:Math.max(13,Math.min(21,Number(savedPrefs.line)||16))
+    };
+    const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
+    function saveReadingPrefs(){try{localStorage.setItem(prefsKey,JSON.stringify(readingPrefs));}catch{}}
+    function applyReadingPrefs(){
+      $('reader').dataset.readerTheme=readingPrefs.theme;
+      $('reader').style.setProperty('--reader-text-font',readingPrefs.font==='sans'?'system-ui, sans-serif':'Georgia, serif');
+      $('reader').style.setProperty('--reader-text-size',readingPrefs.size+'px');
+      $('reader').style.setProperty('--reader-text-line',String(readingPrefs.line/10));
+      $('readerFont').value=readingPrefs.font;
+      $('readerFontSize').value=String(readingPrefs.size);
+      $('readerFontSizeValue').textContent=String(readingPrefs.size);
+      $('readerLineHeight').value=String(readingPrefs.line);
+      $('readerLineHeightValue').textContent=(readingPrefs.line/10).toFixed(1).replace('.',',');
+      document.querySelectorAll('.reader-theme-options button[data-reader-theme]').forEach(button=>
+        button.setAttribute('aria-pressed',String(button.dataset.readerTheme===readingPrefs.theme)));
+    }
+    function setReaderPrefsOpen(open){
+      $('readerPrefs').hidden=!open;
+      $('readerSettings').setAttribute('aria-expanded',String(open));
+    }
+    applyReadingPrefs();
     if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     let database, catalog = [], selectedId = null, active = null, down = null, rotation = {x:-5,y:-22}, generation = 0;
     const recoveringCovers = new Set();
@@ -386,7 +435,7 @@
     }
     $('back').onclick = () => {
       hideBook();
-      location.href = './index.html?v=16';
+      location.href = './index.html?v=17';
     };
     $('bookCategory').addEventListener('change',async event=>{
       if(!selectedId) return;
@@ -504,27 +553,59 @@
       $('bookmark').classList.toggle('marked',session.page === session.bookmark);
       $('bookmark').title = session.page === session.bookmark ? 'Remover a fita desta página' : 'Colocar fita nesta página';
     }
+    function extractedText(content){
+      let result='',previousY=null;
+      for(const item of content.items||[]){
+        if(typeof item.str!=='string')continue;
+        const y=Number(item.transform?.[5]);
+        const newLine=Number.isFinite(y)&&previousY!==null&&Math.abs(y-previousY)>3;
+        if(result && (newLine||result.endsWith('\n'))) {
+          if(!result.endsWith('\n'))result+='\n';
+        }else if(result&&!/\s$/.test(result)&&!/^\s/.test(item.str))result+=' ';
+        result+=item.str;
+        if(item.hasEOL)result+='\n';
+        if(Number.isFinite(y))previousY=y;
+      }
+      return result.replace(/\n{3,}/g,'\n\n').trim();
+    }
     async function paintPage(session,number) {
       if (session.closed || !session.pdf || number < 1 || number > session.total || session.rendering.has(number)) return;
       const element = session.pages[number-1];
       if (!element || element.dataset.loaded === 'yes') return;
       session.rendering.add(number);
+      const textMode=session.textMode;
       try {
         const page = await session.pdf.getPage(number);
         if (session.closed) return;
-        const natural = page.getViewport({scale:1});
-        const viewport = page.getViewport({scale:Math.min(2.4,1100/natural.width)});
-        const canvas = document.createElement('canvas');
-        canvas.width = Math.ceil(viewport.width);
-        canvas.height = Math.ceil(viewport.height);
-        await page.render({canvasContext:canvas.getContext('2d',{alpha:false}),viewport}).promise;
-        if (session.closed) return;
-        element.replaceChildren(canvas);
+        let content;
+        if(textMode){
+          content=extractedText(await page.getTextContent());
+        }else{
+          const natural = page.getViewport({scale:1});
+          const viewport = page.getViewport({scale:Math.min(2.4,1100/natural.width)});
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.ceil(viewport.width);
+          canvas.height = Math.ceil(viewport.height);
+          await page.render({canvasContext:canvas.getContext('2d',{alpha:false}),viewport}).promise;
+          content=canvas;
+        }
+        if (session.closed || session.textMode!==textMode) return;
+        element.classList.toggle('text-page',textMode);
+        if(textMode){
+          const text=document.createElement('div');
+          text.className='pdf-readable-text';
+          text.lang='pt-BR';
+          text.textContent=content||'Esta página não contém texto selecionável. Use o modo original para ver o conteúdo.';
+          element.replaceChildren(text);
+        }else element.replaceChildren(content);
         element.classList.remove('loading');
         element.dataset.loaded = 'yes';
       } catch (error) {
         if (!session.closed) element.textContent = 'Não foi possível mostrar a página ' + number;
-      } finally {session.rendering.delete(number);}
+      } finally {
+        session.rendering.delete(number);
+        if(!session.closed&&session.textMode!==textMode)void paintPage(session,number);
+      }
     }
     function paintNearby(session) {
       if (session.closed) return;
@@ -539,6 +620,15 @@
         element.dataset.loaded = '';
         element.classList.add('loading');
       });
+    }
+    function reloadReadingPages(session){
+      session.pages.forEach((element,index)=>{
+        element.replaceChildren('Página '+(index+1));
+        element.classList.add('loading');
+        element.classList.remove('text-page');
+        element.dataset.loaded='';
+      });
+      paintNearby(session);
     }
     function updateReader(session,persist=true) {
       if (!session || session.closed || session !== active || !session.flip) return;
@@ -571,6 +661,23 @@
       container.replaceChildren(host);
       return host;
     }
+    function applyReaderZoom(session,ratio){
+      if(!session)return;
+      session.zoom=clamp(Math.round(ratio*10)/10,1,2);
+      if(session.zoom===1){session.panX=0;session.panY=0;}
+      const host=$('flipbook');
+      const stage=$('viewport');
+      const maxX=Math.max(0,(host.offsetWidth*session.zoom-stage.clientWidth)/2);
+      const maxY=Math.max(0,(host.offsetHeight*session.zoom-stage.clientHeight)/2);
+      session.panX=clamp(session.panX||0,-maxX,maxX);
+      session.panY=clamp(session.panY||0,-maxY,maxY);
+      host.style.transform=`translate(${session.panX}px,${session.panY}px) scale(${session.zoom})`;
+      $('reader').classList.toggle('zoomed',session.zoom>1);
+      $('readerZoom').value=String(Math.round(session.zoom*100));
+      $('readerZoomValue').textContent=Math.round(session.zoom*100)+'%';
+      if(session.zoom>1)$('status').textContent='Arraste a página ampliada. Volte a 100% para virar as folhas.';
+      else $('status').textContent='Arraste o canto para virar a folha. Seu progresso é salvo automaticamente.';
+    }
     async function openReader(id) {
       if (!window.pdfjsLib || !window.St?.PageFlip) {
         $('showresume').textContent = 'Não foi possível carregar o leitor PDF. Conecte à internet e tente novamente.';
@@ -581,9 +688,15 @@
       if (!meta) return;
       $('book3d').classList.add('opening');
       const token = ++generation;
-      const session = {id,total:0,page:0,bookmark:null,pages:[],rendering:new Set(),pdf:null,flip:null,closed:false,zoom:1};
+      const session = {id,total:0,page:0,bookmark:null,pages:[],rendering:new Set(),pdf:null,flip:null,closed:false,zoom:1,panX:0,panY:0,textMode:false};
       active = session;
       $('reader').classList.add('active');
+      $('reader').classList.remove('zoomed');
+      $('readerTextMode').checked=false;
+      $('readerTextPrefs').hidden=true;
+      $('readerZoom').disabled=true;
+      $('readerTextMode').disabled=true;
+      setReaderPrefsOpen(false);
       $('title').textContent = meta.name;
       $('count').textContent = '…';
       $('status').textContent = 'Abrindo o livro completo…';
@@ -632,8 +745,10 @@
         $('pageNumber').max = String(session.total);
         buttons.forEach(name => $(name).disabled = false);
         if (session.page) session.flip.turnToPage(session.page);
+        $('readerZoom').disabled=false;
+        $('readerTextMode').disabled=false;
+        applyReaderZoom(session,1);
         updateReader(session);
-        $('status').textContent = 'Arraste o canto para folhear. A leitura fica salva automaticamente.';
       } catch(error) {
         if (session === active) $('status').textContent = 'Erro ao abrir o livro: ' + (error?.message || String(error));
       }
@@ -650,16 +765,23 @@
       }
       freshFlipbook();
       $('reader').classList.remove('active');
+      $('reader').classList.remove('zoomed');
+      setReaderPrefsOpen(false);
       $('book3d').classList.remove('opening');
       renderCatalog();
       if (selectedId) showBook(selectedId);
     }
     $('close').onclick = closeReader;
-    $('minus10').onclick = () => active && jumpPage(active.page-9);
-    $('plus10').onclick = () => active && jumpPage(active.page+11);
-    $('goto').onclick = () => jumpPage(Number($('pageNumber').value) || 1);
+    $('readerSettings').onclick=()=>setReaderPrefsOpen($('readerPrefs').hidden);
+    $('readerPrefsClose').onclick=()=>setReaderPrefsOpen(false);
+    $('goto').onclick = () => {
+      if(active){applyReaderZoom(active,1);jumpPage(Number($('pageNumber').value)||1);setReaderPrefsOpen(false);}
+    };
     $('pageNumber').addEventListener('keydown',event => {if (event.key === 'Enter') {$('goto').click();event.target.blur();}});
-    $('scrub').addEventListener('change',() => jumpPage(Number($('scrub').value)));
+    $('scrub').addEventListener('change',() => {
+      if(active)applyReaderZoom(active,1);
+      jumpPage(Number($('scrub').value));
+    });
     $('scrub').addEventListener('input',() => $('position').textContent = 'Ir à página ' + $('scrub').value);
     $('bookmark').onclick = () => {
       if (!active?.flip) return;
@@ -668,18 +790,84 @@
       persistProgress(active);
       $('status').textContent = active.bookmark === null ? 'Marcador removido.' : `Fitinha colocada na página ${active.page+1}.`;
     };
-    function zoom(amount) {
-      if (!active?.flip) return;
-      active.zoom = Math.max(1,Math.min(1.8,Math.round((active.zoom+amount)*10)/10));
-      $('flipbook').style.transform = `scale(${active.zoom})`;
-      $('status').textContent = active.zoom === 1 ? 'Página no tamanho original.' : `Ampliação de ${Math.round(active.zoom*100)}%. Arraste para ver o restante da página.`;
-      $('zoomOut').disabled = active.zoom === 1;
-      $('zoomIn').disabled = active.zoom === 1.8;
-    }
-    $('zoomOut').onclick = () => zoom(-.2);
-    $('zoomIn').onclick = () => zoom(.2);
+    $('readerZoom').addEventListener('input',event=>{
+      if(active?.flip)applyReaderZoom(active,Number(event.target.value)/100);
+    });
+    document.querySelectorAll('.reader-theme-options button[data-reader-theme]').forEach(button=>{
+      button.addEventListener('click',()=>{
+        readingPrefs.theme=button.dataset.readerTheme;
+        applyReadingPrefs();saveReadingPrefs();
+      });
+    });
+    $('readerFont').addEventListener('change',event=>{
+      readingPrefs.font=event.target.value==='sans'?'sans':'serif';
+      applyReadingPrefs();saveReadingPrefs();
+    });
+    $('readerFontSize').addEventListener('input',event=>{
+      readingPrefs.size=clamp(Number(event.target.value),13,23);
+      applyReadingPrefs();saveReadingPrefs();
+    });
+    $('readerLineHeight').addEventListener('input',event=>{
+      readingPrefs.line=clamp(Number(event.target.value),13,21);
+      applyReadingPrefs();saveReadingPrefs();
+    });
+    $('readerTextMode').addEventListener('change',async event=>{
+      const session=active;
+      if(!session?.pdf){event.target.checked=false;return;}
+      if(event.target.checked){
+        event.target.disabled=true;
+        $('status').textContent='Verificando se o PDF contém texto selecionável…';
+        let readable=false;
+        try{
+          for(let n=1;n<=Math.min(session.total,5);n++){
+            const page=await session.pdf.getPage(n);
+            if(extractedText(await page.getTextContent()).length>25){readable=true;break;}
+          }
+        }catch(error){console.warn('Não foi possível preparar o texto adaptado:',error);}
+        if(active!==session)return;
+        event.target.disabled=false;
+        if(!readable){
+          event.target.checked=false;
+          $('status').textContent='Este PDF não oferece texto selecionável. O zoom funciona no modo original.';
+          return;
+        }
+      }
+      session.textMode=event.target.checked;
+      $('readerTextPrefs').hidden=!session.textMode;
+      applyReaderZoom(session,1);
+      reloadReadingPages(session);
+      $('status').textContent=session.textMode?'Texto adaptado ativado. Arraste o canto para folhear.':'Página original do PDF restaurada.';
+    });
+    const viewport=$('viewport');
+    let pan=null;
+    viewport.addEventListener('pointerdown',event=>{
+      if(!active?.flip||active.zoom===1)return;
+      pan={id:event.pointerId,x:event.clientX,y:event.clientY,ox:active.panX,oy:active.panY,session:active};
+      viewport.setPointerCapture(event.pointerId);
+      event.stopPropagation();event.preventDefault();
+    },true);
+    viewport.addEventListener('pointermove',event=>{
+      if(!pan||pan.id!==event.pointerId||pan.session!==active)return;
+      active.panX=pan.ox+event.clientX-pan.x;
+      active.panY=pan.oy+event.clientY-pan.y;
+      applyReaderZoom(active,active.zoom);
+      event.stopPropagation();event.preventDefault();
+    },true);
+    const stopPan=event=>{
+      if(!pan||pan.id!==event.pointerId)return;
+      pan=null;
+      event.stopPropagation();
+    };
+    viewport.addEventListener('pointerup',stopPan,true);
+    viewport.addEventListener('pointercancel',stopPan,true);
+    ['touchstart','touchmove','touchend'].forEach(name=>{
+      viewport.addEventListener(name,event=>{
+        if(active?.zoom>1){event.stopPropagation();if(name==='touchmove')event.preventDefault();}
+      },{capture:true,passive:false});
+    });
     document.addEventListener('keydown',event => {
       if (!$('reader').classList.contains('active')) return;
+      if(event.key==='Escape'&&!$('readerPrefs').hidden){setReaderPrefsOpen(false);return;}
       if (event.target?.tagName === 'INPUT') return;
       if (event.key === 'ArrowRight') jumpPage((active?.page ?? 0)+2);
       if (event.key === 'ArrowLeft') jumpPage(active?.page ?? 0);
@@ -691,7 +879,7 @@
       if (catalog.some(item => item.id === originalRoute)) {
         showBook(originalRoute);
         if(routeParams.get('open')==='1')void openReader(originalRoute);
-      } else location.replace('./index.html?v=16');
+      } else location.replace('./index.html?v=17');
     }
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
   })();

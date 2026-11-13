@@ -83,7 +83,7 @@
     try{
       const id=await importPDF(file,category.value);
       // O visor 3D é mantido. Ao voltar, o usuário encontra a estante única.
-      location.href='./meus-livros.html?livro='+encodeURIComponent(id)+'&v=16';
+      location.href='./meus-livros.html?livro='+encodeURIComponent(id)+'&v=17';
     }catch(error){
       report('Não foi possível importar o PDF: '+(error.message||String(error)));
     }finally{trigger.disabled=false;input.value='';}
