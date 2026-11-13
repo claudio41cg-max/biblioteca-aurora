@@ -1,6 +1,6 @@
-const CACHE = 'aurora-v7';
+const CACHE = 'aurora-v8';
 const CORE = [
-  './', './index.html', './meus-livros.html',
+  './', './index.html', './index.html?v=7', './meus-livros.html',
   './aurora-estante.css?v=5', './aurora-avancado.css?v=1', './aurora-edicao.css?v=1',
   './aurora-estante.js', './aurora-importados.js', './aurora-avancado.js',
   './aurora-livro-3d.mjs', './assets/prateleira-romances.webp',
@@ -25,7 +25,11 @@ self.addEventListener('fetch', event => {
   const request = event.request;
   if (request.method !== 'GET') return;
   if (request.mode === 'navigate') {
-    event.respondWith(fetch(request).then(response => {
+    // O endereço raiz pode permanecer no cache do GitHub Pages após um deploy.
+    // A entrada versionada abre a edição atual também nos PWAs já instalados.
+    const isAppRoot = new URL(request.url).pathname === new URL(self.registration.scope).pathname;
+    const resource = isAppRoot ? new Request(new URL('./index.html?v=7',self.registration.scope)) : request;
+    event.respondWith(fetch(resource).then(response => {
       if (response.ok) {
         const copy = response.clone();
         caches.open(CACHE).then(cache => cache.put(request,copy)).catch(() => {});
