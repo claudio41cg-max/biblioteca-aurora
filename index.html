@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#081d1d">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./aurora-estante.css?v=6">
-  <link rel="stylesheet" href="./aurora-avancado.css?v=2">
+  <link rel="stylesheet" href="./aurora-estante.css?v=7">
+  <link rel="stylesheet" href="./aurora-avancado.css?v=3">
   <title>Biblioteca Aurora • Minha estante</title>
 </head>
 <body>
@@ -26,9 +26,11 @@
           <option value="ficcao">Ficção e aventuras</option>
           <option value="brasileiros">Autores brasileiros</option>
         </select>
-        <a href="./meus-livros.html?categoria=romance&v=11" class="import-option" id="pdfLink"><span aria-hidden="true">▤</span> Importar livro PDF <span aria-hidden="true">›</span></a>
+        <label for="pdfFile" class="import-option" id="pdfLink"><span aria-hidden="true">▤</span> Importar livro PDF <span aria-hidden="true">›</span></label>
+        <input id="pdfFile" type="file" accept=".pdf,application/pdf">
         <label class="import-option" for="txtFile"><span aria-hidden="true">≡</span> Importar livro TXT <span aria-hidden="true">›</span></label>
         <input id="txtFile" type="file" accept=".txt,text/plain">
+        <p id="pdfImportStatus" class="pdf-import-status" role="status" aria-live="polite" hidden></p>
       </div>
     </div>
     <nav class="library-tools" aria-label="Ferramentas da biblioteca">
@@ -37,7 +39,7 @@
       <button type="button" id="statsButton" aria-expanded="false">Minhas leituras</button>
     </nav>
     <section id="roomPanel" class="utility-panel" hidden aria-label="Personalizar ambiente">
-      <h2>Personalizar a estante</h2>
+      <div class="utility-heading"><h2>Personalizar a estante</h2><button type="button" class="back-to-shelf">← Estante</button></div>
       <div class="utility-fields">
         <label>Estilo
           <select id="roomTheme">
@@ -51,7 +53,7 @@
       </div>
     </section>
     <section id="statsPanel" class="utility-panel" hidden aria-label="Acompanhar leituras">
-      <h2>Minhas leituras</h2>
+      <div class="utility-heading"><h2>Minhas leituras</h2><button type="button" class="back-to-shelf">← Estante</button></div>
       <div class="reading-stats">
         <p><strong id="statBooks">0</strong><span>Livros importados</span></p>
         <p><strong id="statStarted">0</strong><span>Em leitura</span></p>
@@ -66,6 +68,7 @@
   <main class="library" id="library" aria-label="Estantes por categoria"></main>
   <aside class="arrange-bar" id="arrangeBar" hidden aria-live="polite">
     <span id="arrangeSelection">Toque em um livro para mudar sua posição.</span>
+    <button id="arrangeBack" class="arrange-back" type="button">← Estante</button>
     <div>
       <button id="moveLeft" type="button" disabled>Mover para esquerda</button>
       <button id="moveRight" type="button" disabled>Mover para direita</button>
@@ -91,8 +94,11 @@
     </div>
   </section>
   <script src="./aurora-sinopses.js?v=2" defer></script>
-  <script src="./aurora-estante.js?v=2" defer></script>
-  <script src="./aurora-importados.js?v=2" defer></script>
-  <script src="./aurora-avancado.js" defer></script>
+  <script src="./aurora-estante.js?v=3" defer></script>
+  <script src="./aurora-importados.js?v=3" defer></script>
+  <script src="./aurora-avancado.js?v=2" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
+  <script src="./aurora-pdf-covers.js?v=1" defer></script>
+  <script src="./aurora-pdf-import.js?v=1" defer></script>
 </body>
 </html>

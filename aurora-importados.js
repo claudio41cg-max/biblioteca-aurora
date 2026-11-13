@@ -51,7 +51,7 @@
         button.dataset.bookId=book.id;
         button.title=book.title+' • tocar para ver a capa original em 3D';
         button.addEventListener('click',()=>{
-          location.href='./meus-livros.html?livro='+encodeURIComponent(book.id)+'&v=11';
+          location.href='./meus-livros.html?livro='+encodeURIComponent(book.id)+'&v=12';
         });
         // Um título do catálogo demonstrativo dá lugar à edição realmente baixada.
         const duplicate=Array.from(row.querySelectorAll('.book-spine')).find(node=>

@@ -6,8 +6,16 @@
   <meta name="theme-color" content="#21150f">
   <link rel="manifest" href="./manifest.webmanifest">
   <title>Meus livros • Biblioteca Aurora</title>
+  <script>
+    // A estante principal é a única entrada. Esta página serve só de visor 3D.
+    if(!new URLSearchParams(location.search).get('livro'))
+      location.replace('./index.html?v=12');
+  </script>
   <style>
     :root{color-scheme:dark;--gold:#d1a16b;--paper:#fff5e4}*{box-sizing:border-box}
+    /* Estrutura legada mantida só para compatibilidade do visor: não há
+       mais uma segunda estante nem outro botão de importação à vista. */
+    body>.tophead,body>.toolbar,body>.shelf,body>#hint,body>.notice{display:none!important}
     body{margin:0;min-height:100dvh;color:#f5e8d3;background:radial-gradient(ellipse at 50% -20%,#62432d 0%,#24160f 52%,#130b08 100%);font-family:Georgia,serif}
     button,.button{cursor:pointer;background:linear-gradient(#d4a96e,#b8874e);color:#24170c;border:1px solid #f2cf92;border-radius:8px;padding:10px 14px;font:600 13px system-ui;text-decoration:none}
     button:focus-visible,.button:focus-visible,input:focus-visible{outline:2px solid #ffe3b0;outline-offset:2px}
@@ -63,7 +71,7 @@
   <header class="tophead"><div class="eyebrow">SEU ACERVO PESSOAL</div><h1>✦ Meus livros • Aurora ✦</h1><p>Adicione seus livros PDF e guarde cada um pela lombada.</p></header>
   <nav class="toolbar">
     <label class="button" for="file">＋ Adicionar livro PDF</label>
-    <a class="button light" href="./index.html?v=11">Estante principal</a>
+    <a class="button light" href="./index.html?v=12">Estante principal</a>
     <label class="category-picker">Categoria
       <select id="importCategory" aria-label="Categoria do PDF ao importar">
         <option value="romance">Romances</option>
@@ -132,6 +140,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
   <script src="./aurora-sinopses.js?v=2"></script>
+  <script src="./aurora-pdf-covers.js?v=1"></script>
   <script>
   (async () => {
     'use strict';
@@ -140,6 +149,7 @@
     if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     let database, catalog = [], selectedId = null, active = null, down = null, rotation = {x:-5,y:-22}, generation = 0;
     const recoveringCovers = new Set();
+    const recoveringBacks = new Set();
     const retriedBrokenCovers = new Set();
     const routeParams = new URLSearchParams(location.search);
     const originalRoute = routeParams.get('livro');
@@ -197,7 +207,7 @@
         country:b.country||'',year:b.year||'',
         description:b.description||'',
         cover:b.cover || '',customCover:!!b.customCover,spine:b.spine||'',
-        spineAspect:Number(b.spineAspect)||0,back:b.back||'',
+        spineAspect:Number(b.spineAspect)||0,back:b.back||'',backChecked:!!b.backChecked,
         ratio:Number(b.ratio)||.72,status:b.status||'quero-ler',
         total:b.total || 0,created:b.created || 0,
         category:validCategories.includes(b.category)?b.category:guessCategory(b.name),
@@ -302,6 +312,36 @@
       window.dispatchEvent(new CustomEvent('aurora:book-selected',{detail:window.__auroraSelectedBook}));
       document.body.style.overflow = 'hidden';
       if(!book.cover) void recoverOriginalCover(id);
+      if(!book.back && !book.backChecked) void recoverOriginalBack(id);
+    }
+    async function recoverOriginalBack(id) {
+      if(recoveringBacks.has(id))return;
+      recoveringBacks.add(id);
+      try {
+        const record=await dbGet('books',id);
+        if(!record || record.back || record.backChecked)return;
+        if(!record.data || !window.pdfjsLib || !window.AuroraPDFCovers)return;
+        const pdf=await pdfjsLib.getDocument({data:new Uint8Array(record.data.slice(0))}).promise;
+        let back='';
+        try {
+          back=await window.AuroraPDFCovers.extractBack(pdf,renderImage);
+        } finally {await pdf.destroy().catch(()=>{});}
+        // Usa o registro mais recente para não sobrescrever uma capa recuperada
+        // ou uma mudança de categoria feita enquanto o PDF era verificado.
+        const latest=await dbGet('books',id);
+        if(!latest)return;
+        latest.backChecked=true;
+        if(back && !latest.back)latest.back=back;
+        await dbPut('books',latest);
+        if(back){
+          await reloadCatalog();
+          if(selectedId===id && !active)showBook(id);
+        }else{
+          const current=catalog.find(item=>item.id===id);
+          if(current)current.backChecked=true;
+        }
+      }catch(error){console.warn('Não foi possível verificar o verso original:',error);}
+      finally{recoveringBacks.delete(id);}
     }
     async function recoverOriginalCover(id,force=false) {
       if(recoveringCovers.has(id))return;
@@ -313,11 +353,14 @@
         const task=pdfjsLib.getDocument({data:new Uint8Array(record.data.slice(0))});
         const pdf=await task.promise;
         try {
-          record.cover=await renderImage(pdf,1,950);
+          const recoveredCover=await renderImage(pdf,1,950);
           const page=await pdf.getPage(1);
           const viewport=page.getViewport({scale:1});
-          record.ratio=Math.max(.59,Math.min(.84,viewport.width/viewport.height));
-          await dbPut('books',record);
+          const latest=await dbGet('books',id);
+          if(!latest)return;
+          latest.cover=recoveredCover;
+          latest.ratio=Math.max(.59,Math.min(.84,viewport.width/viewport.height));
+          await dbPut('books',latest);
         } finally {await pdf.destroy().catch(()=>{});}
         await reloadCatalog();
         if(selectedId===id)showBook(id);
@@ -333,7 +376,7 @@
     }
     $('back').onclick = () => {
       hideBook();
-      if (originalRoute) location.href = './index.html?v=11';
+      location.href = './index.html?v=12';
     };
     $('bookCategory').addEventListener('change',async event=>{
       if(!selectedId) return;
@@ -399,7 +442,10 @@
         const rawAuthor=String(metadata?.info?.Author||'').trim();
         const rawSubject=String(metadata?.info?.Subject||'').trim();
         const known=window.AuroraBookInfo?.find(readableName(file.name));
-        const item = {id:crypto.randomUUID(),name:readableName(file.name),data,cover,total:pdf.numPages,
+        let back='';
+        try{back=await window.AuroraPDFCovers?.extractBack(pdf,renderImage)||'';}
+        catch(error){console.warn('Não foi possível verificar a contracapa:',error);}
+        const item = {id:crypto.randomUUID(),name:readableName(file.name),data,cover,back,backChecked:true,total:pdf.numPages,
           author:known?.author||(rawAuthor&&rawAuthor.length<=120?rawAuthor:''),
           description:rawSubject.length>50?rawSubject.slice(0,2800):'',
           created:Date.now(),page:0,category:$('importCategory').value,
@@ -633,7 +679,7 @@
     await reloadCatalog();
     if (originalRoute) {
       if (catalog.some(item => item.id === originalRoute)) showBook(originalRoute);
-      else $('hint').textContent = 'Este livro não foi encontrado. Abra-o no mesmo celular e navegador em que foi importado.';
+      else location.replace('./index.html?v=12');
     }
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
   })();

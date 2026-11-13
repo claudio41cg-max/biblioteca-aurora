@@ -22,6 +22,9 @@ h1 em{font-weight:normal;color:#e8c18a;font-style:italic}
 .import-option span:first-child{font-size:20px;color:#e3b579}
 .import-option span:last-child{margin-left:auto;color:#d2b18a}
 .import-option:hover{background:#485347}
+.pdf-import-status{margin:10px 1px 0;color:#f5d7ad;font:12px/1.45 system-ui,sans-serif;overflow-wrap:anywhere}
+.pdf-import-status[hidden]{display:none}
+.import-trigger:disabled{opacity:.65;cursor:wait}
 input[type=file]{display:none}
 .library{max-width:940px;margin:4px auto 0;padding:0 clamp(12px,3vw,26px) 26px}
 .category{margin:19px 0 31px}

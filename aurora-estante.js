@@ -159,7 +159,6 @@
   document.addEventListener('keydown',event=>{
     if (event.key==='Escape') toggleMenu(false);
   });
-  importCategory.addEventListener('change',()=>{$('pdfLink').href='./meus-livros.html?categoria='+encodeURIComponent(importCategory.value)+'&v=11';});
   $('txtFile').addEventListener('change',async event=>{
     const file=event.target.files?.[0];
     if (!file) return;

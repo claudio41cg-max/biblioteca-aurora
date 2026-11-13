@@ -5,6 +5,11 @@
 .utility-panel{position:relative;max-width:570px;margin:13px auto 0;padding:16px;border:1px solid #98754c;border-radius:12px;background:#152b27;box-shadow:0 12px 24px #0007;text-align:left;z-index:4}
 .utility-panel[hidden],.arrange-bar[hidden]{display:none!important}
 .utility-panel h2{font:normal 22px Georgia,serif;margin:0 0 13px;color:#eac89b}
+.utility-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:13px}
+.utility-heading h2{margin:0}
+.utility-heading .back-to-shelf,.arrange-bar .arrange-back{flex:none;border:1px solid #9d805e;border-radius:7px;background:#263b33;color:#f5d8ac;padding:6px 9px;font:11px system-ui,sans-serif;cursor:pointer}
+.utility-heading .back-to-shelf:hover,.arrange-bar .arrange-back:hover{background:#3c5545}
+.arrange-bar .arrange-back{display:block;width:auto;margin:9px auto 0;padding:6px 11px}
 .utility-fields{display:flex;flex-wrap:wrap;gap:14px}
 .utility-fields label,.goal-line{display:flex;gap:7px;align-items:center;color:#ebd4b2;font:12px system-ui,sans-serif}
 .utility-fields label:not(.checkline){flex-direction:column;align-items:flex-start}

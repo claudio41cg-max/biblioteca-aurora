@@ -38,6 +38,16 @@
       if(opening && panel.id==='statsPanel') refreshStats();
     });
   });
+  function returnToShelf(){
+    panels.forEach(([button,panel])=>{
+      panel.hidden=true;
+      button.setAttribute('aria-expanded','false');
+    });
+    $('library').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  document.querySelectorAll('.back-to-shelf').forEach(button=>{
+    button.addEventListener('click',returnToShelf);
+  });
 
   const bookKey=book=>{
     if(book.dataset.bookId)return 'pdf:'+book.dataset.bookId;
@@ -79,6 +89,10 @@
     $('arrangeSelection').textContent='Toque em um livro para mudar sua posição.';
     updateMoveButtons();
     if(!arranging)saveOrder();
+  });
+  $('arrangeBack').addEventListener('click',()=>{
+    if(arranging)$('arrangeButton').click();
+    $('library').scrollIntoView({behavior:'smooth',block:'start'});
   });
   $('library').addEventListener('click',event=>{
     if(!arranging)return;
