@@ -116,11 +116,18 @@ function initialize(){
     ctx.font='bold 43px Georgia';ctx.fillText(String(name).slice(0,33),0,13,725);
     return canvasTexture(canvas);
   }
+  // Usa exatamente as mesmas superfícies da versão CSS de compatibilidade.
+  function matchEditionSurfaces(img,book,backTexture,spineTexture,boardMaterial,trimMaterial){
+    const surfaces=window.AuroraEditionSurfaces?.generate(img,book);
+    if(!surfaces)return;
+    boardMaterial.color.setStyle(surfaces.edge);
+    trimMaterial.color.setStyle(surfaces.accent);
+    if(surfaces.back){backTexture.image=surfaces.back;backTexture.needsUpdate=true;}
+    if(surfaces.spine){spineTexture.image=surfaces.spine;spineTexture.needsUpdate=true;}
+    queueRender();
+  }
   const edgeTexture=edgeCanvas();
   const pageMaterial=new THREE.MeshStandardMaterial({map:edgeTexture,roughness:1,metalness:0});
-  const leather=new THREE.MeshStandardMaterial({color:0x543826,roughness:.84,metalness:.03});
-  const darkLeather=new THREE.MeshStandardMaterial({color:0x28180f,roughness:.85});
-  const gold=new THREE.MeshStandardMaterial({color:0xa9814f,roughness:.45,metalness:.45});
   const parchment=new THREE.MeshStandardMaterial({color:0xf3e4c8,roughness:1});
   function paintPhoto(texture,url,token,spine=false){
     if(!url)return;
@@ -146,7 +153,7 @@ function initialize(){
     };
     img.src=url;
   }
-  function loadOriginalFront(material,url,token,bookId){
+  function loadOriginalFront(material,url,token,bookId,onImage){
     if(typeof url!=='string'||!url.trim())return;
     const img=new Image();
     img.decoding='async';
@@ -162,6 +169,7 @@ function initialize(){
       material.map=realTexture;
       material.needsUpdate=true;
       try {
+        try{onImage(img);}catch(error){console.warn('Texturas complementares indisponíveis:',error);}
         resize();
         render();
         provisional?.dispose();
@@ -190,7 +198,7 @@ function initialize(){
         if(object.material){
           const materials=Array.isArray(object.material)?object.material:[object.material];
           materials.forEach(mat=>{
-            if([leather,darkLeather,gold,parchment,pageMaterial].includes(mat)) return;
+            if([parchment,pageMaterial].includes(mat)) return;
             if(mat.map && mat.map!==edgeTexture) mat.map.dispose();
             mat.dispose();
           });
@@ -209,9 +217,11 @@ function initialize(){
     paper.position.x=.04;
     group.add(paper);
 
+    const coverBoard=new THREE.MeshStandardMaterial({color:0x433c36,roughness:.8,metalness:0});
+    const trimBoard=new THREE.MeshStandardMaterial({color:0x665449,roughness:.7,metalness:0});
     const coverSurface=canvasTexture(neutralCoverCanvas());
     const frontMaterial=new THREE.MeshPhysicalMaterial({map:coverSurface,roughness:.56,metalness:0,clearcoat:.28,clearcoatRoughness:.34});
-    const faceSides=[darkLeather,leather,gold,leather,frontMaterial,leather];
+    const faceSides=[coverBoard,coverBoard,trimBoard,coverBoard,frontMaterial,coverBoard];
     frontHinge=new THREE.Group();
     frontHinge.position.set(-width/2,0,thickness/2+.028);
     const frontMesh=new THREE.Mesh(new THREE.BoxGeometry(width,height,.052),faceSides);
@@ -222,7 +232,7 @@ function initialize(){
     const backSurface=canvasTexture(neutralCoverCanvas(true));
     const backMaterial=new THREE.MeshPhysicalMaterial({map:backSurface,roughness:.71,metalness:0,clearcoat:.18});
     const backMesh=new THREE.Mesh(new THREE.BoxGeometry(width,height,.055),[
-      leather,leather,gold,leather,leather,backMaterial
+      coverBoard,coverBoard,trimBoard,coverBoard,coverBoard,backMaterial
     ]);
     backMesh.position.z=-thickness/2-.03;
     group.add(backMesh);
@@ -230,19 +240,20 @@ function initialize(){
     const spineTexture=spineCanvas(book.name);
     const spineMaterial=new THREE.MeshPhysicalMaterial({map:spineTexture,roughness:.65,metalness:.02,clearcoat:.24});
     const spineMesh=new THREE.Mesh(new THREE.BoxGeometry(.14,height-.02,thickness+.09),[
-      leather,spineMaterial,gold,gold,leather,darkLeather
+      coverBoard,spineMaterial,trimBoard,trimBoard,coverBoard,coverBoard
     ]);
     spineMesh.position.x=-width/2+.015;
     group.add(spineMesh);
 
     // Filetes e relevos nas bordas das duas capas.
     [-1,1].forEach(side=>{
-      const trim=new THREE.Mesh(new THREE.BoxGeometry(width-.07,.012,.012),gold);
+      const trim=new THREE.Mesh(new THREE.BoxGeometry(width-.07,.012,.012),trimBoard);
       trim.position.set(0,side*(height/2-.07),thickness/2+.063);
       group.add(trim);
     });
 
-    loadOriginalFront(frontMaterial,book.cover,token,book.id);
+    loadOriginalFront(frontMaterial,book.cover,token,book.id,img=>
+      matchEditionSurfaces(img,book,backSurface,spineTexture,coverBoard,trimBoard));
     paintPhoto(backSurface,book.back,token);
     paintPhoto(spineTexture,book.spine,token,true);
     group.rotation.set(rotation.x,rotation.y,0);

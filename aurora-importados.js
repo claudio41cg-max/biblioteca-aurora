@@ -15,39 +15,75 @@
   function takeBookFromShelf(button,book){
     if(navigating)return;
     navigating=true;
-    const destination='./meus-livros.html?livro='+encodeURIComponent(book.id)+'&v=13';
+    const destination='./meus-livros.html?livro='+encodeURIComponent(book.id)+'&v=14';
     const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    if(reduced || !button.animate){location.href=destination;return;}
+    if(reduced || !button.animate || !book.cover){location.href=destination;return;}
     const rect=button.getBoundingClientRect();
-    const coverWidth=Math.min(window.innerWidth*.58,245);
-    const targetHeight=Math.min(window.innerHeight*.49,350);
-    const scale=targetHeight/Math.max(rect.height,1);
-    const targetX=window.innerWidth/2-(rect.left+rect.width/2);
-    const targetY=window.innerHeight*.49-(rect.top+rect.height/2);
+    const targetHeight=Math.min(window.innerHeight*.47,365);
+    const targetWidth=targetHeight*Math.max(.59,Math.min(.84,Number(book.ratio)||.72));
+    const targetCenter={x:window.innerWidth/2,y:window.innerHeight*.49};
+    const scale=rect.height/targetHeight;
+    const dx=rect.left+rect.width/2-targetCenter.x;
+    const dy=rect.top+rect.height/2-targetCenter.y;
+    const depth=Math.max(25,Math.min(42,28+Number(book.total||180)/38));
     const shade=document.createElement('div');
     shade.className='aurora-flight-backdrop';
-    const clone=button.cloneNode(true);
-    clone.classList.add('aurora-book-flight');
-    clone.style.cssText+=`;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;position:fixed;transform:rotateY(-5deg)`;
-    // A mesma imagem de capa acompanha o livro até o visor 3D.
-    const face=clone.querySelector('.shelf-book-cover');
-    if(face){
-      face.style.transform='rotateY(0deg)';
-      face.style.left='100%';
-      face.style.width=Math.max(coverWidth/scale,70)+'px';
+    const layer=document.createElement('div');
+    layer.className='aurora-flight-layer';
+    const volume=document.createElement('div');
+    volume.className='aurora-flight-volume';
+    volume.style.width=targetWidth+'px';
+    volume.style.height=targetHeight+'px';
+    volume.style.left=(targetCenter.x-targetWidth/2)+'px';
+    volume.style.top=(targetCenter.y-targetHeight/2)+'px';
+    volume.style.setProperty('--flight-depth',depth+'px');
+    volume.style.setProperty('--flight-half-depth',(depth/2)+'px');
+    const back=document.createElement('div');
+    back.className='aurora-flight-back';
+    back.style.backgroundImage=book.back?'url('+JSON.stringify(book.back)+')':'linear-gradient(#150f12a6,#150f1240),url('+JSON.stringify(book.cover)+')';
+    const pages=document.createElement('div');
+    pages.className='aurora-flight-pages';
+    const spine=document.createElement('div');
+    spine.className='aurora-flight-spine';
+    spine.style.backgroundImage=book.spine?'url('+JSON.stringify(book.spine)+')':'linear-gradient(90deg,#0009,#0002 50%,#0008),url('+JSON.stringify(book.cover)+')';
+    if(!book.spine){
+      const title=document.createElement('span');
+      title.textContent=book.title;
+      spine.append(title);
     }
-    document.body.append(shade,clone);
+    const front=document.createElement('div');
+    front.className='aurora-flight-front';
+    const cover=button.querySelector('.shelf-book-cover img')?.cloneNode(true)||document.createElement('img');
+    cover.src=book.cover;
+    cover.loading='eager';
+    cover.alt='';
+    front.append(cover);
+    volume.append(back,pages,spine,front);
+    layer.append(volume);
+    document.body.append(shade,layer);
     button.style.visibility='hidden';
-    const duration=680;
+    const duration=850;
     shade.animate([{opacity:0},{opacity:1}],{duration,fill:'forwards',easing:'ease-out'});
-    const flight=clone.animate([
-      {transform:'translate3d(0,0,0) scale(1) rotateY(-5deg)',opacity:1,offset:0},
-      {transform:`translate3d(${targetX*.6}px,${targetY*.65-22}px,0) scale(${Math.max(1,scale*.7)}) rotateY(-28deg)`,opacity:1,offset:.55},
-      {transform:`translate3d(${targetX}px,${targetY}px,0) scale(${scale}) rotateY(-18deg)`,opacity:1,offset:1}
-    ],{duration,fill:'forwards',easing:'cubic-bezier(.22,.75,.18,1)'});
-    const finish=()=>{location.href=destination;};
+    // Começa como lombada, sai da madeira, vira com profundidade real e chega de frente.
+    const flight=volume.animate([
+      {transform:`translate3d(${dx}px,${dy}px,0) scale(${scale}) rotateX(0deg) rotateY(85deg)`,offset:0},
+      {transform:`translate3d(${dx*.82}px,${dy*.78-35}px,75px) scale(${scale*1.13}) rotateX(-3deg) rotateY(72deg)`,offset:.27},
+      {transform:`translate3d(${dx*.24}px,${dy*.23-30}px,125px) scale(.86) rotateX(-5deg) rotateY(32deg)`,offset:.74},
+      {transform:'translate3d(0,0,0) scale(1) rotateX(-4deg) rotateY(16deg)',offset:1}
+    ],{duration,fill:'forwards',easing:'cubic-bezier(.32,.02,.16,1)'});
+    let navigated=false;
+    const finish=()=>{
+      if(navigated)return;
+      navigated=true;
+      try{sessionStorage.setItem('aurora-arriving-book',JSON.stringify({id:book.id,at:Date.now()}));}catch{}
+      location.href=destination;
+    };
     flight.finished.then(finish,finish);
-    setTimeout(finish,duration+300);
+    setTimeout(finish,duration+250);
+    window.addEventListener('pageshow',()=>{
+      button.style.visibility='';
+      shade.remove();layer.remove();navigating=false;
+    },{once:true});
   }
   request.onsuccess=()=>{
     const db=request.result;
@@ -64,6 +100,7 @@
         id:book.id,
         title:window.AuroraBookInfo?.find(book.name)?.title||book.name||'Livro sem título',
         cover:book.cover||'',
+        back:book.back||'',
         spine:book.spine||'',
         spineAspect:book.spineAspect||0,
         ratio:book.ratio||.72,

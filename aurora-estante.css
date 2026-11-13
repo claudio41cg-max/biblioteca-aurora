@@ -117,18 +117,22 @@ input[type=file]{display:none}
   color:#fff4da;
   text-shadow:0 1px 3px #120b07,0 0 6px #120b07;
 }
-.aurora-book-flight{
-  position:fixed!important;z-index:9999!important;pointer-events:none!important;
-  margin:0!important;transform-origin:center center!important;
-  overflow:visible!important;will-change:transform,opacity;
-  filter:drop-shadow(12px 18px 15px #000b);
-}
 .aurora-flight-backdrop{
   position:fixed;inset:0;z-index:9998;pointer-events:none;
-  background:#130b0880;opacity:0;
+  background:radial-gradient(ellipse at 50% 45%,#62432d90 0%,#130b08ee 85%);opacity:0;
 }
+.aurora-flight-layer{position:fixed;inset:0;z-index:9999;pointer-events:none;perspective:1150px;perspective-origin:50% 48%;overflow:visible}
+.aurora-flight-volume{position:absolute;transform-style:preserve-3d;transform-origin:50% 50%;will-change:transform;filter:drop-shadow(17px 24px 17px #000b)}
+.aurora-flight-volume>div{position:absolute;backface-visibility:hidden;border-radius:2px 5px 5px 2px}
+.aurora-flight-front{inset:0;transform:translateZ(var(--flight-half-depth));background:#32251b;overflow:hidden;box-shadow:inset 5px 0 8px #0004}
+.aurora-flight-front img{width:100%;height:100%;object-fit:fill;display:block}
+.aurora-flight-front:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#0005,transparent 9%,#fff3e20b 80%,#0002)}
+.aurora-flight-back{inset:0;transform:translateZ(calc(0px - var(--flight-half-depth))) rotateY(180deg);background-size:cover;background-position:center;box-shadow:inset 0 0 16px #0005}
+.aurora-flight-spine{left:0;top:0;bottom:0;width:var(--flight-depth);transform-origin:left center;transform:translateZ(calc(0px - var(--flight-half-depth))) rotateY(-90deg);background-size:cover;background-position:left center;box-shadow:inset 5px 0 8px #0009,inset -4px 0 8px #fff5d01c;display:flex;align-items:center;justify-content:center}
+.aurora-flight-spine span{display:block;writing-mode:vertical-rl;transform:rotate(180deg);max-height:92%;overflow:hidden;padding:8px 4px;font:bold 17px/1 Georgia,serif;color:#fff3d7;text-shadow:0 2px 4px #000,0 0 5px #000;text-align:center}
+.aurora-flight-pages{right:0;top:5px;bottom:5px;width:var(--flight-depth);transform-origin:right center;transform:translateZ(calc(0px - var(--flight-half-depth))) rotateY(90deg);background:repeating-linear-gradient(90deg,#cfb99a,#fff5de 2px,#b9a483 3px);box-shadow:inset 0 0 11px #0005}
 @media(prefers-reduced-motion:reduce){
-  .aurora-book-flight,.aurora-flight-backdrop{animation:none!important}
+  .aurora-flight-volume,.aurora-flight-backdrop{animation:none!important}
 }
 .shelf-book-cover{
   display:block;position:absolute;pointer-events:none;

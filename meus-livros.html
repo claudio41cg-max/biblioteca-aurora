@@ -9,7 +9,7 @@
   <script>
     // A estante principal é a única entrada. Esta página serve só de visor 3D.
     if(!new URLSearchParams(location.search).get('livro'))
-      location.replace('./index.html?v=12');
+      location.replace('./index.html?v=14');
   </script>
   <style>
     :root{color-scheme:dark;--gold:#d1a16b;--paper:#fff5e4}*{box-sizing:border-box}
@@ -59,6 +59,10 @@
     .volume-top,.volume-bottom{position:absolute;left:3px;right:3px;height:var(--depth);background:repeating-linear-gradient(90deg,#e1cfb3,#f7ebd3 2px,#bfab8d 3px);border:2px solid #957b5a;backface-visibility:visible}
     .volume-top{top:0;transform-origin:center top;transform:translateZ(calc(0px - var(--half-depth))) rotateX(90deg)}
     .volume-bottom{bottom:0;transform-origin:center bottom;transform:translateZ(calc(0px - var(--half-depth))) rotateX(-90deg)}
+    /* O volume recebido da estante termina de se acomodar no visor 3D. */
+    .showcase.shelf-arrival .scene{animation:aurora-arrival .5s cubic-bezier(.18,.78,.24,1) both}
+    @keyframes aurora-arrival{from{opacity:.3;transform:translateY(15px) scale(.88)}to{opacity:1;transform:translateY(0) scale(1)}}
+    @media(prefers-reduced-motion:reduce){.showcase.shelf-arrival .scene{animation:none}}
     .category-picker,.category-editor{display:flex;align-items:center;justify-content:center;gap:8px;color:#f2d3a5;font:12px system-ui,sans-serif}
     .category-picker select,.category-editor select{max-width:178px;padding:8px;border-radius:7px;background:#302117;border:1px solid #9d7849;color:#f8e5c8;font:12px system-ui,sans-serif}
     .category-editor{margin:5px auto 2px}
@@ -71,7 +75,7 @@
   <header class="tophead"><div class="eyebrow">SEU ACERVO PESSOAL</div><h1>✦ Meus livros • Aurora ✦</h1><p>Adicione seus livros PDF e guarde cada um pela lombada.</p></header>
   <nav class="toolbar">
     <label class="button" for="file">＋ Adicionar livro PDF</label>
-    <a class="button light" href="./index.html?v=12">Estante principal</a>
+    <a class="button light" href="./index.html?v=14">Estante principal</a>
     <label class="category-picker">Categoria
       <select id="importCategory" aria-label="Categoria do PDF ao importar">
         <option value="romance">Romances</option>
@@ -280,6 +284,12 @@
       selectedId = id;
       $('showcase').classList.add('active');
       $('showcase').setAttribute('aria-hidden','false');
+      let arrival=null;
+      try{arrival=JSON.parse(sessionStorage.getItem('aurora-arriving-book'));sessionStorage.removeItem('aurora-arriving-book');}catch{}
+      if(arrival?.id===id && Date.now()-arrival.at<8000){
+        $('showcase').classList.add('shelf-arrival');
+        $('scene').addEventListener('animationend',()=>$('showcase').classList.remove('shelf-arrival'),{once:true});
+      }
       const known=window.AuroraBookInfo?.find(book.name);
       $('showtitle').textContent = known?.title||book.name.replace(/[_-]+/g,' ');
       $('showauthor').textContent = 'por '+(known?.author||book.author||'Autor não informado');
@@ -376,7 +386,7 @@
     }
     $('back').onclick = () => {
       hideBook();
-      location.href = './index.html?v=12';
+      location.href = './index.html?v=14';
     };
     $('bookCategory').addEventListener('change',async event=>{
       if(!selectedId) return;
@@ -679,11 +689,12 @@
     await reloadCatalog();
     if (originalRoute) {
       if (catalog.some(item => item.id === originalRoute)) showBook(originalRoute);
-      else location.replace('./index.html?v=12');
+      else location.replace('./index.html?v=14');
     }
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
   })();
   </script>
-  <script type="module" src="./aurora-livro-3d.mjs?v=2"></script>
+  <script src="./aurora-edition-surfaces.js?v=1"></script>
+  <script type="module" src="./aurora-livro-3d.mjs?v=3"></script>
 </body>
 </html>
