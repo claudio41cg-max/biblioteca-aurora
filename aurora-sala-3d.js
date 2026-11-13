@@ -11,8 +11,8 @@
   const categories=['romance','adulto','ficcao','brasileiros'];
   let active=null;
   const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
-  const readerURL=id=>'./meus-livros.html?livro='+encodeURIComponent(id)+'&open=1&v=17';
-  const editionURL=id=>'./meus-livros.html?livro='+encodeURIComponent(id)+'&v=17';
+  const readerURL=id=>'./meus-livros.html?livro='+encodeURIComponent(id)+'&open=1&v=18';
+  const editionURL=id=>'./meus-livros.html?livro='+encodeURIComponent(id)+'&v=18';
   let fallbackPose={x:-.09,y:.28};
 
   function setPose(x,y){

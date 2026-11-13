@@ -41,6 +41,18 @@ O desenho está implementado, mas a verificação visual de fidelidade foi bloqu
 
 **final result: blocked**
 
+## Ajuste de folheio ampliado e altura das folhas (13/11/2026)
+
+- **Verdade visual:** prints do usuário `/workspace/scratch/27706d36a83f/upload/01-290097.jpg` (texto adaptado na página), `02-290092.jpg` (painel Aa) e `03-290090.jpg` (PDF original), todos 709 × 1536 px. São imagens completas do celular, com controles do Android; a área do leitor corresponde a aproximadamente 354 CSS px de largura com densidade próxima de 2.
+- **Estado solicitado:** um PDF importado no aparelho, leitor aberto; mudar o zoom para 110%–200%, tanto no texto adaptado quanto na folha original, e virar as páginas com o dedo. A folha deve aparecer ligeiramente mais acima.
+- **Correções de código:** `meus-livros.html` mantém o tamanho físico da folha quando `textMode` está ativo, ampliando somente a tipografia e permitindo quebra e rolagem dentro da página. Ao ampliar o PDF original, o gesto horizontal chama `St.PageFlip.flipNext/flipPrev` com a mesma animação física. `aurora-reader.css` reduz a área vazia acima da página e limita o texto ao conteúdo da folha.
+- **Verificação funcional:** `node tests/leitor-zoom-folheio.test.mjs`, `node tests/leitor-controles.test.mjs` e `node tests/estante-unica.test.mjs` passaram; simularam zoom, página adaptada, dois sentidos de folheio, controles e roteamento. O motor de sombras não foi alterado.
+- **Captura de implementação:** indisponível. A prévia local iniciou, mas a navegação do navegador de nuvem para `http://terminal.local:4173/` expirou. O navegador de teste não contém o PDF local do usuário e não foi possível medir a tela final nem inspecionar os erros de console nesse estado.
+- **Comparação visual:** bloqueada; não há captura final para reunir no mesmo quadro com as três fontes. Tipografia e quebra de linha foram corrigidas por cálculo de CSS, mas ainda sem validação visual no S24. O espaço vertical foi reduzido por `padding-bottom` sem modificar fontes/cores do cabeçalho, imagens originais ou conteúdo de livro.
+- **P1 pendente:** confirmar com um PDF real no S24 FE que 110%–200% permite folhear em ambos os modos e que o texto adaptado continua rolável dentro da folha. **P2 pendente:** conferir a nova altura, com o cabeçalho e o rodapé sempre visíveis.
+
+**final result: blocked**
+
 ## Correção posterior: capa original do PDF na vitrine (13/11/2026)
 
 - **Evidência do usuário:** `/workspace/scratch/27706d36a83f/upload/04-289382.jpg` mostra uma capa inteiramente marrom no WebGL, apesar de `/workspace/scratch/27706d36a83f/upload/02-289359.jpg` mostrar a capa impressa real de «Orgulho e Preconceito» em uma versão anterior.

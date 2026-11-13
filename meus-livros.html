@@ -9,7 +9,7 @@
   <script>
     // A estante principal é a única entrada. Esta página serve só de visor 3D.
     if(!new URLSearchParams(location.search).get('livro'))
-      location.replace('./index.html?v=17');
+      location.replace('./index.html?v=18');
   </script>
   <style>
     :root{color-scheme:dark;--gold:#d1a16b;--paper:#fff5e4}*{box-sizing:border-box}
@@ -70,13 +70,13 @@
   </style>
   <link rel="stylesheet" href="./aurora-edicao.css?v=1">
   <link rel="stylesheet" href="./aurora-vitrine.css?v=5">
-  <link rel="stylesheet" href="./aurora-reader.css?v=1">
+  <link rel="stylesheet" href="./aurora-reader.css?v=2">
 </head>
 <body>
   <header class="tophead"><div class="eyebrow">SEU ACERVO PESSOAL</div><h1>✦ Meus livros • Aurora ✦</h1><p>Adicione seus livros PDF e guarde cada um pela lombada.</p></header>
   <nav class="toolbar">
     <label class="button" for="file">＋ Adicionar livro PDF</label>
-    <a class="button light" href="./index.html?v=17">Estante principal</a>
+    <a class="button light" href="./index.html?v=18">Estante principal</a>
     <label class="category-picker">Categoria
       <select id="importCategory" aria-label="Categoria do PDF ao importar">
         <option value="romance">Romances</option>
@@ -141,7 +141,7 @@
       <div class="reader-prefs-heading"><h2>Personalizar leitura</h2><button id="readerPrefsClose" type="button" aria-label="Fechar configurações">Fechar</button></div>
       <div class="reader-pref-line"><label for="readerZoom">Zoom do PDF</label><output id="readerZoomValue" for="readerZoom">100%</output></div>
       <input id="readerZoom" type="range" min="100" max="200" step="10" value="100" aria-label="Ampliação do PDF de cem a duzentos por cento">
-      <p class="reader-pref-hint">Em 100%, arraste o canto para folhear. Ampliado, arraste a página para explorar e volte a 100% para folhear.</p>
+      <p class="reader-pref-hint">Você pode folhear mesmo com zoom. No texto adaptado, as letras aumentam sem deixar a folha maior que a tela.</p>
       <fieldset class="reader-theme-options"><legend>Ambiente de leitura</legend>
         <button type="button" data-reader-theme="original" aria-pressed="true">Claro</button>
         <button type="button" data-reader-theme="sepia" aria-pressed="false">Sépia</button>
@@ -435,7 +435,7 @@
     }
     $('back').onclick = () => {
       hideBook();
-      location.href = './index.html?v=17';
+      location.href = './index.html?v=18';
     };
     $('bookCategory').addEventListener('change',async event=>{
       if(!selectedId) return;
@@ -664,18 +664,26 @@
     function applyReaderZoom(session,ratio){
       if(!session)return;
       session.zoom=clamp(Math.round(ratio*10)/10,1,2);
-      if(session.zoom===1){session.panX=0;session.panY=0;}
+      if(session.zoom===1||session.textMode){session.panX=0;session.panY=0;}
       const host=$('flipbook');
       const stage=$('viewport');
-      const maxX=Math.max(0,(host.offsetWidth*session.zoom-stage.clientWidth)/2);
-      const maxY=Math.max(0,(host.offsetHeight*session.zoom-stage.clientHeight)/2);
-      session.panX=clamp(session.panX||0,-maxX,maxX);
-      session.panY=clamp(session.panY||0,-maxY,maxY);
-      host.style.transform=`translate(${session.panX}px,${session.panY}px) scale(${session.zoom})`;
-      $('reader').classList.toggle('zoomed',session.zoom>1);
+      if(session.textMode){
+        // Mantém a geometria do livro e a interação física do StPageFlip:
+        // apenas as letras crescem, com quebra de linha dentro da mesma folha.
+        host.style.transform='translate(0px,0px) scale(1)';
+        $('reader').style.setProperty('--reader-text-zoomed-size',(readingPrefs.size*session.zoom).toFixed(1)+'px');
+      }else{
+        const maxX=Math.max(0,(host.offsetWidth*session.zoom-stage.clientWidth)/2);
+        const maxY=Math.max(0,(host.offsetHeight*session.zoom-stage.clientHeight)/2);
+        session.panX=clamp(session.panX||0,-maxX,maxX);
+        session.panY=clamp(session.panY||0,-maxY,maxY);
+        host.style.transform=`translate(${session.panX}px,${session.panY}px) scale(${session.zoom})`;
+      }
+      $('reader').classList.toggle('zoomed',session.zoom>1&&!session.textMode);
       $('readerZoom').value=String(Math.round(session.zoom*100));
       $('readerZoomValue').textContent=Math.round(session.zoom*100)+'%';
-      if(session.zoom>1)$('status').textContent='Arraste a página ampliada. Volte a 100% para virar as folhas.';
+      if(session.textMode&&session.zoom>1)$('status').textContent='Texto ampliado dentro da folha. Arraste o canto para folhear.';
+      else if(session.zoom>1)$('status').textContent='Deslize para os lados para folhear; arraste para explorar o PDF ampliado.';
       else $('status').textContent='Arraste o canto para virar a folha. Seu progresso é salvo automaticamente.';
     }
     async function openReader(id) {
@@ -721,7 +729,7 @@
         const ratio = vp.width/vp.height;
         const mobile = innerWidth < 670;
         const availableWidth = mobile ? innerWidth-8 : Math.min(540,(innerWidth-60)/2);
-        const availableHeight = Math.max(270,$('viewport').clientHeight-10);
+        const availableHeight = Math.max(270,$('viewport').clientHeight-45);
         const width = Math.max(150,Math.floor(Math.min(availableWidth,availableHeight*ratio)));
         const height = Math.max(200,Math.floor(width/ratio));
         const fragment = document.createDocumentFragment();
@@ -806,6 +814,7 @@
     $('readerFontSize').addEventListener('input',event=>{
       readingPrefs.size=clamp(Number(event.target.value),13,23);
       applyReadingPrefs();saveReadingPrefs();
+      if(active?.textMode)applyReaderZoom(active,active.zoom);
     });
     $('readerLineHeight').addEventListener('input',event=>{
       readingPrefs.line=clamp(Number(event.target.value),13,21);
@@ -834,14 +843,15 @@
       }
       session.textMode=event.target.checked;
       $('readerTextPrefs').hidden=!session.textMode;
-      applyReaderZoom(session,1);
+      applyReaderZoom(session,session.zoom);
       reloadReadingPages(session);
       $('status').textContent=session.textMode?'Texto adaptado ativado. Arraste o canto para folhear.':'Página original do PDF restaurada.';
     });
     const viewport=$('viewport');
     let pan=null;
     viewport.addEventListener('pointerdown',event=>{
-      if(!active?.flip||active.zoom===1)return;
+      // No texto adaptado, os eventos ficam com o StPageFlip mesmo com zoom.
+      if(!active?.flip||active.zoom===1||active.textMode)return;
       pan={id:event.pointerId,x:event.clientX,y:event.clientY,ox:active.panX,oy:active.panY,session:active};
       viewport.setPointerCapture(event.pointerId);
       event.stopPropagation();event.preventDefault();
@@ -855,14 +865,27 @@
     },true);
     const stopPan=event=>{
       if(!pan||pan.id!==event.pointerId)return;
+      const gesture=pan;
       pan=null;
+      if(event.type==='pointerup'&&gesture.session===active){
+        const dx=event.clientX-gesture.x;
+        const dy=event.clientY-gesture.y;
+        if(Math.abs(dx)>44&&Math.abs(dx)>Math.abs(dy)*1.25){
+          // A ampliação do PDF não pode desativar o folheio com curva e sombra.
+          active.panX=gesture.ox;
+          active.panY=gesture.oy;
+          applyReaderZoom(active,active.zoom);
+          if(dx<0)active.flip.flipNext('bottom');
+          else active.flip.flipPrev('bottom');
+        }
+      }
       event.stopPropagation();
     };
     viewport.addEventListener('pointerup',stopPan,true);
     viewport.addEventListener('pointercancel',stopPan,true);
     ['touchstart','touchmove','touchend'].forEach(name=>{
       viewport.addEventListener(name,event=>{
-        if(active?.zoom>1){event.stopPropagation();if(name==='touchmove')event.preventDefault();}
+        if(active?.zoom>1&&!active.textMode){event.stopPropagation();if(name==='touchmove')event.preventDefault();}
       },{capture:true,passive:false});
     });
     document.addEventListener('keydown',event => {
@@ -879,7 +902,7 @@
       if (catalog.some(item => item.id === originalRoute)) {
         showBook(originalRoute);
         if(routeParams.get('open')==='1')void openReader(originalRoute);
-      } else location.replace('./index.html?v=17');
+      } else location.replace('./index.html?v=18');
     }
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
   })();
