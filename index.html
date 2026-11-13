@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#081d1d">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./aurora-estante.css?v=14">
+  <link rel="stylesheet" href="./aurora-estante.css?v=15">
   <link rel="stylesheet" href="./aurora-avancado.css?v=3">
+  <link rel="stylesheet" href="./aurora-sala-3d.css?v=1">
   <title>Biblioteca Aurora • Minha estante</title>
 </head>
 <body>
@@ -76,6 +77,38 @@
   </aside>
   <footer class="footnote">Seus livros importados ficam guardados neste aparelho. Toque numa lombada para pegar o volume.</footer>
 
+  <!-- O mesmo livro WebGL percorre a estante e fica aqui para inspeção, sem trocar de página. -->
+  <section id="auroraShowcase" class="aurora-showcase" role="dialog" aria-modal="true" aria-label="Livro em três dimensões" hidden>
+    <nav class="aurora-show-controls" aria-label="Opções do livro">
+      <button type="button" id="auroraShowBack">← Estante</button>
+      <label>Guardar em:
+        <select id="auroraShowCategory" aria-label="Categoria do livro">
+          <option value="romance">Romances</option>
+          <option value="adulto">Romances picantes</option>
+          <option value="ficcao">Ficção e aventuras</option>
+          <option value="brasileiros">Autores brasileiros</option>
+        </select>
+      </label>
+    </nav>
+    <header class="aurora-show-heading"><h2 id="auroraShowTitle"></h2><p id="auroraShowAuthor"></p></header>
+    <div id="scene" class="aurora-show-scene" aria-label="Livro 3D. Arraste para girar e toque para ler.">
+      <div id="book3d" class="aurora-css-book" role="button" tabindex="0" aria-label="Toque para abrir o livro">
+        <div class="volume-back"></div><div class="volume-spine"></div><div class="volume-edge"></div>
+        <div class="volume-top"></div><div class="volume-bottom"></div><div class="volume-paper"></div>
+        <div class="volume-cover"><img id="cover3d" alt="Capa original do PDF"></div>
+      </div>
+    </div>
+    <details id="auroraShowDescription" class="aurora-show-description">
+      <summary>Descrição do livro</summary>
+      <div class="aurora-description-text">
+        <p><strong>Autor:</strong> <span id="auroraDescriptionAuthor"></span></p>
+        <p><strong>Origem:</strong> <span id="auroraDescriptionOrigin"></span></p>
+        <p><strong>Publicado originalmente:</strong> <span id="auroraDescriptionYear"></span></p>
+        <p id="auroraDescriptionStory"></p>
+      </div>
+    </details>
+  </section>
+
   <section class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Leitor de livros em texto" aria-hidden="true">
     <div class="reader-head">
       <button class="btn" id="close" type="button">← Estante</button>
@@ -95,10 +128,13 @@
   </section>
   <script src="./aurora-sinopses.js?v=2" defer></script>
   <script src="./aurora-estante.js?v=3" defer></script>
-  <script src="./aurora-importados.js?v=14" defer></script>
+  <script src="./aurora-sala-3d.js?v=1" defer></script>
+  <script src="./aurora-importados.js?v=15" defer></script>
   <script src="./aurora-avancado.js?v=2" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
   <script src="./aurora-pdf-covers.js?v=1" defer></script>
   <script src="./aurora-pdf-import.js?v=1" defer></script>
+  <script src="./aurora-edition-surfaces.js?v=1" defer></script>
+  <script type="module" src="./aurora-livro-3d.mjs?v=4"></script>
 </body>
 </html>

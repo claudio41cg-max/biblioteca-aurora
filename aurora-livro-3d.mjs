@@ -175,6 +175,7 @@ function initialize(){
         provisional?.dispose();
         // Só escondemos o livro CSS depois de o WebGL já ter a capa original.
         stage.classList.add('three-ready');
+        window.dispatchEvent(new CustomEvent('aurora:book-ready',{detail:{id:bookId}}));
       } catch(error) {
         material.map=provisional;
         material.needsUpdate=true;
@@ -267,6 +268,13 @@ function initialize(){
     makeModel(book);
     resize();
   }
+  function setPose(x,y){
+    if(!currentBook||opening)return;
+    rotation.x=clamp(Number(x)||0,-.85,.85);
+    rotation.y=Number(y)||0;
+    group.rotation.set(rotation.x,rotation.y,0);
+    queueRender();
+  }
   function reset(){
     opening=false;
     if(frontHinge) frontHinge.rotation.y=0;
@@ -318,7 +326,7 @@ function initialize(){
       group.rotation.y=rotation.y;queueRender();
     }
   });
-  window.Aurora3D={display,reset,playOpen};
+  window.Aurora3D={display,setPose,reset,playOpen};
   window.addEventListener('aurora:book-selected',event=>display(event.detail));
   if(window.__auroraSelectedBook) display(window.__auroraSelectedBook);
   resize();

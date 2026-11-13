@@ -10,10 +10,15 @@ assert.match(main,/id="pdfImportStatus"/);
 assert.match(main,/class="back-to-shelf"/);
 assert.match(main,/id="arrangeBack"/);
 assert.doesNotMatch(main,/id="pdfLink"[^>]*href=/);
-assert.match(viewer,/location\.replace\('\.\/index\.html\?v=14'\)/);
+assert.match(viewer,/location\.replace\('\.\/index\.html\?v=15'\)/);
 assert.match(viewer,/recoverOriginalBack\(id\)/);
 assert.match(viewer,/aurora-edition-surfaces\.js\?v=1/);
-assert.match(read('aurora-importados.js'),/aurora-flight-volume/);
+assert.match(read('aurora-importados.js'),/AuroraShelfViewer\.open/);
+assert.match(read('index.html'),/id="auroraShowcase"/);
+assert.match(read('aurora-sala-3d.js'),/aurora:book-ready/);
+assert.match(read('aurora-sala-3d.js'),/session\.motion=scene\.animate/);
+assert.doesNotMatch(read('aurora-sala-3d.js'),/cloneNode\(/);
+assert.match(viewer,/routeParams\.get\('open'\)==='1'/);
 assert.match(read('aurora-livro-3d.mjs'),/matchEditionSurfaces/);
 assert.match(read('aurora-edition-surfaces.js'),/if\(!book\.back\)/);
 const embedded=[...viewer.matchAll(/<script(?:\s+[^>]*)?>([\s\S]*?)<\/script>/g)]

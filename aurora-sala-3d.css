@@ -1,0 +1,103 @@
+/* Sala de inspeção: o livro 3D não troca de documento ao sair da estante. */
+body.aurora-showcase-open{overflow:hidden}
+.aurora-showcase[hidden]{display:none!important}
+.aurora-showcase{
+  position:fixed;inset:0;z-index:3500;display:flex;flex-direction:column;
+  align-items:center;padding:env(safe-area-inset-top) 15px calc(24px + env(safe-area-inset-bottom));
+  overflow-y:auto;overflow-x:hidden;isolation:isolate;color:#f5e8d3;
+  font-family:Georgia,'Times New Roman',serif;
+}
+.aurora-showcase::before{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:0;
+  background:radial-gradient(ellipse at 50% 35%,#6b4931 0%,#342218 50%,#140d09 100%);
+  transition:opacity .9s ease;
+}
+.aurora-showcase.arriving::before,.aurora-showcase.settled::before{opacity:1}
+.aurora-show-controls{
+  width:min(100%,740px);display:flex;align-items:center;justify-content:center;
+  flex-wrap:wrap;gap:10px;flex:none;margin:16px auto 14px;
+}
+.aurora-show-controls button,.aurora-show-controls select{
+  border:1px solid #edcb92;border-radius:10px;color:#27170d;
+  background:linear-gradient(160deg,#dcb580,#bb8649);box-shadow:0 4px 9px #0005;
+  padding:11px 15px;font:600 14px system-ui,sans-serif;
+}
+.aurora-show-controls button{cursor:pointer}
+.aurora-show-controls label{display:flex;align-items:center;gap:7px;font:12px system-ui,sans-serif;color:#e9cfb1}
+.aurora-show-controls select{max-width:min(56vw,195px);cursor:pointer}
+.aurora-show-heading{width:min(100%,740px);text-align:center;flex:none}
+.aurora-show-heading h2{font:normal clamp(27px,7vw,42px)/1.15 Georgia,serif;letter-spacing:-.6px;margin:4px auto 8px;color:#fff1db}
+.aurora-show-heading p{font:14px/1.5 system-ui,sans-serif;color:#d8baa0;margin:0}
+.aurora-show-controls,.aurora-show-heading,.aurora-show-description{transition:opacity .4s ease,transform .4s ease}
+.aurora-showcase:not(.settled) .aurora-show-controls,
+.aurora-showcase:not(.settled) .aurora-show-heading,
+.aurora-showcase:not(.settled) .aurora-show-description{
+  opacity:0;pointer-events:none;transform:translateY(7px);
+}
+.aurora-show-scene{
+  width:min(100%,850px);height:clamp(355px,52svh,525px);flex:none;
+  position:relative;display:flex;align-items:center;justify-content:center;
+  perspective:1300px;perspective-origin:50% 50%;transform-origin:center center;
+  margin:0 auto;will-change:transform;touch-action:none;user-select:none;
+}
+.aurora-showcase:not(.arriving):not(.settled) .aurora-show-scene{opacity:0}
+.aurora-show-scene .aurora-webgl{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+.aurora-show-scene:not(.three-ready) .aurora-webgl{display:none}
+.aurora-show-scene.three-ready .aurora-css-book{display:none}
+.aurora-show-scene.aurora-force-css .aurora-webgl{display:none!important}
+.aurora-show-scene.aurora-force-css .aurora-css-book{display:block!important;visibility:visible}
+.aurora-show-scene.cover-loading .aurora-css-book{visibility:hidden}
+.aurora-webgl:focus-visible,.aurora-css-book:focus-visible{outline:2px solid #f8d09b;outline-offset:4px}
+.aurora-css-book{
+  --half-depth:27px;--depth:54px;position:relative;
+  width:min(65vw,326px);height:auto;aspect-ratio:var(--book-ratio,.72);
+  transform-style:preserve-3d;transform:rotateX(-5deg) rotateY(-22deg);
+  filter:drop-shadow(20px 24px 16px #000a);cursor:grab;touch-action:none;
+}
+.aurora-css-book>div{position:absolute;backface-visibility:visible}
+.aurora-css-book .volume-cover{
+  inset:0;transform-origin:left center;transform:translateZ(var(--half-depth));
+  border:4px solid #614b39;border-left-width:7px;border-radius:3px 7px 7px 3px;
+  overflow:hidden;background:#34271e;backface-visibility:hidden;
+  box-shadow:inset 8px 0 8px #0007;
+}
+.aurora-css-book .volume-cover img{display:block;width:100%;height:100%;object-fit:fill}
+.aurora-css-book .volume-cover::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,#0006,transparent 15%,#fff4d40a 75%,#0002)}
+.aurora-css-book .volume-back{
+  inset:0;transform:translateZ(calc(0px - var(--half-depth))) rotateY(180deg);
+  background:#3d342d center/cover;border:3px solid #806044;border-radius:3px 7px 7px 3px;
+}
+.aurora-css-book .volume-paper{
+  inset:7px;transform:translateZ(calc(var(--half-depth) - 7px));
+  background:repeating-linear-gradient(0deg,#e9d6b6,#fff3dc 1px,#ccb89c 2px);
+  border:1px solid #977c5d;
+}
+.aurora-css-book .volume-edge{
+  right:0;top:6px;bottom:6px;width:var(--depth);transform-origin:right center;
+  transform:translateZ(calc(0px - var(--half-depth))) rotateY(90deg);
+  background:repeating-linear-gradient(90deg,#d7c09e,#fcf0d6 2px,#bca585 3px);
+  box-shadow:inset 0 0 9px #0004;
+}
+.aurora-css-book .volume-spine{
+  left:0;top:0;bottom:0;width:var(--depth);transform-origin:left center;
+  transform:translateZ(calc(0px - var(--half-depth))) rotateY(-90deg);
+  background:#34251f center/cover;border:2px solid #62452e;border-radius:3px;
+  box-shadow:inset 5px 0 12px #0008,inset -3px 0 7px #fff4d01a;
+}
+.aurora-css-book .volume-top,.aurora-css-book .volume-bottom{
+  left:3px;right:3px;height:var(--depth);
+  background:repeating-linear-gradient(90deg,#d9c6a8,#f5e8d1 2px,#b9a486 3px);
+  border:1px solid #9f8563;
+}
+.aurora-css-book .volume-top{top:0;transform-origin:center top;transform:translateZ(calc(0px - var(--half-depth))) rotateX(90deg)}
+.aurora-css-book .volume-bottom{bottom:0;transform-origin:center bottom;transform:translateZ(calc(0px - var(--half-depth))) rotateX(-90deg)}
+.aurora-show-description{
+  width:min(100%,735px);flex:none;margin:0 auto 30px;border:1px solid #9c754c;
+  border-radius:12px;background:#2d1d15bd;color:#fae7cb;
+  font:14px/1.6 system-ui,sans-serif;box-shadow:0 9px 22px #0005;
+}
+.aurora-show-description summary{cursor:pointer;padding:15px 18px;font-weight:700;list-style-position:inside}
+.aurora-description-text{padding:0 20px 18px;line-height:1.7}
+.aurora-description-text p{margin:10px 0}
+@media(max-height:690px){.aurora-show-scene{height:clamp(285px,47svh,400px)}.aurora-show-controls{margin:8px auto}}
+@media(prefers-reduced-motion:reduce){.aurora-showcase::before,.aurora-show-controls,.aurora-show-heading,.aurora-show-description{transition:none}}
