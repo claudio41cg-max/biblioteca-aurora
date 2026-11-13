@@ -23,7 +23,7 @@
       const lastPages=new Map(progress.map(item=>[item.id,item]));
       const imported=books.map(book=>({
         id:book.id,
-        title:book.name||'Livro sem título',
+        title:window.AuroraBookInfo?.find(book.name)?.title||book.name||'Livro sem título',
         cover:book.cover||'',
         spine:book.spine||'',
         spineAspect:book.spineAspect||0,
@@ -49,7 +49,7 @@
         button.dataset.bookId=book.id;
         button.title=book.title+' • tocar para ver a capa original em 3D';
         button.addEventListener('click',()=>{
-          location.href='./meus-livros.html?livro='+encodeURIComponent(book.id);
+          location.href='./meus-livros.html?livro='+encodeURIComponent(book.id)+'&v=8';
         });
         // Um título do catálogo demonstrativo dá lugar à edição realmente baixada.
         const duplicate=Array.from(row.querySelectorAll('.book-spine')).find(node=>

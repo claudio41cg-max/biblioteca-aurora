@@ -57,12 +57,13 @@
     @media(max-width:500px){.toolbar{padding:12px 9px;gap:6px}.category-picker{flex-basis:100%}.category-picker select{max-width:none;width:min(230px,67vw)}}
   </style>
   <link rel="stylesheet" href="./aurora-edicao.css?v=1">
+  <link rel="stylesheet" href="./aurora-vitrine.css?v=1">
 </head>
 <body>
   <header class="tophead"><div class="eyebrow">SEU ACERVO PESSOAL</div><h1>✦ Meus livros • Aurora ✦</h1><p>Adicione seus livros PDF e guarde cada um pela lombada.</p></header>
   <nav class="toolbar">
     <label class="button" for="file">＋ Adicionar livro PDF</label>
-    <a class="button light" href="./index.html?v=7">Estante principal</a>
+    <a class="button light" href="./index.html?v=8">Estante principal</a>
     <label class="category-picker">Categoria
       <select id="importCategory" aria-label="Categoria do PDF ao importar">
         <option value="romance">Romances</option>
@@ -78,58 +79,31 @@
   <p class="notice">A capa e todas as páginas vêm do próprio arquivo PDF. Seus PDFs não são enviados para um servidor. Para encontrá-los depois, abra a Estante principal no mesmo navegador.</p>
 
   <section id="showcase" class="showcase" role="dialog" aria-modal="true" aria-label="Livro em três dimensões">
-    <div class="showhead"><button id="back" type="button">← Estante</button><h2 id="showtitle"></h2></div>
-    <label class="category-editor">Guardar em:
-      <select id="bookCategory" aria-label="Mudar a categoria deste livro">
+    <div class="showhead"><button id="back" type="button">← Estante</button></div>
+    <header class="book-heading">
+      <label class="category-editor">
+        <select id="bookCategory" aria-label="Categoria do livro">
         <option value="romance">Romances</option>
         <option value="adulto">Romances picantes</option>
         <option value="ficcao">Ficção e aventuras</option>
         <option value="brasileiros">Autores brasileiros</option>
-      </select>
-    </label>
+        </select>
+      </label>
+      <h2 id="showtitle"></h2>
+      <p class="book-author" id="showauthor"></p>
+    </header>
     <div id="scene" class="scene" aria-label="Arraste para girar; toque para abrir o livro">
       <div id="book3d" class="book3d" role="button" tabindex="0" aria-label="Toque para abrir este livro">
         <div class="volume-back"></div><div class="volume-spine"></div><div class="volume-edge"></div><div class="volume-top"></div><div class="volume-bottom"></div><div class="volume-paper"></div>
         <div class="volume-cover"><img id="cover3d" alt="Capa original do livro"></div>
       </div>
     </div>
-    <p class="showhint">Gire o volume com o dedo em 360°. <strong>Toque para abrir e ler.</strong></p>
-    <p id="showresume" class="showresume"></p>
-    <details class="edition-panel" id="editionDetails">
-      <summary>Detalhes do exemplar e fotos originais</summary>
-      <p class="edition-help">Para reproduzir sua edição como na livraria, adicione fotos da capa, lombada e contracapa do mesmo exemplar. O PDF fornece a capa inicial; as outras faces só serão originais se você fornecer suas imagens.</p>
-      <div class="edition-fields">
-        <label>Título da edição <input id="editionTitle" type="text" maxlength="150"></label>
-        <label>Autor <input id="editionAuthor" type="text" maxlength="120" placeholder="Autor do livro"></label>
-        <label>ISBN (opcional) <input id="editionISBN" type="text" maxlength="20" inputmode="numeric" placeholder="Ex.: 978..."></label>
-        <label>Situação
-          <select id="editionStatus">
-            <option value="quero-ler">Quero ler</option>
-            <option value="lendo">Estou lendo</option>
-            <option value="lido">Já li</option>
-          </select>
-        </label>
-        <label>Formato físico
-          <select id="editionFormat">
-            <option value="0.61">Livro de bolso</option>
-            <option value="0.72">Tamanho tradicional</option>
-            <option value="0.80">Edição larga</option>
-          </select>
-        </label>
-      </div>
-      <div class="edition-images">
-        <label class="edition-upload">Foto da capa <input type="file" accept="image/*" data-edition-image="cover"><small id="coverStatus">Capa extraída do PDF</small></label>
-        <label class="edition-upload">Foto da lombada <input type="file" accept="image/*" data-edition-image="spine"><small id="spineStatus">Ainda não fornecida</small></label>
-        <label class="edition-upload">Foto da contracapa <input type="file" accept="image/*" data-edition-image="back"><small id="backStatus">Ainda não fornecida</small></label>
-      </div>
-      <p id="editionMessage" class="edition-message" role="status">As imagens permanecem no seu aparelho.</p>
-    </details>
-    <details class="edition-panel notes-panel">
-      <summary>Meu caderno de leitura</summary>
-      <label for="bookNotes">Anotações, citações e impressões do livro</label>
-      <textarea id="bookNotes" rows="5" maxlength="12000" placeholder="Escreva seus pensamentos sobre esta leitura..."></textarea>
-      <p id="notesSaved" class="edition-message">Suas notas são salvas automaticamente neste aparelho.</p>
-    </details>
+    <p id="showresume" class="showresume" role="status" aria-live="polite"></p>
+    <section class="about-book" aria-labelledby="aboutHeading">
+      <h3 id="aboutHeading">Sobre a obra</h3>
+      <p id="aboutText" class="about-text"></p>
+      <button id="aboutToggle" class="about-toggle" type="button" aria-expanded="false" aria-controls="aboutText">Ver descrição completa <span aria-hidden="true">⌄</span></button>
+    </section>
   </section>
 
   <section id="reader" class="reader" role="dialog" aria-modal="true" aria-label="Leitor PDF">
@@ -150,6 +124,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
+  <script src="./aurora-sinopses.js?v=1"></script>
   <script>
   (async () => {
     'use strict';
@@ -210,6 +185,7 @@
       const byId = new Map(progress.map(p => [p.id,p]));
       catalog = all.map(b => ({
         id:b.id,name:b.name || 'Livro sem título',author:b.author||'',isbn:b.isbn||'',
+        description:b.description||'',
         cover:b.cover || '',customCover:!!b.customCover,spine:b.spine||'',
         spineAspect:Number(b.spineAspect)||0,back:b.back||'',
         ratio:Number(b.ratio)||.72,status:b.status||'quero-ler',
@@ -266,10 +242,14 @@
       selectedId = id;
       $('showcase').classList.add('active');
       $('showcase').setAttribute('aria-hidden','false');
-      $('showtitle').textContent = book.name;
+      const known=window.AuroraBookInfo?.find(book.name);
+      $('showtitle').textContent = known?.title||book.name.replace(/[_-]+/g,' ');
+      $('showauthor').textContent = 'por '+(known?.author||book.author||'Autor não informado');
       $('cover3d').src = book.cover || '';
       $('cover3d').alt = 'Capa original de ' + book.name;
-      $('book3d').style.width = 'min('+(61*book.ratio/.72).toFixed(1)+'vw,'+Math.round(285*book.ratio/.72)+'px)';
+      const format=Math.max(.59,Math.min(.84,Number(book.ratio)||.72));
+      $('book3d').style.setProperty('--book-ratio',String(format));
+      $('book3d').style.width = 'min('+(81*format/.72).toFixed(1)+'vw,'+Math.round(396*format/.72)+'px)';
       $('book3d').querySelector('.volume-back').style.backgroundImage = book.back ? 'url('+JSON.stringify(book.back)+')' : '';
       $('book3d').querySelector('.volume-spine').style.backgroundImage = book.spine ? 'url('+JSON.stringify(book.spine)+')' : '';
       const halfDepth=Math.max(22,Math.min(41,23+(book.total||180)/70));
@@ -277,18 +257,12 @@
       $('book3d').style.setProperty('--depth',(halfDepth*2)+'px');
       $('bookCategory').value = book.category;
       $('showresume').textContent = book.page > 0 ? `Sua leitura está salva na página ${book.page + 1}. Toque para continuar.` : 'Toque na capa para começar a leitura.';
-      $('editionTitle').value=book.name;
-      $('editionAuthor').value=book.author;
-      $('editionISBN').value=book.isbn;
-      $('editionStatus').value=book.status;
-      const formats=[.61,.72,.8];
-      $('editionFormat').value=String(formats.reduce((best,n)=>Math.abs(n-book.ratio)<Math.abs(best-book.ratio)?n:best,.72));
-      $('coverStatus').textContent=book.customCover?'Foto da sua edição':'Capa extraída do PDF';
-      $('spineStatus').textContent=book.spine?'Foto original adicionada':'Ainda não fornecida';
-      $('backStatus').textContent=book.back?'Foto original adicionada':'Ainda não fornecida';
-      $('editionMessage').textContent='As imagens permanecem no seu aparelho.';
-      $('bookNotes').value=localStorage.getItem('aurora-notes:'+book.id)||'';
-      $('notesSaved').textContent='Suas notas são salvas automaticamente neste aparelho.';
+      const synopsis=known?.description||book.description||'Ainda não há uma sinopse disponível para este livro. Você pode abrir o volume e começar a leitura.';
+      $('aboutText').textContent=synopsis;
+      $('aboutText').classList.remove('expanded');
+      $('aboutToggle').setAttribute('aria-expanded','false');
+      $('aboutToggle').firstChild.textContent='Ver descrição completa ';
+      $('aboutToggle').hidden=synopsis.length<=220;
       $('book3d').classList.remove('opening');
       rotation = {x:-5,y:-22};
       updateRotation();
@@ -303,7 +277,7 @@
     }
     $('back').onclick = () => {
       hideBook();
-      if (originalRoute) location.href = './index.html?v=7';
+      if (originalRoute) location.href = './index.html?v=8';
     };
     $('bookCategory').addEventListener('change',async event=>{
       if(!selectedId) return;
@@ -318,78 +292,10 @@
         $('showresume').textContent='Não foi possível salvar a categoria: '+error.message;
       }
     });
-    async function saveEdition(changes,targetId=selectedId) {
-      const id=targetId;
-      if(!id)return;
-      try {
-        const record=await dbGet('books',id);
-        if(!record)return;
-        Object.assign(record,changes);
-        await dbPut('books',record);
-        await reloadCatalog();
-        if(selectedId===id)showBook(id);
-        $('editionMessage').textContent='Dados da edição salvos neste aparelho.';
-      }catch(error){
-        $('editionMessage').textContent='Não foi possível salvar: '+(error?.message||String(error));
-      }
-    }
-    const editFields={
-      editionTitle:['name',value=>value.trim()||'Livro sem título'],
-      editionAuthor:['author',value=>value.trim()],
-      editionISBN:['isbn',value=>value.trim()],
-      editionStatus:['status',value=>value],
-      editionFormat:['ratio',value=>Number(value)||.72]
-    };
-    Object.entries(editFields).forEach(([id,[key,transform]])=>{
-      $(id).addEventListener('change',event=>saveEdition({[key]:transform(event.target.value)}));
-    });
-    function photoData(file,kind){
-      return new Promise((resolve,reject)=>{
-        const url=URL.createObjectURL(file),image=new Image();
-        image.onload=()=>{
-          try{
-            const maxWidth=kind==='spine'?440:1000,maxHeight=kind==='spine'?1600:1500;
-            const scale=Math.min(1,maxWidth/image.naturalWidth,maxHeight/image.naturalHeight);
-            const canvas=document.createElement('canvas');
-            canvas.width=Math.max(1,Math.round(image.naturalWidth*scale));
-            canvas.height=Math.max(1,Math.round(image.naturalHeight*scale));
-            canvas.getContext('2d',{alpha:false}).drawImage(image,0,0,canvas.width,canvas.height);
-            resolve({url:canvas.toDataURL('image/webp',.9),aspect:canvas.width/canvas.height});
-          }catch(error){reject(error);}
-          finally{URL.revokeObjectURL(url);}
-        };
-        image.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('Não foi possível abrir a imagem.'));};
-        image.src=url;
-      });
-    }
-    document.querySelectorAll('[data-edition-image]').forEach(input=>{
-      input.addEventListener('change',async event=>{
-        const file=event.target.files?.[0],kind=event.target.dataset.editionImage,targetId=selectedId;
-        if(!file||!targetId)return;
-        $('editionMessage').textContent='Preparando a foto da '+(kind==='spine'?'lombada':kind==='back'?'contracapa':'capa')+'…';
-        try{
-          if(!file.type.startsWith('image/'))throw new Error('Escolha uma imagem da galeria.');
-          const photo=await photoData(file,kind);
-          const changes={[kind]:photo.url};
-          if(kind==='spine')changes.spineAspect=photo.aspect;
-          if(kind==='cover')changes.customCover=true;
-          await saveEdition(changes,targetId);
-          $('editionMessage').textContent='Foto da edição adicionada. Gire o livro para conferir!';
-        }catch(error){$('editionMessage').textContent='Não foi possível salvar a imagem: '+error.message;}
-        finally{event.target.value='';}
-      });
-    });
-    let notesTimer;
-    $('bookNotes').addEventListener('input',event=>{
-      const id=selectedId,notes=event.target.value;
-      $('notesSaved').textContent='Salvando suas anotações…';
-      clearTimeout(notesTimer);
-      notesTimer=setTimeout(()=>{
-        try{
-          localStorage.setItem('aurora-notes:'+id,notes);
-          if(selectedId===id)$('notesSaved').textContent='Anotações salvas neste aparelho.';
-        }catch(error){$('notesSaved').textContent='Não foi possível guardar a anotação: '+error.message;}
-      },350);
+    $('aboutToggle').addEventListener('click',()=>{
+      const expanded=$('aboutText').classList.toggle('expanded');
+      $('aboutToggle').setAttribute('aria-expanded',String(expanded));
+      $('aboutToggle').firstChild.textContent=expanded?'Ver menos ':'Ver descrição completa ';
     });
     window.addEventListener('aurora:open-book',()=>{if(selectedId) openReader(selectedId);});
     const model = $('book3d');
@@ -424,8 +330,14 @@
       const task = pdfjsLib.getDocument({data:new Uint8Array(data.slice(0))});
       const pdf = await task.promise;
       try {
-        const cover = await renderImage(pdf,1,700);
+        const cover = await renderImage(pdf,1,950);
+        const metadata=await pdf.getMetadata().catch(()=>null);
+        const rawAuthor=String(metadata?.info?.Author||'').trim();
+        const rawSubject=String(metadata?.info?.Subject||'').trim();
+        const known=window.AuroraBookInfo?.find(readableName(file.name));
         const item = {id:crypto.randomUUID(),name:readableName(file.name),data,cover,total:pdf.numPages,
+          author:known?.author||(rawAuthor&&rawAuthor.length<=120?rawAuthor:''),
+          description:rawSubject.length>50?rawSubject.slice(0,2800):'',
           created:Date.now(),page:0,category:$('importCategory').value,ratio:.72,status:'quero-ler'};
         await dbPut('books',item);
         return item.id;

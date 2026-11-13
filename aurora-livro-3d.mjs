@@ -10,7 +10,7 @@ if(stage && fallback){
 
 function initialize(){
   const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1,1.8));
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1,2));
   renderer.setClearColor(0x000000,0);
   renderer.outputColorSpace=THREE.SRGBColorSpace;
   renderer.toneMapping=THREE.ACESFilmicToneMapping;
@@ -23,7 +23,8 @@ function initialize(){
 
   const scene=new THREE.Scene();
   const camera=new THREE.PerspectiveCamera(36,1,.1,80);
-  camera.position.set(0,.08,7.4);
+  // Câmera mais próxima para o livro ocupar a maior parte da vitrine.
+  camera.position.set(0,.08,5.65);
   scene.add(new THREE.HemisphereLight(0xffedce,0x281d16,2.5));
   const key=new THREE.DirectionalLight(0xffebc9,3.1);
   key.position.set(-3.5,5,6);
@@ -46,7 +47,7 @@ function initialize(){
   function resize(){
     const width=Math.max(stage.clientWidth,280),height=Math.max(stage.clientHeight,340);
     camera.aspect=width/height;
-    camera.position.z=height<410?8:7.4;
+    camera.position.z=height<435?6.05:5.65;
     camera.updateProjectionMatrix();
     renderer.setSize(width,height,false);
     queueRender();
@@ -139,8 +140,8 @@ function initialize(){
     img.onload=()=>{
       if(token!==modelGeneration)return;
       const canvas=document.createElement('canvas');
-      canvas.width=spine?256:512;
-      canvas.height=spine?960:720;
+      canvas.width=spine?320:768;
+      canvas.height=spine?1200:1080;
       const ctx=canvas.getContext('2d',{alpha:false});
       ctx.fillStyle='#302016';
       ctx.fillRect(0,0,canvas.width,canvas.height);
