@@ -7,6 +7,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="stylesheet" href="./aurora-estante.css?v=15">
   <link rel="stylesheet" href="./aurora-avancado.css?v=4">
+  <link rel="stylesheet" href="./aurora-ambiente.css?v=1">
   <link rel="stylesheet" href="./aurora-sala-3d.css?v=2">
   <title>Biblioteca Aurora • Minha estante</title>
 </head>
@@ -41,17 +42,69 @@
     </nav>
     <section id="roomPanel" class="utility-panel" hidden aria-label="Personalizar ambiente">
       <div class="utility-heading"><h2>Personalizar a estante</h2><button type="button" class="back-to-shelf">← Estante</button></div>
-      <div class="utility-fields">
-        <label>Estilo
-          <select id="roomTheme">
-            <option value="aurora">Aurora original</option>
-            <option value="classico">Madeira aconchegante</option>
-            <option value="noturno">Biblioteca noturna</option>
-          </select>
-        </label>
-        <label>Iluminação <input id="roomLight" type="range" min="70" max="120" value="100" step="5"></label>
-        <label class="checkline"><input id="roomPlants" type="checkbox" checked> Manter as plantinhas</label>
+      <p class="environment-intro">Escolha o fundo, a madeira e os tons. Veja a mudança na estante antes de salvar.</p>
+      <div class="environment-preview" aria-label="Prévia da sua estante">
+        <div class="environment-preview-books" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <div class="environment-preview-board" aria-hidden="true"></div>
+        <span class="environment-preview-caption">Prévia do ambiente</span>
       </div>
+      <fieldset class="environment-fieldset">
+        <legend>Parede <small>Escolha seu fundo</small></legend>
+        <div class="environment-choices" role="group" aria-label="Modelos de parede">
+          <button type="button" class="environment-choice" data-wall-option="tijolos" aria-pressed="false"><span class="environment-choice-image wall-option-tijolos"></span><span>Tijolos escuros</span></button>
+          <button type="button" class="environment-choice" data-wall-option="ripas" aria-pressed="false"><span class="environment-choice-image wall-option-ripas"></span><span>Madeira ripada</span></button>
+          <button type="button" class="environment-choice" data-wall-option="reboco" aria-pressed="false"><span class="environment-choice-image wall-option-reboco"></span><span>Reboco vintage</span></button>
+          <button type="button" class="environment-choice" data-wall-option="botanico" aria-pressed="false"><span class="environment-choice-image wall-option-botanico"></span><span>Botânico</span></button>
+          <button type="button" class="environment-choice" data-wall-option="rose" aria-pressed="false"><span class="environment-choice-image wall-option-rose"></span><span>Rosé clássico</span></button>
+          <button type="button" class="environment-choice" data-wall-option="original" aria-pressed="false"><span class="environment-choice-image wall-option-original"></span><span>Aurora original</span></button>
+        </div>
+        <div class="environment-tones" role="group" aria-label="Cor da parede"><span class="environment-tones-label">Tom</span>
+          <button type="button" data-wall-tone="noite" class="environment-tone" aria-label="Parede preta" aria-pressed="false" title="Noite"></button>
+          <button type="button" data-wall-tone="azul" class="environment-tone" aria-label="Parede azul" aria-pressed="false" title="Azul"></button>
+          <button type="button" data-wall-tone="verde" class="environment-tone" aria-label="Parede verde" aria-pressed="false" title="Verde"></button>
+          <button type="button" data-wall-tone="petroleo" class="environment-tone" aria-label="Parede petróleo" aria-pressed="false" title="Petróleo"></button>
+          <button type="button" data-wall-tone="lilas" class="environment-tone" aria-label="Parede lilás" aria-pressed="false" title="Lilás"></button>
+          <button type="button" data-wall-tone="rosa" class="environment-tone" aria-label="Parede rosa" aria-pressed="false" title="Rosa"></button>
+          <button type="button" data-wall-tone="calor" class="environment-tone" aria-label="Parede aconchegante" aria-pressed="false" title="Âmbar"></button>
+        </div>
+      </fieldset>
+      <fieldset class="environment-fieldset">
+        <legend>Prateleiras <small>Escolha o acabamento</small></legend>
+        <div class="environment-choices" role="group" aria-label="Modelos de prateleira">
+          <button type="button" class="environment-choice" data-shelf-option="nogueira" aria-pressed="false"><span class="environment-choice-image shelf-option-nogueira"></span><span>Nogueira</span></button>
+          <button type="button" class="environment-choice" data-shelf-option="carvalho" aria-pressed="false"><span class="environment-choice-image shelf-option-carvalho"></span><span>Carvalho claro</span></button>
+          <button type="button" class="environment-choice" data-shelf-option="mogno" aria-pressed="false"><span class="environment-choice-image shelf-option-mogno"></span><span>Mogno entalhado</span></button>
+          <button type="button" class="environment-choice" data-shelf-option="marmore" aria-pressed="false"><span class="environment-choice-image shelf-option-marmore"></span><span>Mármore e latão</span></button>
+          <button type="button" class="environment-choice" data-shelf-option="metal" aria-pressed="false"><span class="environment-choice-image shelf-option-metal"></span><span>Metal moderno</span></button>
+          <button type="button" class="environment-choice" data-shelf-option="original" aria-pressed="false"><span class="environment-choice-image shelf-option-original"></span><span>Estante original</span></button>
+        </div>
+        <div class="environment-tones" role="group" aria-label="Cor das prateleiras"><span class="environment-tones-label">Tom</span>
+          <button type="button" data-shelf-tone="natural" class="environment-tone" aria-label="Prateleira natural" aria-pressed="false" title="Natural"></button>
+          <button type="button" data-shelf-tone="noite" class="environment-tone" aria-label="Prateleira preta" aria-pressed="false" title="Noite"></button>
+          <button type="button" data-shelf-tone="azul" class="environment-tone" aria-label="Prateleira azul" aria-pressed="false" title="Azul"></button>
+          <button type="button" data-shelf-tone="verde" class="environment-tone" aria-label="Prateleira verde" aria-pressed="false" title="Verde"></button>
+          <button type="button" data-shelf-tone="lilas" class="environment-tone" aria-label="Prateleira lilás" aria-pressed="false" title="Lilás"></button>
+          <button type="button" data-shelf-tone="rosa" class="environment-tone" aria-label="Prateleira rosa" aria-pressed="false" title="Rosa"></button>
+          <button type="button" data-shelf-tone="calor" class="environment-tone" aria-label="Prateleira âmbar" aria-pressed="false" title="Âmbar"></button>
+        </div>
+      </fieldset>
+      <div class="environment-actions"><button type="button" id="environmentCancel">Cancelar</button><button type="button" id="environmentSave">Salvar minha estante ✓</button></div>
+      <p class="environment-saved" id="environmentStatus" role="status" aria-live="polite"></p>
+      <details class="environment-previous-settings"><summary>Ajustes anteriores de iluminação</summary>
+        <div class="utility-fields">
+          <label>Estilo
+            <select id="roomTheme">
+              <option value="aurora">Aurora original</option>
+              <option value="classico">Madeira aconchegante</option>
+              <option value="noturno">Biblioteca noturna</option>
+            </select>
+          </label>
+          <label>Iluminação <input id="roomLight" type="range" min="70" max="120" value="100" step="5"></label>
+          <label class="checkline"><input id="roomPlants" type="checkbox" checked> Manter as plantinhas</label>
+        </div>
+      </details>
     </section>
     <section id="statsPanel" class="utility-panel" hidden aria-label="Acompanhar leituras">
       <div class="utility-heading"><h2>Minhas leituras</h2><button type="button" class="back-to-shelf">← Estante</button></div>
@@ -133,7 +186,7 @@
   <script src="./aurora-estante.js?v=4" defer></script>
   <script src="./aurora-sala-3d.js?v=5" defer></script>
   <script src="./aurora-importados.js?v=19" defer></script>
-  <script src="./aurora-avancado.js?v=3" defer></script>
+  <script src="./aurora-avancado.js?v=4" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
   <script src="./aurora-pdf-covers.js?v=1" defer></script>
   <script src="./aurora-pdf-import.js?v=5" defer></script>

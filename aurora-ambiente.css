@@ -1,0 +1,171 @@
+/* Superfícies fotografadas e personalização da estante. Não altera o leitor nem os livros. */
+body[data-wall="tijolos"]{--aurora-wall-image:url('./assets/ambientes/parede-0.webp')}
+body[data-wall="ripas"]{--aurora-wall-image:url('./assets/ambientes/parede-1.webp')}
+body[data-wall="reboco"]{--aurora-wall-image:url('./assets/ambientes/parede-2.webp')}
+body[data-wall="botanico"]{--aurora-wall-image:url('./assets/ambientes/parede-3.webp')}
+body[data-wall="rose"]{--aurora-wall-image:url('./assets/ambientes/parede-4.webp')}
+body[data-wall="original"]{--aurora-wall-image:linear-gradient(140deg,#16322c,#101d1a)}
+body[data-wall-tone="noite"]{--aurora-wall-wash:#070912b8}
+body[data-wall-tone="azul"]{--aurora-wall-wash:#233c8b88}
+body[data-wall-tone="verde"]{--aurora-wall-wash:#20544088}
+body[data-wall-tone="petroleo"]{--aurora-wall-wash:#15565d91}
+body[data-wall-tone="lilas"]{--aurora-wall-wash:#71568a8c}
+body[data-wall-tone="rosa"]{--aurora-wall-wash:#c3668c7a}
+body[data-wall-tone="calor"]{--aurora-wall-wash:#89523574}
+body[data-shelf="nogueira"]{--aurora-shelf-image:url('./assets/ambientes/prateleira-0.webp');--aurora-shelf-top:#aa7853}
+body[data-shelf="carvalho"]{--aurora-shelf-image:url('./assets/ambientes/prateleira-1.webp');--aurora-shelf-top:#ebbd7d}
+body[data-shelf="mogno"]{--aurora-shelf-image:url('./assets/ambientes/prateleira-2.webp');--aurora-shelf-top:#c79062}
+body[data-shelf="marmore"]{--aurora-shelf-image:url('./assets/ambientes/prateleira-3.webp');--aurora-shelf-top:#f7e9d6}
+body[data-shelf="metal"]{--aurora-shelf-image:url('./assets/ambientes/prateleira-4.webp');--aurora-shelf-top:#8b9398}
+body[data-shelf="original"]{--aurora-shelf-image:url('./assets/prateleira-romances.webp');--aurora-shelf-top:#c18a55}
+body[data-shelf-tone="natural"]{--aurora-shelf-wash:#ffffff00}
+body[data-shelf-tone="noite"]{--aurora-shelf-wash:#10131ab8}
+body[data-shelf-tone="azul"]{--aurora-shelf-wash:#253c89ad}
+body[data-shelf-tone="verde"]{--aurora-shelf-wash:#1a654ca8}
+body[data-shelf-tone="lilas"]{--aurora-shelf-wash:#795aa2a6}
+body[data-shelf-tone="rosa"]{--aurora-shelf-wash:#bc618ba6}
+body[data-shelf-tone="calor"]{--aurora-shelf-wash:#9b592ba3}
+
+/* A foto da parede continua por trás de todas as prateleiras, como num cômodo real. */
+body[data-wall] .library{
+  position:relative;
+  max-width:1000px;
+  margin:12px auto 0;
+  padding:24px clamp(13px,3vw,31px) 40px;
+  border:1px solid #bfa58635;
+  border-radius:18px;
+  background-color:#181c19;
+  background-image:linear-gradient(180deg,#080a10ab,var(--aurora-wall-wash,#070912b8) 25%,var(--aurora-wall-wash,#070912b8) 80%,#080a10b8),var(--aurora-wall-image);
+  background-size:100% 100%,680px auto;
+  background-repeat:no-repeat,repeat;
+  box-shadow:inset 0 0 48px #000b,0 22px 58px #0006;
+}
+body[data-wall="original"] .library{background-size:100% 100%,cover}
+body[data-wall] .section-title h2{color:#f3d8b4;text-shadow:0 2px 9px #080703ee}
+body[data-wall] .section-title .count{color:#f6e5d1;text-shadow:0 2px 7px #080703}
+body[data-wall] .section-title:after{background:linear-gradient(90deg,#e8c28d91,transparent)}
+body[data-shelf]:not([data-shelf="original"]) .cabinet{
+  background-image:none!important;
+  background-color:transparent;
+  border:0;
+  border-radius:0;
+  min-height:235px;
+  margin:0 0 4px;
+  padding:24px 12px 0;
+  box-shadow:none;
+  overflow:visible;
+  filter:none;
+}
+body[data-shelf]:not([data-shelf="original"]) .cabinet:before{
+  inset:0 -10px 0;
+  background:linear-gradient(180deg,#07070c3d,transparent 35%,#0002 75%,#0005);
+}
+body[data-shelf]:not([data-shelf="original"]) .bookrow{
+  min-height:194px;
+  padding-top:21px;
+  padding-bottom:3px;
+}
+body[data-shelf]:not([data-shelf="original"]) .shelf-lip{
+  position:relative;
+  height:29px;
+  margin:0 -17px;
+  border:0;
+  border-radius:1px 1px 3px 3px;
+  background-image:linear-gradient(var(--aurora-shelf-wash,#ffffff00),var(--aurora-shelf-wash,#ffffff00)),var(--aurora-shelf-image);
+  background-repeat:no-repeat,repeat-x;
+  background-size:100% 100%,800px 100%;
+  background-blend-mode:color,normal;
+  box-shadow:inset 0 3px 4px #fff4,inset 0 -8px 9px #0008,0 12px 18px #000c,0 2px 0 #0008;
+}
+body[data-shelf]:not([data-shelf="original"]) .shelf-lip:before{
+  content:"";position:absolute;left:0;right:0;top:-3px;height:4px;
+  background:linear-gradient(180deg,var(--aurora-shelf-top,#d7b084),#261810a8);
+  box-shadow:0 -3px 9px #0008;
+}
+body[data-shelf]:not([data-shelf="original"]) .shelf-lip:after{
+  content:"";position:absolute;bottom:0;left:0;right:0;height:3px;
+  background:linear-gradient(180deg,#0000,#000a);
+}
+body[data-shelf]:not([data-shelf="original"]) .category{margin-bottom:34px}
+
+/* Seletor visual: fotografias reais, tons independentes e prévia instantânea. */
+#roomPanel{max-width:700px;padding:18px 18px 14px;border-color:#a88765;background:#141b1bf5;box-shadow:0 17px 46px #000a}
+#roomPanel .utility-heading{align-items:center;margin-bottom:4px}
+#roomPanel .utility-heading h2{font-size:clamp(21px,5vw,27px);margin:0}
+.environment-intro{margin:6px 0 14px;color:#c5c2b9;font:12px/1.5 system-ui,sans-serif}
+.environment-preview{
+  position:relative;height:145px;overflow:hidden;border:1px solid #a68f7754;
+  border-radius:13px;background-color:#181c19;
+  background-image:linear-gradient(180deg,#05060b44,var(--aurora-wall-wash,#070912b8)),var(--aurora-wall-image);
+  background-size:100% 100%,600px auto;
+  background-repeat:no-repeat,repeat;
+  box-shadow:inset 0 0 34px #000b;
+}
+.environment-preview-books{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);display:flex;align-items:flex-end;gap:3px;height:91px}
+.environment-preview-books i{display:block;width:21px;height:77px;border:1px solid #1b120e;border-radius:2px 3px 1px 1px;box-shadow:inset 3px 0 4px #0006,inset -2px 0 3px #ffdda73e,3px 2px 4px #0007;background:linear-gradient(90deg,#231c1a,#996c50 35%,#4d2921)}
+.environment-preview-books i:nth-child(2){height:86px;width:25px;background:linear-gradient(90deg,#162c2a,#638681 42%,#294340)}
+.environment-preview-books i:nth-child(3){height:69px;background:linear-gradient(90deg,#2d1c29,#855a76 42%,#3d2637)}
+.environment-preview-books i:nth-child(4){height:85px;width:23px;background:linear-gradient(90deg,#2c2920,#c0a274 45%,#60472d)}
+.environment-preview-books i:nth-child(5){height:80px;width:20px;background:linear-gradient(90deg,#1d2634,#70889a 45%,#303845)}
+.environment-preview-books i:nth-child(6){height:74px;background:linear-gradient(90deg,#2d201a,#946e54 45%,#42241a)}
+.environment-preview-board{
+  position:absolute;bottom:25px;left:8%;right:8%;height:15px;
+  background-image:linear-gradient(var(--aurora-shelf-wash,#ffffff00),var(--aurora-shelf-wash,#ffffff00)),var(--aurora-shelf-image);
+  background-blend-mode:color,normal;background-size:100% 100%,800px 100%;
+  box-shadow:inset 0 2px 3px #fff3,inset 0 -6px 5px #0007,0 11px 13px #000b;
+  border-top:2px solid var(--aurora-shelf-top,#bb9167)
+}
+.environment-preview-caption{position:absolute;right:11px;bottom:5px;font:10px system-ui,sans-serif;color:#f3e5d3cc;letter-spacing:.3px;text-shadow:0 1px 4px #000}
+.environment-fieldset{min-width:0;border:0;padding:0;margin:16px 0 0}
+.environment-fieldset legend{display:block;padding:0;margin:0 0 10px;color:#f0ddc3;font:italic 19px Georgia,serif}
+.environment-fieldset legend small{margin-left:8px;font:11px system-ui,sans-serif;color:#b4b4ac;font-style:normal}
+.environment-choices{display:flex;gap:9px;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x proximity;padding:3px 2px 9px;scrollbar-width:thin;scrollbar-color:#6f5b49 #141b1b}
+.environment-choice{display:flex;flex:0 0 106px;flex-direction:column;gap:6px;align-items:stretch;padding:0 0 5px;border:0;background:transparent;color:#c9c3bc;font:11px/1.2 system-ui,sans-serif;cursor:pointer;scroll-snap-align:start}
+.environment-choice-image{position:relative;display:block;height:73px;overflow:hidden;border:2px solid #55545b;border-radius:10px;background-color:#251e1c;background-position:center;background-size:cover;box-shadow:inset 0 0 20px #0008}
+.environment-choice[aria-pressed="true"]{color:#ffe9c4;font-weight:600}
+.environment-choice[aria-pressed="true"] .environment-choice-image{border-color:#f4ce95;box-shadow:0 0 0 1px #f4ce95,inset 0 0 20px #0005}
+.environment-choice[aria-pressed="true"] .environment-choice-image:after{content:"✓";position:absolute;top:5px;right:5px;width:20px;height:20px;display:grid;place-items:center;border-radius:50%;background:#f7dcac;color:#2c2219;font:700 12px system-ui}
+.wall-option-tijolos{background-image:url('./assets/ambientes/parede-0.webp')}
+.wall-option-ripas{background-image:url('./assets/ambientes/parede-1.webp')}
+.wall-option-reboco{background-image:url('./assets/ambientes/parede-2.webp')}
+.wall-option-botanico{background-image:url('./assets/ambientes/parede-3.webp')}
+.wall-option-rose{background-image:url('./assets/ambientes/parede-4.webp')}
+.wall-option-original{background-image:url('./assets/prateleira-romances.webp')}
+.shelf-option-nogueira{background-image:url('./assets/ambientes/prateleira-0.webp')}
+.shelf-option-carvalho{background-image:url('./assets/ambientes/prateleira-1.webp')}
+.shelf-option-mogno{background-image:url('./assets/ambientes/prateleira-2.webp')}
+.shelf-option-marmore{background-image:url('./assets/ambientes/prateleira-3.webp')}
+.shelf-option-metal{background-image:url('./assets/ambientes/prateleira-4.webp')}
+.shelf-option-original{background-image:url('./assets/prateleira-romances.webp')}
+.environment-tones{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:6px 2px 0}
+.environment-tones-label{color:#aeb2b0;font:11px system-ui,sans-serif;margin-right:1px}
+.environment-tone{position:relative;flex:none;width:31px;height:31px;border-radius:50%;background:var(--tone-color,#17171e);border:2px solid #ffffff21;box-shadow:0 2px 7px #0006;cursor:pointer}
+.environment-tone[aria-pressed="true"]:after{content:"";position:absolute;inset:-6px;border:2px solid #f5cd90;border-radius:50%}
+.environment-tone[data-wall-tone="noite"],.environment-tone[data-shelf-tone="noite"]{--tone-color:#16151d}
+.environment-tone[data-wall-tone="azul"],.environment-tone[data-shelf-tone="azul"]{--tone-color:#29448d}
+.environment-tone[data-wall-tone="verde"],.environment-tone[data-shelf-tone="verde"]{--tone-color:#2b694d}
+.environment-tone[data-wall-tone="petroleo"]{--tone-color:#28757d}
+.environment-tone[data-wall-tone="lilas"],.environment-tone[data-shelf-tone="lilas"]{--tone-color:#71529c}
+.environment-tone[data-wall-tone="rosa"],.environment-tone[data-shelf-tone="rosa"]{--tone-color:#c16f94}
+.environment-tone[data-wall-tone="calor"],.environment-tone[data-shelf-tone="calor"]{--tone-color:#98643d}
+.environment-tone[data-shelf-tone="natural"]{--tone-color:linear-gradient(130deg,#b4885e,#593b2c)}
+.environment-actions{display:flex;justify-content:space-between;gap:12px;margin:20px 0 4px}
+.environment-actions button{min-height:43px;padding:10px 16px;border:1px solid #90775c;border-radius:999px;background:#272625;color:#f7e6cf;font:600 12px system-ui,sans-serif;cursor:pointer}
+.environment-actions #environmentSave{flex:1;max-width:260px;border-color:#e5c393;background:#e8c796;color:#24190f;box-shadow:0 5px 18px #0008}
+.environment-actions #environmentSave:hover{background:#f8ddb2}
+.environment-saved{min-height:16px;margin:5px 0 0;color:#e2d7bd;font:11px/1.35 system-ui,sans-serif}
+.environment-previous-settings{margin-top:8px;padding:12px 0 1px;border-top:1px solid #ffffff1c;color:#bbb9b6;font:11px system-ui,sans-serif}
+.environment-previous-settings summary{cursor:pointer}
+.environment-previous-settings .utility-fields{margin-top:14px}
+@media(max-width:550px){
+  body[data-wall] .library{margin:8px 7px 0;padding:20px 11px 30px;border-radius:12px}
+  body[data-shelf]:not([data-shelf="original"]) .cabinet{padding:20px 5px 0;min-height:225px}
+  body[data-shelf]:not([data-shelf="original"]) .shelf-lip{margin:0 -8px;height:25px}
+  #roomPanel{margin:12px -4px 0;padding:13px 12px}
+  .environment-preview{height:124px}
+  .environment-preview-books{height:80px;transform:translateX(-50%) scale(.88);transform-origin:center bottom}
+  .environment-choice{flex-basis:94px}
+  .environment-choice-image{height:66px}
+  .environment-tones{gap:12px}
+  .environment-tone{width:29px;height:29px}
+}

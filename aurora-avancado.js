@@ -28,17 +28,70 @@
   plantInput.addEventListener('change',()=>{room.plants=plantInput.checked;applyRoom();});
   applyRoom();
 
+  // A personalização das superfícies é independente dos livros e dos ajustes antigos.
+  // As mudanças aparecem na hora; só são guardadas após tocar em Salvar.
+  const environmentKey='aurora-environment-v1';
+  const environmentDefaults={wall:'tijolos',wallTone:'noite',shelf:'nogueira',shelfTone:'natural'};
+  const environmentValues={
+    wall:['tijolos','ripas','reboco','botanico','rose','original'],
+    wallTone:['noite','azul','verde','petroleo','lilas','rosa','calor'],
+    shelf:['nogueira','carvalho','mogno','marmore','metal','original'],
+    shelfTone:['natural','noite','azul','verde','lilas','rosa','calor']
+  };
+  const oldEnvironment=safeJSON(environmentKey,{});
+  const persistedEnvironment=Object.fromEntries(Object.entries(environmentDefaults).map(([key,fallback])=>[
+    key,environmentValues[key].includes(oldEnvironment?.[key])?oldEnvironment[key]:fallback
+  ]));
+  let environment={...persistedEnvironment};
+  function applyEnvironment(){
+    document.body.dataset.wall=environment.wall;
+    document.body.dataset.wallTone=environment.wallTone;
+    document.body.dataset.shelf=environment.shelf;
+    document.body.dataset.shelfTone=environment.shelfTone;
+    $('roomPanel').querySelectorAll('[data-wall-option],[data-wall-tone],[data-shelf-option],[data-shelf-tone]').forEach(button=>{
+      const entry=button.dataset.wallOption!==undefined?'wall':button.dataset.wallTone!==undefined?'wallTone':button.dataset.shelfOption!==undefined?'shelf':'shelfTone';
+      const value=button.dataset[entry+'Option']??button.dataset[entry];
+      button.setAttribute('aria-pressed',String(value===environment[entry]));
+    });
+  }
+  function discardEnvironment(){environment={...persistedEnvironment};applyEnvironment();}
+  $('roomPanel').addEventListener('click',event=>{
+    const button=event.target.closest('button');
+    if(!button)return;
+    const choice=button.dataset;
+    const entry=choice.wallOption!==undefined?'wall':choice.wallTone!==undefined?'wallTone':choice.shelfOption!==undefined?'shelf':choice.shelfTone!==undefined?'shelfTone':null;
+    if(!entry)return;
+    const value=choice[entry+'Option']??choice[entry];
+    if(!environmentValues[entry].includes(value))return;
+    environment[entry]=value;
+    applyEnvironment();
+    $('environmentStatus').textContent='Veja a combinação na prévia e nas prateleiras abaixo.';
+  });
+  $('environmentSave').addEventListener('click',()=>{
+    persistedEnvironment.wall=environment.wall;
+    persistedEnvironment.wallTone=environment.wallTone;
+    persistedEnvironment.shelf=environment.shelf;
+    persistedEnvironment.shelfTone=environment.shelfTone;
+    try{localStorage.setItem(environmentKey,JSON.stringify(persistedEnvironment));}catch{}
+    $('environmentStatus').textContent='Sua estante foi salva neste aparelho.';
+    returnToShelf(false);
+  });
+  $('environmentCancel').addEventListener('click',()=>returnToShelf());
+  applyEnvironment();
+
   const panels=[[$('roomButton'),$('roomPanel')],[$('statsButton'),$('statsPanel')]];
   panels.forEach(([button,panel])=>{
     button.addEventListener('click',()=>{
       const opening=panel.hidden;
+      if(!$('roomPanel').hidden && (panel.id!=='roomPanel'||!opening))discardEnvironment();
       panels.forEach(([b,p])=>{p.hidden=true;b.setAttribute('aria-expanded','false');});
       panel.hidden=!opening;
       button.setAttribute('aria-expanded',String(opening));
       if(opening && panel.id==='statsPanel') refreshStats();
     });
   });
-  function returnToShelf(){
+  function returnToShelf(discard=true){
+    if(discard)discardEnvironment();
     panels.forEach(([button,panel])=>{
       panel.hidden=true;
       button.setAttribute('aria-expanded','false');
