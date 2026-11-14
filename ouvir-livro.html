@@ -1,0 +1,10 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#241610"><title>Audiolivro • Biblioteca Aurora</title><link rel="stylesheet" href="./aurora-novos-leitores.css?v=1"></head><body>
+<header class="reader-top"><a class="button" href="./index.html?v=22">← Estante</a><h1>Audiolivro</h1></header>
+<main class="audio-layout"><img id="audioCover" class="audio-cover" alt="Capa original do audiolivro" hidden><div id="audioPlaceholder" class="audio-placeholder" aria-hidden="true">♫</div><h2 id="audioTitle">Abrindo audiolivro…</h2><p id="audioAuthor" class="author"></p>
+<audio id="audio" preload="metadata" playsinline></audio>
+<input class="audio-timeline" type="range" id="audioSeek" min="0" max="100" step=".1" value="0" aria-label="Posição do áudio"><div class="times"><time id="elapsed">0:00</time><time id="duration">0:00</time></div>
+<div class="player-tools"><button type="button" id="skipBack" aria-label="Voltar 15 segundos">↶ 15s</button><button type="button" id="play" class="primary" aria-label="Reproduzir">▶</button><button type="button" id="skipAhead" aria-label="Avançar 15 segundos">15s ↷</button></div>
+<label class="speed">Velocidade <select id="speed"><option value=".75">0,75×</option><option value="1" selected>1×</option><option value="1.25">1,25×</option><option value="1.5">1,5×</option><option value="1.75">1,75×</option><option value="2">2×</option></select></label>
+<p id="audioStatus" class="audio-notice" role="status">Seu ponto de reprodução será salvo automaticamente neste aparelho.</p></main>
+<script src="./aurora-formatos.js?v=1"></script><script src="./aurora-audiobook.js?v=1"></script>
+</body></html>

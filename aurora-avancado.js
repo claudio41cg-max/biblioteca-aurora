@@ -200,7 +200,7 @@
     if(!confirm(message))return;
     $('deleteBook').disabled=true;
     try{
-      if(source==='pdf'){
+      if(['pdf','epub','audio'].includes(source)){
         if(!book.dataset.bookId)throw new Error('Este livro não tem identificação para exclusão.');
         await deleteImportedPDF(book.dataset.bookId);
         libraryBooks=libraryBooks.filter(item=>String(item.id)!==book.dataset.bookId);

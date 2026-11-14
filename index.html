@@ -32,6 +32,12 @@
         <input id="pdfFile" type="file" accept=".pdf,application/pdf">
         <label class="import-option" for="txtFile"><span aria-hidden="true">≡</span> Importar livro TXT <span aria-hidden="true">›</span></label>
         <input id="txtFile" type="file" accept=".txt,text/plain">
+        <label class="import-option" for="epubFile"><span aria-hidden="true">▧</span> Importar livro EPUB <span aria-hidden="true">›</span></label>
+        <input id="epubFile" type="file" accept=".epub,application/epub+zip">
+        <label class="import-option" for="audioFile"><span aria-hidden="true">♫</span> Importar audiolivro MP3 ou M4B <span aria-hidden="true">›</span></label>
+        <input id="audioFile" type="file" accept=".mp3,.m4a,.m4b,audio/*">
+        <label class="import-option" for="audioCoverFile"><span aria-hidden="true">▣</span> Capa original (opcional) <span aria-hidden="true">›</span></label>
+        <input id="audioCoverFile" type="file" accept="image/jpeg,image/png,image/webp">
         <p id="pdfImportStatus" class="pdf-import-status" role="status" aria-live="polite" hidden></p>
       </div>
     </div>
@@ -183,10 +189,13 @@
     </div>
   </section>
   <script src="./aurora-sinopses.js?v=2" defer></script>
-  <script src="./aurora-estante.js?v=4" defer></script>
-  <script src="./aurora-sala-3d.js?v=5" defer></script>
-  <script src="./aurora-importados.js?v=19" defer></script>
-  <script src="./aurora-avancado.js?v=4" defer></script>
+  <script src="./aurora-estante.js?v=5" defer></script>
+  <script src="./aurora-sala-3d.js?v=6" defer></script>
+  <script src="./aurora-importados.js?v=20" defer></script>
+  <script src="./aurora-avancado.js?v=5" defer></script>
+  <script src="./vendor/jszip.min.js" defer></script>
+  <script src="./aurora-formatos.js?v=1" defer></script>
+  <script src="./aurora-novos-formatos.js?v=1" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
   <script src="./aurora-pdf-covers.js?v=1" defer></script>
   <script src="./aurora-pdf-import.js?v=5" defer></script>

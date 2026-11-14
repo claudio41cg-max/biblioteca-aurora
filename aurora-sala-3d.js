@@ -11,8 +11,11 @@
   const categories=['romance','adulto','ficcao','brasileiros'];
   let active=null;
   const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
-  const readerURL=id=>'./meus-livros.html?livro='+encodeURIComponent(id)+'&open=1&v=19';
-  const editionURL=id=>'./meus-livros.html?livro='+encodeURIComponent(id)+'&v=19';
+  const readerURL=book=>book.format==='epub'
+    ?'./ler-epub.html?livro='+encodeURIComponent(book.id)+'&v=1'
+    :book.format==='audio'?'./ouvir-livro.html?livro='+encodeURIComponent(book.id)+'&v=1'
+    :'./meus-livros.html?livro='+encodeURIComponent(book.id)+'&open=1&v=19';
+  const editionURL=book=>book.format==='epub'||book.format==='audio'?readerURL(book):'./meus-livros.html?livro='+encodeURIComponent(book.id)+'&v=19';
   let fallbackPose={x:-.09,y:.28};
 
   function setPose(x,y){
@@ -94,7 +97,7 @@
 
   function open(button,book){
     if(active)return;
-    if(!book?.cover){location.href=editionURL(book.id);return;}
+    if(!book?.cover){location.href=editionURL(book);return;}
     const known=window.AuroraBookInfo?.find(book.title||book.name);
     const session={button,book,origin:button.getBoundingClientRect(),started:false,finished:false};
     active=session;
@@ -132,7 +135,7 @@
     session.fallback=setTimeout(()=>{
       if(active!==session||session.started)return;
       if(cover.naturalWidth){scene.classList.add('aurora-force-css');beginFlight(session);}
-      else location.href=editionURL(book.id);
+      else location.href=editionURL(book);
     },2300);
     try{history.pushState({auroraViewerId:book.id},'',location.href);}catch{}
   }
@@ -145,7 +148,7 @@
     if(active?.book.id===event.detail?.id)beginFlight(active);
   });
   window.addEventListener('aurora:open-book',()=>{
-    if(active?.finished)location.href=readerURL(active.book.id);
+    if(active?.finished)location.href=readerURL(active.book);
   });
   let drag=null;
   cssBook.addEventListener('pointerdown',event=>{
@@ -163,12 +166,12 @@
     if(!drag||event.pointerId!==drag.id)return;
     const moved=drag.moved;
     drag=null;
-    if(!moved && active?.finished)location.href=readerURL(active.book.id);
+    if(!moved && active?.finished)location.href=readerURL(active.book);
   });
   cssBook.addEventListener('pointercancel',()=>{drag=null;});
   cssBook.addEventListener('keydown',event=>{
     if((event.key==='Enter'||event.key===' ')&&active?.finished&&(!scene.classList.contains('three-ready')||scene.classList.contains('aurora-force-css'))){
-      event.preventDefault();location.href=readerURL(active.book.id);
+      event.preventDefault();location.href=readerURL(active.book);
     }
   });
   $('auroraShowBack').addEventListener('click',()=>close());

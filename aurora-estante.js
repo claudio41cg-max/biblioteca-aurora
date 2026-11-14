@@ -46,7 +46,7 @@
     button.dataset.source = item.source || 'demo';
     button.title = item.title + (item.source === 'demo' ? ' • livro demonstrativo' : ' • tocar para pegar');
     button.setAttribute('aria-label', 'Pegar ' + item.title);
-    const realPDF=item.source==='pdf';
+    const realPDF=['pdf','epub','audio'].includes(item.source);
     const bookHeight=realPDF?160+seed%17:151+seed%24;
     const estimatedWidth=realPDF?Math.max(28,Math.min(62,27+Number(item.total||0)/27)):37+seed%13;
     const naturalWidth=item.spineAspect?Math.max(22,Math.min(68,bookHeight*Number(item.spineAspect))):estimatedWidth;
@@ -63,7 +63,7 @@
       button.dataset.coverDerived='true';
       button.style.backgroundImage='url('+JSON.stringify(item.cover)+')';
     }
-    // A capa é uma face distinta do volume. Somente a imagem original do PDF
+    // A capa é uma face distinta do volume. Somente a imagem original do arquivo
     // pode aparecer nela; jamais montamos uma capa fictícia com o título.
     if(realPDF && item.cover){
       const cover=document.createElement('span');

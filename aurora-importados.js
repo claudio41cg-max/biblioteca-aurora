@@ -10,10 +10,11 @@
     if(!db.objectStoreNames.contains('progress')) db.createObjectStore('progress',{keyPath:'id'});
   };
   request.onerror=()=>console.warn('Não foi possível consultar os PDFs guardados neste aparelho.');
+  const readerPath=book=>book.format==='epub'?'ler-epub.html':book.format==='audio'?'ouvir-livro.html':'meus-livros.html';
   // O livro físico segue no MESMO visor WebGL até o centro da tela.
   function takeBookFromShelf(button,book){
     if(window.AuroraShelfViewer?.open)window.AuroraShelfViewer.open(button,book);
-    else location.href='./meus-livros.html?livro='+encodeURIComponent(book.id)+'&v=19';
+    else location.href='./'+readerPath(book)+'?livro='+encodeURIComponent(book.id);
   }
   request.onsuccess=()=>{
     const db=request.result;
@@ -28,6 +29,7 @@
       const lastPages=new Map(progress.map(item=>[item.id,item]));
       const imported=books.map(book=>({
         id:book.id,
+        format:book.format||'pdf',
         title:window.AuroraBookInfo?.find(book.name)?.title||book.name||'Livro sem título',
         name:book.name||'Livro sem título',
         author:book.author||'',
@@ -51,7 +53,7 @@
         if(!row) continue;
         const button=shelf.makeSpine({
           title:book.title,
-          source:'pdf',
+          source:book.format||'pdf',
           total:book.total,
           cover:book.cover,
           spine:book.spine,
@@ -68,7 +70,7 @@
         const duplicate=Array.from(row.querySelectorAll('.book-spine')).find(node=>
           !usedDemo.has(node) &&
           node.dataset.title===shelf.normalize(book.title) &&
-          node.dataset.source!=='pdf'
+          !['pdf','epub','audio'].includes(node.dataset.source)
         );
         if(duplicate){
           usedDemo.add(duplicate);
