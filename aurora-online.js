@@ -1,149 +1,167 @@
-/* Catálogos públicos: somente metadados e links. Nenhum download automático. */
+/* Busca federada: sem abrir outros sites nem baixar livros automaticamente. */
 (() => {
   'use strict';
   const $=id=>document.getElementById(id);
-  const STORAGE='aurora-online-books-v1';
-  const categories=[['romance','Romances'],['adulto','Romances picantes'],['ficcao','Ficção e aventuras'],['brasileiros','Autores brasileiros']];
-  let mode='books',nextPage='',lastTerm='',serial=0;
-  const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-  const status=message=>{$('searchStatus').textContent=message;};
-  const readSaved=()=>{try{const data=JSON.parse(localStorage.getItem(STORAGE)||'[]');return Array.isArray(data)?data:[];}catch{return [];}};
-  const safeURL=(raw,domain)=>{
-    try{const url=new URL(raw);return url.protocol==='https:'&&(url.hostname===domain||url.hostname.endsWith('.'+domain))?url.href:null;}catch{return null;}
-  };
-  const guessCategory=(title,author)=>{
-    const text=normalize(title+' '+author);
-    if(/machado de assis|aluisio azevedo|jose de alencar|dom casmurro|memorias postumas|o cortico|iracema/.test(text))return 'brasileiros';
-    if(/austen|orgulho|preconceito|sensibilidade|moreninha|romance|amor/.test(text))return 'romance';
+  const STORE='aurora-online-books-v1';
+  const shelves=[['romance','Romances'],['adulto','Romances picantes'],['ficcao','Ficção e aventuras'],['brasileiros','Autores brasileiros']];
+  const allowedWikis=['pt.wikisource.org','pt.wikibooks.org','en.wikisource.org'];
+  let mode='book',token=0,results=[],shown=12;
+  const clean=s=>String(s||'').trim().slice(0,180);
+  const norm=s=>clean(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  const element=(tag,cls,value)=>{const node=document.createElement(tag);if(cls)node.className=cls;if(value!==undefined)node.textContent=value;return node;};
+  const status=s=>{$('searchStatus').textContent=s;};
+  const saved=()=>{try{const value=JSON.parse(localStorage.getItem(STORE)||'[]');return Array.isArray(value)?value:[];}catch{return [];}};
+  const category=(title,author)=>{
+    const name=norm(title+' '+author);
+    if(/machado de assis|aluisio azevedo|jose de alencar|dom casmurro|memorias postumas|o cortico|iracema/.test(name))return 'brasileiros';
+    if(/austen|orgulho|preconceito|sensibilidade|moreninha|romance|amor|persuasao/.test(name))return 'romance';
     return 'ficcao';
   };
-  const sourceLink=()=>mode==='audio'?'https://librivox.org/search/':'https://www.gutenberg.org/ebooks/search/?query='+encodeURIComponent(lastTerm);
-  const create=(tag,cls,value)=>{const node=document.createElement(tag);if(cls)node.className=cls;if(value!==undefined)node.textContent=value;return node;};
-
-  async function requestJSON(url){
-    const controller=new AbortController();
-    const timeout=setTimeout(()=>controller.abort(),12000);
-    try{
-      const response=await fetch(url,{signal:controller.signal,headers:{Accept:'application/json'}});
-      if(!response.ok)throw new Error('Falha na consulta ('+response.status+').');
-      return await response.json();
-    }finally{clearTimeout(timeout);}
+  const readerURL=item=>{
+    const q=new URLSearchParams();
+    if(item.source==='wikisource'||item.source==='wikibooks'){
+      if(!allowedWikis.includes(item.wikiHost)||!item.wikiTitle)return '';
+      q.set('tipo','wiki');q.set('fonte',item.wikiHost);q.set('titulo',item.wikiTitle);
+    }else if(['openlibrary','archive','archive-audio'].includes(item.source)){
+      if(!/^[a-zA-Z0-9_-]{3,100}$/.test(item.archiveId||''))return '';
+      q.set('tipo',item.kind==='audio'?'audio':'arquivo');q.set('identificador',item.archiveId);
+    }else if(item.source==='librivox'){
+      if(!/^\d+$/.test(String(item.librivoxId)))return '';
+      q.set('tipo','librivox');q.set('id',String(item.librivoxId));
+    }else return '';
+    q.set('nome',item.title||'');return './ler-online.html?'+q.toString();
+  };
+  async function json(url){
+    const ctrl=new AbortController(),timeout=setTimeout(()=>ctrl.abort(),8500);
+    try{const response=await fetch(url,{signal:ctrl.signal});if(!response.ok)throw Error('HTTP '+response.status);return await response.json();}
+    finally{clearTimeout(timeout);}
   }
-  function normalizeBooks(data){
-    return (Array.isArray(data.results)?data.results:[]).filter(item=>Number.isInteger(item.id)&&item.id>0&&item.copyright!==true).map(item=>({
-      key:'gutenberg:'+item.id,title:String(item.title||'Livro sem título'),
-      author:(item.authors||[]).map(a=>a.name).filter(Boolean).join(', ')||'Autor não informado',
-      language:(item.languages||[]).join(', ')||'Não informado',
-      url:'https://www.gutenberg.org/ebooks/'+item.id,
-      provider:'Project Gutenberg',kind:'book',symbol:'▤'
+  async function wiki(host,query){
+    const params=new URLSearchParams({action:'query',list:'search',srsearch:query,srnamespace:'0',srlimit:'24',format:'json',formatversion:'2',origin:'*'});
+    const data=await json('https://'+host+'/w/api.php?'+params);
+    const source=host.includes('wikibooks')?'wikibooks':'wikisource';
+    const wanted=norm(query);
+    return (data.query?.search||[]).filter(x=>
+      x.title&&Number.isInteger(x.pageid)&&(norm(x.title).includes(wanted)||norm(x.title.replace(/\//g,' ')).includes(wanted))
+    ).map(x=>({
+      key:source+':'+host+':'+x.pageid,title:clean(x.title.replace(/_/g,' ')),
+      author:'Texto de acesso livre',source,wikiHost:host,wikiTitle:x.title,kind:'book',
+      language:host.startsWith('pt')?'Português':'Inglês'
     }));
   }
-  function normalizeAudio(data){
-    return (Array.isArray(data.books)?data.books:[]).filter(item=>/^\d+$/.test(String(item.id))&&safeURL(item.url_librivox,'librivox.org')).map(item=>({
-      key:'librivox:'+item.id,title:String(item.title||'Audiolivro sem título'),
-      author:(item.authors||[]).map(a=>[a.first_name,a.last_name].filter(Boolean).join(' ')).filter(Boolean).join(', ')||'Autor não informado',
-      language:String(item.language||'Não informado'),url:safeURL(item.url_librivox,'librivox.org'),
-      provider:'LibriVox',kind:'audio',symbol:'♫',duration:item.totaltime||''
+  async function openLibrary(query,language){
+    const params=new URLSearchParams({q:query,fields:'key,title,author_name,ia,cover_i,public_scan_b,ebook_access,language',limit:'30',lang:language==='pt'?'pt':'en'});
+    const data=await json('https://openlibrary.org/search.json?'+params);
+    return (data.docs||[]).filter(x=>x.public_scan_b===true&&
+      (x.ebook_access==='public'||x.ebook_access==null)&&Array.isArray(x.ia)&&x.ia.length&&
+      (language!=='pt'||!Array.isArray(x.language)||x.language.some(l=>['por','pt'].includes(l)))
+    ).map(x=>({
+      key:'openlibrary:'+x.key,title:clean(x.title),author:clean((x.author_name||[]).slice(0,2).join(', '))||'Autor não informado',
+      source:'openlibrary',archiveId:String(x.ia[0]),kind:'book',language:'Edição digitalizada',
+      cover:Number.isInteger(x.cover_i)&&x.cover_i>0?'https://covers.openlibrary.org/b/id/'+x.cover_i+'-M.jpg':''
     }));
   }
-  function updateSavedButton(button,key){
-    if(readSaved().some(book=>book.key===key)){
-      button.textContent='✓ Na estante';button.disabled=true;button.classList.add('added');
-    }
+  async function archive(query,audio,language){
+    const term=query.replace(/[^\p{L}\p{N}\s-]/gu,' ').replace(/\s+/g,' ').trim().slice(0,60);
+    const q=audio?'collection:librivoxaudio AND mediatype:audio AND (title:("'+term+'") OR creator:("'+term+'"))'
+      :'collection:gutenberg AND mediatype:texts AND title:("'+term+'")';
+    const params=new URLSearchParams({q,rows:'24',output:'json'});
+    for(const field of ['identifier','title','creator','language'])params.append('fl[]',field);
+    const data=await json('https://archive.org/advancedsearch.php?'+params);
+    return (data.response?.docs||[]).filter(x=>{
+      if(!/^[a-zA-Z0-9_-]{3,100}$/.test(x.identifier||''))return false;
+      if(language!=='pt')return true;
+      const available=Array.isArray(x.language)?x.language:[x.language||''];
+      return available.some(l=>/portugu|^pt$|^por$/i.test(String(l)));
+    }).map(x=>({
+      key:'archive:'+x.identifier,title:clean(x.title),
+      author:clean(Array.isArray(x.creator)?x.creator.join(', '):x.creator)||'Autor não informado',
+      source:audio?'archive-audio':'archive',archiveId:x.identifier,kind:audio?'audio':'book',
+      language:clean(Array.isArray(x.language)?x.language.join(', '):x.language)||'Idioma não informado'
+    }));
+  }
+  async function librivox(query,language){
+    const data=await json('https://librivox.org/api/feed/audiobooks/?title='+encodeURIComponent(query)+'&format=json&limit=50');
+    return (data.books||[]).filter(x=>/^\d+$/.test(String(x.id))&&(language!=='pt'||/portugu/i.test(x.language||''))).map(x=>({
+      key:'librivox:'+x.id,title:clean(x.title),
+      author:clean((x.authors||[]).map(a=>[a.first_name,a.last_name].filter(Boolean).join(' ')).join(', '))||'Autor não informado',
+      source:'librivox',librivoxId:String(x.id),kind:'audio',language:x.language||'Idioma não informado',duration:x.totaltime||''
+    }));
+  }
+  function found(query){
+    const seen=new Set(),term=norm(query);
+    const items=results.filter(x=>{if(!x.title||!readerURL(x)||seen.has(x.key))return false;seen.add(x.key);return true;});
+    const score=x=>{const s=norm(x.title);return s===term?0:s.startsWith(term)?1:s.includes(term)?2:norm(x.author).includes(term)?3:4;};
+    return items.sort((a,b)=>score(a)-score(b));
   }
   function card(item){
-    const article=create('article','result-card');
-    const cover=create('div','result-cover');
+    const card=element('article','result-card'),cover=element('div','result-cover');
     cover.setAttribute('aria-hidden','true');
-    cover.append(create('span','',item.symbol),create('small','',item.kind==='audio'?'AUDIOLIVRO':'LIVRO ONLINE'));
-    const body=create('div','result-body');
-    body.append(create('h2','',item.title),create('p','',item.author),create('p','',item.provider+' · '+item.language));
-    if(item.duration)body.append(create('p','',item.duration));
-    const place=create('label','result-category-label','Guardar em: ');
-    const select=create('select');
-    for(const [value,label] of categories){const option=create('option','',label);option.value=value;select.append(option);}
-    select.value=guessCategory(item.title,item.author);
-    place.append(select);body.append(place);
-    const actions=create('div','result-actions');
-    const open=create('a','',item.kind==='audio'?'♫ Ouvir no LibriVox ↗':'▤ Ler no Gutenberg ↗');
-    open.href=item.url;open.target='_blank';open.rel='noopener noreferrer';
-    const save=create('button','secondary','＋ Adicionar à estante');
-    save.type='button';updateSavedButton(save,item.key);
+    if(item.cover){
+      const image=element('img','result-cover-image');image.src=item.cover;image.alt='';image.loading='lazy';
+      image.onerror=()=>{image.remove();cover.append(element('span','',item.kind==='audio'?'♫':'▤'));};cover.append(image);
+    }else cover.append(element('span','',item.kind==='audio'?'♫':'▤'));
+    const body=element('div','result-body');
+    body.append(element('h2','',item.title),element('p','',item.author),element('p','',item.kind==='audio'?'♫ Audiolivro disponível':'▤ Edição para ler online'));
+    if(item.duration)body.append(element('p','',item.duration));
+    const label=element('label','result-category-label','Guardar na estante: '),selector=element('select');
+    for(const [id,name] of shelves){const option=element('option','',name);option.value=id;selector.append(option);}
+    selector.value=category(item.title,item.author);label.append(selector);body.append(label);
+    const actions=element('div','result-actions'),open=element('a','',item.kind==='audio'?'♫ Ouvir na Aurora':'▤ Ler na Aurora');
+    open.href=readerURL(item);
+    const save=element('button','secondary','＋ Adicionar à estante');save.type='button';
+    const mark=()=>{save.textContent='✓ Na estante';save.disabled=true;save.classList.add('added');};
+    if(saved().some(x=>x.key===item.key))mark();
     save.addEventListener('click',()=>{
-      try{
-        const items=readSaved();
-        if(!items.some(book=>book.key===item.key)){
-          items.push({key:item.key,title:item.title.slice(0,180),author:item.author.slice(0,180),
-            category:select.value,url:item.url,kind:item.kind,provider:item.provider,addedAt:Date.now()});
-          localStorage.setItem(STORAGE,JSON.stringify(items));
-        }
-        updateSavedButton(save,item.key);
-        status('Link de “'+item.title+'” guardado. Toque em “Minha estante” para encontrá-lo. Nenhum livro foi baixado.');
-      }catch{status('O celular não permitiu salvar o link. Verifique o espaço e as permissões do navegador.');}
+      try{const records=saved();if(!records.some(x=>x.key===item.key)){
+        records.push({...item,category:selector.value,addedAt:Date.now()});
+        localStorage.setItem(STORE,JSON.stringify(records));
+      }mark();status('“'+item.title+'” foi adicionado à estante. Nenhum arquivo foi baixado.');
+      }catch{status('Não foi possível salvar o livro no celular. Verifique o armazenamento.');}
     });
-    actions.append(open,save);body.append(actions);article.append(cover,body);
-    return article;
+    actions.append(open,save);body.append(actions);card.append(cover,body);return card;
   }
-  function render(items,append=false){
-    if(!append)$('results').replaceChildren();
-    const fragment=document.createDocumentFragment();
-    for(const item of items)fragment.append(card(item));
-    $('results').append(fragment);
+  function render(query){
+    const items=found(query);
+    $('results').replaceChildren();
+    const fragment=document.createDocumentFragment();for(const item of items.slice(0,shown))fragment.append(card(item));
+    $('results').append(fragment);$('pager').hidden=items.length<=shown;
+    if(items.length)status(items.length+(items.length===1?' resultado disponível.':' resultados disponíveis.')+' Escolha um para abrir na Aurora.');
   }
-  function setBusy(value){$('searchButton').disabled=value;$('searchButton').textContent=value?'Buscando…':'⌕ Buscar';$('moreResults').disabled=value;}
-  function showFallback(error){
-    $('fallback').hidden=false;
-    $('publicSearchLink').href=sourceLink();
-    $('publicSearchLink').textContent=mode==='audio'?'Pesquisar diretamente no LibriVox ↗':'Pesquisar diretamente no Gutenberg ↗';
-    status(error==='empty'?'Nenhum resultado encontrado com esses filtros. Experimente outro título ou escolha “Todos os idiomas”.':'A consulta online está indisponível no momento. Use o link oficial abaixo.');
+  const busy=value=>{$('searchButton').disabled=value;$('searchButton').textContent=value?'Buscando…':'⌕ Buscar';};
+  async function search(){
+    const query=$('searchText').value.trim();if(query.length<2){status('Digite pelo menos duas letras.');return;}
+    const request=++token,language=$('languageChoice').value;results=[];shown=12;
+    $('results').replaceChildren();$('pager').hidden=true;busy(true);status('Buscando nas bibliotecas disponíveis…');
+    const sources=mode==='audio'?[()=>librivox(query,language),()=>archive(query,true,language)]:[
+      ()=>wiki('pt.wikisource.org',query),()=>openLibrary(query,language),
+      ()=>wiki('pt.wikibooks.org',query),()=>archive(query,false,language)
+    ];
+    if(mode==='book'&&language==='all')sources.push(()=>wiki('en.wikisource.org',query));
+    let failures=0,completed=0;
+    await Promise.all(sources.map(async load=>{
+      try{const books=await load();if(request!==token)return;results.push(...books);render(query);}
+      catch(error){failures++;console.warn('Fonte indisponível:',error);}
+      finally{completed++;if(request===token&&completed<sources.length&&!results.length)status('Tentando outras bibliotecas…');}
+    }));
+    if(request!==token)return;busy(false);
+    if(!found(query).length)status(failures===sources.length?'Os catálogos não responderam. Tente novamente mais tarde.'
+      :'Não encontramos uma edição com leitura dentro da Aurora. Experimente outro título ou todos os idiomas.');
+    else render(query);
   }
-  async function search(append=false){
-    const query=$('searchText').value.trim();
-    if(query.length<2){status('Digite pelo menos duas letras.');return;}
-    if(!append){lastTerm=query;nextPage='';$('results').replaceChildren();}
-    const thisRequest=++serial;
-    $('fallback').hidden=true;$('pager').hidden=true;setBusy(true);
-    status(append?'Carregando mais resultados…':'Buscando no catálogo público…');
-    try{
-      let items=[];
-      if(mode==='books'){
-        const url=append&&nextPage?nextPage:'https://gutendex.com/books/?search='+encodeURIComponent(query)+($('languageChoice').value==='pt'?'&languages=pt':'');
-        if(!safeURL(url,'gutendex.com'))throw new Error('Endereço de catálogo inválido.');
-        const data=await requestJSON(url);
-        if(thisRequest!==serial)return;
-        items=normalizeBooks(data);
-        nextPage=safeURL(data.next,'gutendex.com')||'';
-        $('pager').hidden=!nextPage;
-      }else{
-        const url='https://librivox.org/api/feed/audiobooks/?title='+encodeURIComponent(query)+'&format=json&limit=50';
-        const data=await requestJSON(url);
-        if(thisRequest!==serial)return;
-        items=normalizeAudio(data);
-        if($('languageChoice').value==='pt')items=items.filter(book=>/portugu|português/i.test(book.language));
-      }
-      render(items,append);
-      if(!items.length&&!append){showFallback('empty');return;}
-      status(items.length+(items.length===1?' resultado encontrado.':' resultados nesta página.')+' Toque em “Ler” ou “Ouvir” para acessar a obra sem baixar.');
-    }catch(error){
-      if(thisRequest!==serial)return;
-      console.warn('Busca online da Aurora:',error);
-      showFallback(error);
-    }finally{if(thisRequest===serial)setBusy(false);}
-  }
-  function changeMode(value){
-    serial++;mode=value;nextPage='';$('results').replaceChildren();$('fallback').hidden=true;$('pager').hidden=true;
-    $('tabBooks').classList.toggle('active',mode==='books');$('tabAudio').classList.toggle('active',mode==='audio');
-    $('tabBooks').setAttribute('aria-pressed',String(mode==='books'));
-    $('tabAudio').setAttribute('aria-pressed',String(mode==='audio'));
-    status(mode==='audio'?'Procure um audiolivro pelo título no LibriVox.':'Procure um livro pelo título ou autor no Project Gutenberg.');
+  function switchMode(value){
+    token++;mode=value;results=[];$('results').replaceChildren();$('pager').hidden=true;busy(false);
+    $('tabBooks').classList.toggle('active',mode==='book');$('tabAudio').classList.toggle('active',mode==='audio');
+    $('tabBooks').setAttribute('aria-pressed',String(mode==='book'));$('tabAudio').setAttribute('aria-pressed',String(mode==='audio'));
+    status(mode==='book'?'Procure um livro pelo título ou autor.':'Procure um audiolivro pelo título.');
     if($('searchText').value.trim().length>1)search();
   }
-  $('searchForm').addEventListener('submit',event=>{event.preventDefault();search();});
-  $('tabBooks').addEventListener('click',()=>changeMode('books'));
-  $('tabAudio').addEventListener('click',()=>changeMode('audio'));
-  $('languageChoice').addEventListener('change',()=>{serial++;if($('searchText').value.trim().length>1)search();});
-  $('moreResults').addEventListener('click',()=>{if(nextPage)search(true);});
-  document.querySelectorAll('[data-search-example]').forEach(button=>button.addEventListener('click',()=>{
-    $('searchText').value=button.dataset.searchExample;search();
-  }));
+  $('searchForm').addEventListener('submit',e=>{e.preventDefault();search();});
+  $('tabBooks').addEventListener('click',()=>switchMode('book'));
+  $('tabAudio').addEventListener('click',()=>switchMode('audio'));
+  $('languageChoice').addEventListener('change',()=>{token++;if($('searchText').value.trim().length>1)search();});
+  $('moreResults').addEventListener('click',()=>{shown+=12;render($('searchText').value.trim());});
+  document.querySelectorAll('[data-search-example]').forEach(button=>button.addEventListener('click',()=>{$('searchText').value=button.dataset.searchExample;search();}));
+  const initial=new URLSearchParams(location.search).get('q');
+  if(initial){$('searchText').value=initial.slice(0,90);search();}
 })();

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#102923">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./aurora-online.css?v=2">
+  <title>Leitor online • Biblioteca Aurora</title>
+</head>
+<body class="explore-page online-reader-page">
+  <header class="explore-header reader-top">
+    <div class="reader-nav">
+      <a class="back-link" href="./explorar-livros.html">← Buscar livros</a>
+      <a class="back-link" href="./index.html">Minha estante</a>
+    </div>
+    <p class="eyebrow">BIBLIOTECA AURORA</p>
+    <h1 id="onlineTitle">Preparando leitura…</h1>
+    <p id="onlineStatus" class="intro" role="status" aria-live="polite">Carregando o exemplar público.</p>
+  </header>
+  <main class="online-reading-area">
+    <section id="wikiReader" hidden aria-label="Leitor de páginas">
+      <label class="chapter-label" for="onlineChapter">Capítulo
+        <select id="onlineChapter"></select>
+      </label>
+      <div class="online-pages" aria-label="Páginas do livro">
+        <div id="onlineLeft" class="online-paper"></div>
+        <div id="onlineRight" class="online-paper"></div>
+      </div>
+      <div class="online-page-controls">
+        <button id="onlinePrev" type="button">← Anterior</button>
+        <span id="onlineCounter" aria-live="polite"></span>
+        <button id="onlineNext" type="button">Próxima →</button>
+      </div>
+      <button id="downloadCurrent" class="reader-download" type="button">↓ Baixar somente este capítulo (TXT)</button>
+    </section>
+    <section id="embeddedReader" hidden aria-label="Livro digitalizado">
+      <iframe id="readerFrame" title="Leitor incorporado de edição pública" loading="lazy" referrerpolicy="no-referrer" allow="fullscreen; autoplay"></iframe>
+      <p class="reader-small">O livro é carregado pela rede e não é instalado automaticamente no celular. Algumas edições têm restrições próprias de acesso.</p>
+    </section>
+    <section id="librivoxReader" hidden aria-label="Reprodutor de audiolivro">
+      <label class="chapter-label" for="audioChapter">Faixa do audiolivro
+        <select id="audioChapter"></select>
+      </label>
+      <audio id="onlineAudio" controls preload="none"></audio>
+      <p class="reader-small">O áudio é transmitido pela internet. Não é baixado automaticamente.</p>
+    </section>
+    <details class="online-credits">
+      <summary>Fonte e direitos desta edição</summary>
+      <p id="onlineCredit"></p>
+      <p>As obras e suas edições podem ter condições de uso diferentes no Brasil. A Aurora exibe a leitura dentro do aplicativo quando a biblioteca de origem permite.</p>
+    </details>
+  </main>
+  <script src="./aurora-leitura-online.js?v=1" defer></script>
+</body>
+</html>
