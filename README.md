@@ -4,6 +4,14 @@ Biblioteca pessoal PWA, hospedada no GitHub Pages, com estante realista, livros 
 
 ## Uso no celular
 
+### Explorar livros online (sem baixar automaticamente)
+
+Na página principal, o botão **⌕ Buscar livros** abre `explorar-livros.html`. A busca de **Livros** consulta os metadados do [Gutendex](https://github.com/garethbjohnson/gutendex), catálogo do Project Gutenberg; **Audiolivros** consulta a API pública do [LibriVox](https://librivox.org/api/info). É possível escolher português ou todos os idiomas. Ao tocar em **Ler** ou **Ouvir**, abre-se a página oficial da obra, onde a pessoa pode ler, escutar ou baixar os formatos disponíveis. Se a API falhar ou bloquear a consulta no navegador, há um link de busca no site oficial.
+
+O botão **Adicionar à estante** salva **somente título, autor, categoria e URL** no `localStorage` (`aurora-online-books-v1`), sem baixar PDF, EPUB, MP3 ou imagem. O link vira uma lombada com etiqueta **ONLINE** na estante. Ao tocá-la, o site público da obra abre em outra aba; essa referência **não é uma cópia local e não usa o visualizador 3D**. Para leitura no livro 3D com páginas que viram, o usuário pode baixar uma edição permitida da fonte e depois importá-la normalmente pelo menu **Importar livros**. Os arquivos importados continuam com prioridade na estante. **Organizar livros → Excluir** também remove uma referência online salva.
+
+Respeitamos a [política de links do Gutenberg](https://www.gutenberg.org/policy/linking.html): utilizamos a URL pública canônica `https://www.gutenberg.org/ebooks/ID`, sem incorporar a página do Gutenberg em um quadro, sem baixar obras automaticamente e sem reutilizar imagens hospedadas por eles. O Gutenberg informa direitos para os Estados Unidos; a situação no Brasil pode ser diferente. O LibriVox disponibiliza gravações em domínio público, mas cada usuário deve verificar os direitos aplicáveis à sua região. O catálogo exige conexão para buscas e reprodução online.
+
 1. O aplicativo abre diretamente na **estante principal**. Toque em **Importar livros** nela, sem passar por outra estante.
 2. Escolha a categoria e o formato **PDF** ou **TXT**.
 3. O livro importado aparece na prateleira correspondente, ao lado dos demais.

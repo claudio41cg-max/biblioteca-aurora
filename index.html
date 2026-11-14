@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="./aurora-avancado.css?v=4">
   <link rel="stylesheet" href="./aurora-ambiente.css?v=2">
   <link rel="stylesheet" href="./aurora-sala-3d.css?v=2">
+  <link rel="stylesheet" href="./aurora-online.css?v=1">
   <title>Biblioteca Aurora • Minha estante</title>
 </head>
 <body>
@@ -42,6 +43,7 @@
       </div>
     </div>
     <nav class="library-tools" aria-label="Ferramentas da biblioteca">
+      <a class="explore-link" href="./explorar-livros.html" aria-label="Buscar livros e audiolivros gratuitos na internet">⌕ Buscar livros</a>
       <button type="button" id="arrangeButton" aria-pressed="false">Organizar livros</button>
       <button type="button" id="roomButton" aria-expanded="false">Meu ambiente</button>
       <button type="button" id="statsButton" aria-expanded="false">Minhas leituras</button>
@@ -137,7 +139,7 @@
       <button id="moveRight" type="button" disabled>Mover para direita</button>
     </div>
   </aside>
-  <footer class="footnote">Seus livros importados ficam guardados neste aparelho. Toque numa lombada para pegar o volume.</footer>
+  <footer class="footnote">Seus arquivos importados ficam neste aparelho. Livros adicionados pela busca guardam apenas o link, até você decidir baixar.</footer>
 
   <!-- O mesmo livro WebGL percorre a estante e fica aqui para inspeção, sem trocar de página. -->
   <section id="auroraShowcase" class="aurora-showcase" role="dialog" aria-modal="true" aria-label="Livro em três dimensões" hidden>
@@ -192,7 +194,8 @@
   <script src="./aurora-estante.js?v=5" defer></script>
   <script src="./aurora-sala-3d.js?v=6" defer></script>
   <script src="./aurora-importados.js?v=20" defer></script>
-  <script src="./aurora-avancado.js?v=5" defer></script>
+  <script src="./aurora-avancado.js?v=6" defer></script>
+  <script src="./aurora-online-estante.js?v=1" defer></script>
   <script src="./vendor/jszip.min.js" defer></script>
   <script src="./aurora-formatos.js?v=1" defer></script>
   <script src="./aurora-novos-formatos.js?v=1" defer></script>

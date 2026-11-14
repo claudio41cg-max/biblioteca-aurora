@@ -206,6 +206,10 @@
         libraryBooks=libraryBooks.filter(item=>String(item.id)!==book.dataset.bookId);
         progress=progress.filter(item=>String(item.id)!==book.dataset.bookId);
         shelf.hideTitle(title);
+      }else if(source==='online'){
+        const key='aurora-online-books-v1';
+        const links=safeJSON(key,[]);
+        localStorage.setItem(key,JSON.stringify(links.filter(item=>item.key!==book.dataset.bookId)));
       }else if(source==='txt'){
         if(!shelf.removeTextBook(title))throw new Error('Não foi possível localizar o livro em texto.');
       }else{
@@ -223,6 +227,7 @@
     }finally{updateMoveButtons();}
   });
   document.addEventListener('aurora:shelves-drawn',applyOrder);
+  document.addEventListener('aurora:online-books-ready',applyOrder);
   document.addEventListener('aurora:library-data',event=>{
     libraryBooks=event.detail.books||[];
     progress=event.detail.progress||[];

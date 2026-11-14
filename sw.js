@@ -1,13 +1,15 @@
-const CACHE = 'aurora-v23';
+const CACHE = 'aurora-v24';
 const CORE = [
   './', './index.html', './index.html?v=22', './meus-livros.html?v=22',
+  './explorar-livros.html', './aurora-online.css?v=1',
+  './aurora-online.js?v=1', './aurora-online-estante.js?v=1',
   './ler-epub.html', './ouvir-livro.html', './aurora-novos-leitores.css?v=1',
   './aurora-formatos.js?v=1', './aurora-novos-formatos.js?v=1',
   './aurora-epub-reader.js?v=1', './aurora-audiobook.js?v=1', './vendor/jszip.min.js',
   './aurora-estante.css?v=15', './aurora-avancado.css?v=4', './aurora-sala-3d.css?v=2', './aurora-edicao.css?v=1',
   './aurora-ambiente.css?v=2',
   './aurora-vitrine.css?v=5', './aurora-reader.css?v=3', './aurora-sinopses.js?v=2',
-  './aurora-estante.js?v=5', './aurora-sala-3d.js?v=6', './aurora-importados.js?v=20', './aurora-avancado.js?v=5',
+  './aurora-estante.js?v=5', './aurora-sala-3d.js?v=6', './aurora-importados.js?v=20', './aurora-avancado.js?v=6',
   './aurora-pdf-covers.js?v=1', './aurora-pdf-import.js?v=5',
   './aurora-livro-3d.mjs?v=4', './aurora-edition-surfaces.js?v=1', './assets/prateleira-romances.webp',
   './assets/prateleira-picantes.webp', './assets/prateleira-ficcao.webp',
