@@ -14,7 +14,7 @@ assert.doesNotMatch(explore,/href="https:\/\//);
 assert.match(reader,/id="onlineLeft"/);
 assert.match(reader,/id="onlineAudio"/);
 assert.match(reader,/Fonte e direitos desta edição/);
-assert.match(read('sw.js'),/aurora-leitura-online\.js\?v=1/);
+assert.match(read('sw.js'),/aurora-leitura-online\.js\?v=3/);
 assert.match(read('aurora-avancado.js'),/source==='online'/);
 
 class Element{
@@ -34,7 +34,7 @@ const fetchMock=async url=>{
   calls.push(String(url));
   if(url.includes('wikisource.org'))throw Error('Fonte indisponível');
   if(url.includes('openlibrary.org'))return {ok:true,json:async()=>({docs:[{
-    key:'/works/OL123W',title:'Persuasão',author_name:['Jane Austen'],
+    key:'/works/OL123W',title:'Retórica e Persuasão',author_name:['Jane Austen'],
     public_scan_b:true,ebook_access:'public',ia:['PersuasionArchive123'],cover_i:22
   }]})};
   if(url.includes('wikibooks.org'))return {ok:true,json:async()=>({query:{search:[]}})};
@@ -53,6 +53,8 @@ await settle();
 assert(calls.some(x=>x.includes('wikisource.org')));
 assert(calls.some(x=>x.includes('openlibrary.org')));
 assert.equal(element('results').children.length,1,'segunda biblioteca funciona após falha da primeira');
+assert.equal(element('alternateBox').hidden,false,'sugere título original quando não há edição exata em português');
+assert.equal(element('alternateButton').dataset.originalTitle,'Persuasion');
 const book=element('results').children[0].children[1];
 const actions=book.children.find(x=>x.className==='result-actions');
 assert.match(actions.children[0].href,/^\.\/ler-online\.html\?tipo=arquivo/);
@@ -63,6 +65,10 @@ assert.equal(saved[0].source,'openlibrary');
 assert.equal(saved[0].category,'romance');
 assert.equal(saved[0].archiveId,'PersuasionArchive123');
 assert(!calls.some(x=>x.includes('/download/')),'não baixa o arquivo automaticamente');
+element('alternateButton').handlers.click();
+await settle();
+assert.equal(element('languageChoice').value,'all');
+assert.equal(element('searchText').value,'Persuasion');
 
 element('tabAudio').handlers.click();
 await settle();

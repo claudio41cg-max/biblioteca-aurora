@@ -30,6 +30,9 @@
 .suggestions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:15px 0 4px;font-size:12px;color:#b8c9bb}
 .suggestions button{border:1px solid #60796a;border-radius:16px;color:#dfdfca;background:#203b32;padding:6px 9px;font-size:12px}
 .search-status{color:#ded5b7;margin:22px 0 15px;min-height:24px;font-size:13px}
+.alternate-suggestion{border:1px solid #b99a6a;background:#2b382d;border-radius:12px;padding:13px;margin:12px 0 18px;font:13px/1.5 system-ui;color:#f7dcb2}
+.alternate-suggestion p{margin:0 0 10px}
+.alternate-suggestion button{border:1px solid #e5c899;border-radius:8px;background:#c2a06f;color:#271c11;padding:10px 12px;font-weight:700}
 .results{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:14px}
 .result-card{display:flex;gap:14px;border:1px solid #576d5c;border-radius:14px;background:linear-gradient(145deg,#294036,#1c3029);padding:15px;min-width:0;box-shadow:0 7px 18px #0003}
 .result-cover{flex:0 0 70px;height:106px;display:flex;justify-content:center;align-items:center;flex-direction:column;border-radius:9px;background:linear-gradient(150deg,#284e40,#1c2e27);border:1px solid #b8915a;box-shadow:3px 3px 6px #0004;color:#edd5a9;text-align:center;padding:8px 5px}

@@ -14,16 +14,17 @@
     finally{clearTimeout(timer);}
   };
   $('onlineTitle').textContent=title.slice(0,180);
-  let pages=[],currentPage=0,currentText='',chapterTitle=bookTitle;
+  let pages=[],currentPage=0,currentText='',chapterTitle=bookTitle,chapterList=[],changingChapter=false;
   const pageSize=()=>window.matchMedia?.('(max-width:600px)').matches?1:2;
   function showPage(){
     if(!pages.length)return;
     const step=pageSize();
     $('onlineLeft').textContent=pages[currentPage]||'';
     $('onlineRight').textContent=pages[currentPage+1]||'';
-    $('onlineCounter').textContent=(currentPage+1)+' de '+pages.length+' páginas';
-    $('onlinePrev').disabled=currentPage<=0;
-    $('onlineNext').disabled=currentPage+step>=pages.length;
+    const index=chapterList.indexOf(chapterTitle);
+    $('onlineCounter').textContent=(currentPage+1)+' de '+pages.length+' páginas'+(index>0?' • capítulo '+index+'/'+(chapterList.length-1):'');
+    $('onlinePrev').disabled=changingChapter||(currentPage<=0&&index<=0);
+    $('onlineNext').disabled=changingChapter||(currentPage+step>=pages.length&&index>=chapterList.length-1);
     try{sessionStorage.setItem('aurora-online-page:'+host+':'+chapterTitle,String(currentPage));}catch{}
   }
   function splitPages(text){
@@ -44,14 +45,15 @@
     const pieces=Array.from(root.querySelectorAll('h2,h3,p,blockquote,pre')).map(node=>node.textContent.trim()).filter(Boolean);
     return (pieces.length?pieces.join('\n\n'):root.textContent).replace(/[ \t]{2,}/g,' ').replace(/\n{4,}/g,'\n\n').trim().slice(0,300000);
   }
-  async function wikiPage(page){
+  async function wikiPage(page,resume=true){
     chapterTitle=page;status('Abrindo as páginas do livro…');
     const q=new URLSearchParams({action:'parse',page,prop:'text',format:'json',formatversion:'2',origin:'*'});
     const data=await json('https://'+host+'/w/api.php?'+q);
     if(!data.parse?.text)throw Error('Não foi possível carregar este capítulo.');
     currentText=cleanWikiHTML(data.parse.text);
     pages=splitPages(currentText);
-    const old=Number(sessionStorage.getItem('aurora-online-page:'+host+':'+page)||0);
+    let old=0;
+    if(resume)try{old=Number(sessionStorage.getItem('aurora-online-page:'+host+':'+page)||0);}catch{}
     currentPage=Math.max(0,Math.min(Number.isFinite(old)?old:0,pages.length-1));
     $('wikiReader').hidden=false;showPage();
     status('Leitura online, sem arquivo salvo no celular.');
@@ -69,21 +71,34 @@
       }catch{more='';}
       attempts++;
     }while(more&&attempts<3);
+    const roman=value=>{
+      const part=value.slice(bookTitle.length+1).toUpperCase().replace(/^CHAPTER\s+/, '');
+      if(!/^(?=[MDCLXVI])M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$/.test(part))return null;
+      const map={I:1,V:5,X:10,L:50,C:100,D:500,M:1000};
+      return [...part].reduceRight((sum,char,index,arr)=>sum+(index<arr.length-1&&map[char]<map[arr[index+1]]?-map[char]:map[char]),0);
+    };
     const order=new Intl.Collator('pt',{numeric:true,sensitivity:'base'});
-    return [bookTitle,...[...new Set(chapters.slice(1))].sort(order.compare)];
+    const sorted=[...new Set(chapters.slice(1))].filter(x=>!/(versão para impressão|print version)/i.test(x)).sort((a,b)=>{
+      const x=roman(a),y=roman(b);
+      if(x!==null&&y!==null)return x-y;
+      if(x!==null)return -1;
+      if(y!==null)return 1;
+      return order.compare(a,b);
+    });
+    return [bookTitle,...sorted];
   }
   async function openWiki(){
     if(!allowedWikis.includes(host)||!bookTitle||bookTitle.length>180)throw Error('Livro inválido.');
     $('onlineCredit').textContent='Texto do acervo colaborativo Wikisource/Wikilivros (Wikimedia). O material pode ser de domínio público ou ter licença livre com exigência de atribuição e compartilhamento.';
     const chaptersPromise=listChapters();
     await wikiPage(bookTitle);
-    const chapters=await chaptersPromise;
+    const chapters=await chaptersPromise;chapterList=chapters;
     const selector=$('onlineChapter');
     selector.replaceChildren();
     for(const chapter of chapters){const option=document.createElement('option');option.value=chapter;option.textContent=chapter.replace(bookTitle+'/','');selector.append(option);}
     selector.value=bookTitle;
     $('onlineChapter').parentElement.hidden=chapters.length<=1;
-    if(currentText.length<450&&chapters.length>1){selector.value=chapters[1];await wikiPage(chapters[1]);}
+    if(currentText.length<450&&chapters.length>1){selector.value=chapters[1];await wikiPage(chapters[1],false);}
     selector.addEventListener('change',async()=>{
       try{await wikiPage(selector.value);}catch(error){status('Este capítulo não está disponível: '+error.message);}
     });
@@ -119,8 +134,29 @@
     $('onlineCredit').textContent='Narração do LibriVox, projeto de audiolivros em domínio público. A obra permanece hospedada na fonte.';
     status('Escolha um capítulo e toque em reproduzir. O áudio não será baixado.');
   }
-  $('onlinePrev').addEventListener('click',()=>{currentPage=Math.max(0,currentPage-pageSize());showPage();});
-  $('onlineNext').addEventListener('click',()=>{currentPage=Math.min(pages.length-1,currentPage+pageSize());showPage();});
+  async function changeChapter(direction){
+    if(changingChapter)return;
+    const index=chapterList.indexOf(chapterTitle),next=chapterList[index+direction];
+    if(!next)return;
+    const previous=chapterTitle;
+    changingChapter=true;showPage();
+    try{
+      await wikiPage(next,false);$('onlineChapter').value=next;
+      if(direction<0){currentPage=Math.floor((pages.length-1)/pageSize())*pageSize();showPage();}
+      window.scrollTo({top:0,behavior:'smooth'});
+    }catch(error){chapterTitle=previous;status('Não foi possível abrir o próximo capítulo. Tente novamente.');}
+    finally{changingChapter=false;showPage();}
+  }
+  $('onlinePrev').addEventListener('click',()=>{
+    if(changingChapter)return;
+    if(currentPage<=0)changeChapter(-1);
+    else{currentPage=Math.max(0,currentPage-pageSize());showPage();}
+  });
+  $('onlineNext').addEventListener('click',()=>{
+    if(changingChapter)return;
+    if(currentPage+pageSize()>=pages.length)changeChapter(1);
+    else{currentPage+=pageSize();showPage();}
+  });
   window.addEventListener('resize',showPage);
   $('downloadCurrent').addEventListener('click',()=>{
     if(!currentText)return;

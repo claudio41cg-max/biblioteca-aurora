@@ -4,6 +4,7 @@
   const $=id=>document.getElementById(id);
   const STORE='aurora-online-books-v1';
   const shelves=[['romance','Romances'],['adulto','Romances picantes'],['ficcao','Ficção e aventuras'],['brasileiros','Autores brasileiros']];
+  const titleAliases={'persuasao':'Persuasion','orgulho e preconceito':'Pride and Prejudice','razao e sensibilidade':'Sense and Sensibility','a maquina do tempo':'The Time Machine'};
   const allowedWikis=['pt.wikisource.org','pt.wikibooks.org','en.wikisource.org'];
   let mode='book',token=0,results=[],shown=12;
   const clean=s=>String(s||'').trim().slice(0,180);
@@ -14,7 +15,7 @@
   const category=(title,author)=>{
     const name=norm(title+' '+author);
     if(/machado de assis|aluisio azevedo|jose de alencar|dom casmurro|memorias postumas|o cortico|iracema/.test(name))return 'brasileiros';
-    if(/austen|orgulho|preconceito|sensibilidade|moreninha|romance|amor|persuasao/.test(name))return 'romance';
+    if(/austen|orgulho|preconceito|sensibilidade|moreninha|romance|amor|persuasao|persuasion|pride and prejudice|sense and sensibility/.test(name))return 'romance';
     return 'ficcao';
   };
   const readerURL=item=>{
@@ -42,7 +43,8 @@
     const source=host.includes('wikibooks')?'wikibooks':'wikisource';
     const wanted=norm(query);
     return (data.query?.search||[]).filter(x=>
-      x.title&&Number.isInteger(x.pageid)&&(norm(x.title).includes(wanted)||norm(x.title.replace(/\//g,' ')).includes(wanted))
+      x.title&&Number.isInteger(x.pageid)&&(!x.title.includes('/')||query.includes('/'))&&
+      (norm(x.title).includes(wanted)||norm(x.title.replace(/\//g,' ')).includes(wanted))
     ).map(x=>({
       key:source+':'+host+':'+x.pageid,title:clean(x.title.replace(/_/g,' ')),
       author:'Texto de acesso livre',source,wikiHost:host,wikiTitle:x.title,kind:'book',
@@ -132,7 +134,7 @@
   async function search(){
     const query=$('searchText').value.trim();if(query.length<2){status('Digite pelo menos duas letras.');return;}
     const request=++token,language=$('languageChoice').value;results=[];shown=12;
-    $('results').replaceChildren();$('pager').hidden=true;busy(true);status('Buscando nas bibliotecas disponíveis…');
+    $('results').replaceChildren();$('pager').hidden=true;$('alternateBox').hidden=true;busy(true);status('Buscando nas bibliotecas disponíveis…');
     const sources=mode==='audio'?[()=>librivox(query,language),()=>archive(query,true,language)]:[
       ()=>wiki('pt.wikisource.org',query),()=>openLibrary(query,language),
       ()=>wiki('pt.wikibooks.org',query),()=>archive(query,false,language)
@@ -148,9 +150,15 @@
     if(!found(query).length)status(failures===sources.length?'Os catálogos não responderam. Tente novamente mais tarde.'
       :'Não encontramos uma edição com leitura dentro da Aurora. Experimente outro título ou todos os idiomas.');
     else render(query);
+    const original=titleAliases[norm(query)];
+    if(mode==='book'&&language==='pt'&&original&&!found(query).some(book=>norm(book.title)===norm(query))){
+      $('alternateBox').hidden=false;
+      $('alternateText').textContent='Não encontramos uma edição completa desse título em português. Podemos procurar “'+original+'” no idioma original, aqui mesmo na Aurora.';
+      $('alternateButton').dataset.originalTitle=original;
+    }
   }
   function switchMode(value){
-    token++;mode=value;results=[];$('results').replaceChildren();$('pager').hidden=true;busy(false);
+    token++;mode=value;results=[];$('results').replaceChildren();$('pager').hidden=true;$('alternateBox').hidden=true;busy(false);
     $('tabBooks').classList.toggle('active',mode==='book');$('tabAudio').classList.toggle('active',mode==='audio');
     $('tabBooks').setAttribute('aria-pressed',String(mode==='book'));$('tabAudio').setAttribute('aria-pressed',String(mode==='audio'));
     status(mode==='book'?'Procure um livro pelo título ou autor.':'Procure um audiolivro pelo título.');
@@ -161,6 +169,10 @@
   $('tabAudio').addEventListener('click',()=>switchMode('audio'));
   $('languageChoice').addEventListener('change',()=>{token++;if($('searchText').value.trim().length>1)search();});
   $('moreResults').addEventListener('click',()=>{shown+=12;render($('searchText').value.trim());});
+  $('alternateButton').addEventListener('click',()=>{
+    $('languageChoice').value='all';$('searchText').value=$('alternateButton').dataset.originalTitle||'';
+    search();
+  });
   document.querySelectorAll('[data-search-example]').forEach(button=>button.addEventListener('click',()=>{$('searchText').value=button.dataset.searchExample;search();}));
   const initial=new URLSearchParams(location.search).get('q');
   if(initial){$('searchText').value=initial.slice(0,90);search();}
