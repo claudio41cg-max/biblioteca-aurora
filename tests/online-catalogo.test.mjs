@@ -16,7 +16,7 @@ assert.match(reader,/id="onlineAudio"/);
 assert.match(reader,/id="onlineFontUp"/);
 assert.match(reader,/id="onlineTheme"/);
 assert.match(reader,/Fonte e direitos desta edição/);
-assert.match(read('sw.js'),/aurora-leitura-online\.js\?v=4/);
+assert.match(read('sw.js'),/aurora-leitura-online\.js\?v=5/);
 assert.match(read('aurora-avancado.js'),/source==='online'/);
 
 class Element{

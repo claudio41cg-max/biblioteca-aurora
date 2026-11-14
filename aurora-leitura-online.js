@@ -65,7 +65,16 @@
     const doc=new DOMParser().parseFromString(html,'text/html');
     const root=doc.querySelector('.mw-parser-output')||doc.body;
     root.querySelectorAll('script,style,nav,form,table,.mw-editsection,.reference,.reflist,.toc,.navbox,.metadata,.noprint,.mw-collapsible,.plainlinks').forEach(node=>node.remove());
-    const pieces=Array.from(root.querySelectorAll('h2,h3,p,blockquote,pre')).map(node=>node.textContent.trim()).filter(Boolean);
+    const pieces=Array.from(root.querySelectorAll('h2,h3,p,blockquote,pre')).map(node=>{
+      let value=node.textContent.trim();
+      if(!['BLOCKQUOTE','PRE'].includes(node.tagName)){
+        // Transcrições antigas ainda carregam quebras a cada linha do impresso.
+        // Reunir as linhas do parágrafo deixa o texto legível no celular.
+        value=value.replace(/([\p{L}])-\s*\n\s*(?=\p{L})/gu,'$1');
+        value=value.replace(/(?<!\n)\n(?!\n)/g,' ');
+      }
+      return value;
+    }).filter(Boolean);
     return (pieces.length?pieces.join('\n\n'):root.textContent).replace(/[ \t]{2,}/g,' ').replace(/\n{4,}/g,'\n\n').trim().slice(0,300000);
   }
   async function wikiPage(page,resume=true){

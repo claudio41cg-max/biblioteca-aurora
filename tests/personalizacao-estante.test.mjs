@@ -24,7 +24,7 @@ assert.match(script,/localStorage\.setItem\(environmentKey/);
 assert.match(script,/discardEnvironment\(\)/);
 assert.match(styles,/\.cabinet\{[\s\S]*?background-image:none!important/);
 assert.match(styles,/body\[data-shelf="original"\]/);
-assert.match(read('sw.js'),/aurora-v28/);
+assert.match(read('sw.js'),/aurora-v29/);
 assert.match(styles,/@media\(max-width:550px\)\{[\s\S]*?body\[data-wall\] \.library\{[\s\S]*?width:100%;max-width:none;margin:8px 0 0;padding:20px 0 30px/);
 assert.match(styles,/body\[data-shelf\]:not\(\[data-shelf="original"\]\) \.shelf-lip\{margin:0;height:25px\}/);
 
