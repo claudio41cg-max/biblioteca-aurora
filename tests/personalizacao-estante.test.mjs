@@ -17,14 +17,16 @@ assert.match(html,/id="environmentCancel"/);
 assert.match(html,/class="environment-preview"/);
 assert.match(html,/id="roomTheme"/);
 assert.match(html,/id="roomPlants"/);
-assert.match(html,/aurora-ambiente\.css\?v=1/);
+assert.match(html,/aurora-ambiente\.css\?v=2/);
 assert.match(script,/aurora-environment-v1/);
 assert.match(script,/persistedEnvironment/);
 assert.match(script,/localStorage\.setItem\(environmentKey/);
 assert.match(script,/discardEnvironment\(\)/);
 assert.match(styles,/\.cabinet\{[\s\S]*?background-image:none!important/);
 assert.match(styles,/body\[data-shelf="original"\]/);
-assert.match(read('sw.js'),/aurora-v21/);
+assert.match(read('sw.js'),/aurora-v22/);
+assert.match(styles,/@media\(max-width:550px\)\{[\s\S]*?body\[data-wall\] \.library\{[\s\S]*?width:100%;max-width:none;margin:8px 0 0;padding:20px 0 30px/);
+assert.match(styles,/body\[data-shelf\]:not\(\[data-shelf="original"\]\) \.shelf-lip\{margin:0;height:25px\}/);
 
 for(let i=0;i<5;i++){
   for(const kind of ['parede','prateleira']){

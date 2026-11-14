@@ -28,7 +28,7 @@ assert.match(css,/\.reader-prefs\[hidden\]/);
 assert.match(css,/\.reader\.zoomed \.viewport/);
 assert.match(css,/\.reader \.(?:page|pdf-readable-text)/);
 assert.match(sw,/\.\/aurora-reader\.css\?v=3/);
-assert.match(read('manifest.webmanifest'),/index\.html\?v=20/);
+assert.match(read('manifest.webmanifest'),/index\.html\?v=21/);
 for(const font of ['serif','sans','times','palatino','handwritten','mono']){
   assert.match(html,new RegExp(`<option value="${font}"`),`A fonte ${font} deve estar disponível`);
 }

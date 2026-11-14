@@ -9,7 +9,7 @@
   <script>
     // A estante principal é a única entrada. Esta página serve só de visor 3D.
     if(!new URLSearchParams(location.search).get('livro'))
-      location.replace('./index.html?v=20');
+      location.replace('./index.html?v=21');
   </script>
   <style>
     :root{color-scheme:dark;--gold:#d1a16b;--paper:#fff5e4}*{box-sizing:border-box}
@@ -76,7 +76,7 @@
   <header class="tophead"><div class="eyebrow">SEU ACERVO PESSOAL</div><h1>✦ Meus livros • Aurora ✦</h1><p>Adicione seus livros PDF e guarde cada um pela lombada.</p></header>
   <nav class="toolbar">
     <label class="button" for="file">＋ Adicionar livro PDF</label>
-    <a class="button light" href="./index.html?v=20">Estante principal</a>
+    <a class="button light" href="./index.html?v=21">Estante principal</a>
     <label class="category-picker">Categoria
       <select id="importCategory" aria-label="Categoria do PDF ao importar">
         <option value="romance">Romances</option>
@@ -450,7 +450,7 @@
     }
     $('back').onclick = () => {
       hideBook();
-      location.href = './index.html?v=20';
+      location.href = './index.html?v=21';
     };
     $('bookCategory').addEventListener('change',async event=>{
       if(!selectedId) return;
@@ -908,7 +908,7 @@
       if (catalog.some(item => item.id === originalRoute)) {
         showBook(originalRoute);
         if(routeParams.get('open')==='1')void openReader(originalRoute);
-      } else location.replace('./index.html?v=20');
+      } else location.replace('./index.html?v=21');
     }
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
   })();
