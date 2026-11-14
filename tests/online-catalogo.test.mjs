@@ -13,8 +13,10 @@ assert.match(explore,/id="tabAudio"/);
 assert.doesNotMatch(explore,/href="https:\/\//);
 assert.match(reader,/id="onlineLeft"/);
 assert.match(reader,/id="onlineAudio"/);
+assert.match(reader,/id="onlineFontUp"/);
+assert.match(reader,/id="onlineTheme"/);
 assert.match(reader,/Fonte e direitos desta edição/);
-assert.match(read('sw.js'),/aurora-leitura-online\.js\?v=3/);
+assert.match(read('sw.js'),/aurora-leitura-online\.js\?v=4/);
 assert.match(read('aurora-avancado.js'),/source==='online'/);
 
 class Element{
@@ -35,7 +37,7 @@ const fetchMock=async url=>{
   if(url.includes('wikisource.org'))throw Error('Fonte indisponível');
   if(url.includes('openlibrary.org'))return {ok:true,json:async()=>({docs:[{
     key:'/works/OL123W',title:'Retórica e Persuasão',author_name:['Jane Austen'],
-    public_scan_b:true,ebook_access:'public',ia:['PersuasionArchive123'],cover_i:22
+    public_scan_b:true,ebook_access:'public',ia:['PersuasionArchive123'],cover_i:22,language:['por']
   }]})};
   if(url.includes('wikibooks.org'))return {ok:true,json:async()=>({query:{search:[]}})};
   if(url.includes('librivox.org'))throw Error('Áudio indisponível');

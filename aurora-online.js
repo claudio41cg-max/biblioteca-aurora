@@ -9,6 +9,12 @@
   let mode='book',token=0,results=[],shown=12;
   const clean=s=>String(s||'').trim().slice(0,180);
   const norm=s=>clean(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  const bookLanguage=value=>{
+    const values=(Array.isArray(value)?value:[value]).filter(Boolean).map(x=>norm(x));
+    if(values.some(x=>/^(pt|por|portugues|portuguese|portuguese \(brasil\))$/.test(x)))return 'Português';
+    if(values.some(x=>/^(en|eng|ingles|english)$/.test(x)))return 'Inglês';
+    return 'Idioma não verificado';
+  };
   const element=(tag,cls,value)=>{const node=document.createElement(tag);if(cls)node.className=cls;if(value!==undefined)node.textContent=value;return node;};
   const status=s=>{$('searchStatus').textContent=s;};
   const saved=()=>{try{const value=JSON.parse(localStorage.getItem(STORE)||'[]');return Array.isArray(value)?value:[];}catch{return [];}};
@@ -56,10 +62,10 @@
     const data=await json('https://openlibrary.org/search.json?'+params);
     return (data.docs||[]).filter(x=>x.public_scan_b===true&&
       (x.ebook_access==='public'||x.ebook_access==null)&&Array.isArray(x.ia)&&x.ia.length&&
-      (language!=='pt'||!Array.isArray(x.language)||x.language.some(l=>['por','pt'].includes(l)))
+      (language!=='pt'||bookLanguage(x.language)==='Português')
     ).map(x=>({
       key:'openlibrary:'+x.key,title:clean(x.title),author:clean((x.author_name||[]).slice(0,2).join(', '))||'Autor não informado',
-      source:'openlibrary',archiveId:String(x.ia[0]),kind:'book',language:'Edição digitalizada',
+      source:'openlibrary',archiveId:String(x.ia[0]),kind:'book',language:bookLanguage(x.language),
       cover:Number.isInteger(x.cover_i)&&x.cover_i>0?'https://covers.openlibrary.org/b/id/'+x.cover_i+'-M.jpg':''
     }));
   }
@@ -74,12 +80,13 @@
       if(!/^[a-zA-Z0-9_-]{3,100}$/.test(x.identifier||''))return false;
       if(language!=='pt')return true;
       const available=Array.isArray(x.language)?x.language:[x.language||''];
-      return available.some(l=>/portugu|^pt$|^por$/i.test(String(l)));
+      return bookLanguage(available)==='Português';
     }).map(x=>({
       key:'archive:'+x.identifier,title:clean(x.title),
       author:clean(Array.isArray(x.creator)?x.creator.join(', '):x.creator)||'Autor não informado',
       source:audio?'archive-audio':'archive',archiveId:x.identifier,kind:audio?'audio':'book',
-      language:clean(Array.isArray(x.language)?x.language.join(', '):x.language)||'Idioma não informado'
+      language:bookLanguage(x.language),
+      cover:'https://archive.org/services/img/'+encodeURIComponent(x.identifier)
     }));
   }
   async function librivox(query,language){
@@ -87,7 +94,7 @@
     return (data.books||[]).filter(x=>/^\d+$/.test(String(x.id))&&(language!=='pt'||/portugu/i.test(x.language||''))).map(x=>({
       key:'librivox:'+x.id,title:clean(x.title),
       author:clean((x.authors||[]).map(a=>[a.first_name,a.last_name].filter(Boolean).join(' ')).join(', '))||'Autor não informado',
-      source:'librivox',librivoxId:String(x.id),kind:'audio',language:x.language||'Idioma não informado',duration:x.totaltime||''
+      source:'librivox',librivoxId:String(x.id),kind:'audio',language:bookLanguage(x.language),duration:x.totaltime||''
     }));
   }
   function found(query){
@@ -99,12 +106,18 @@
   function card(item){
     const card=element('article','result-card'),cover=element('div','result-cover');
     cover.setAttribute('aria-hidden','true');
+    const fallbackCover=()=>{
+      cover.classList.add('result-cover--type');
+      cover.replaceChildren(element('span','cover-flourish','✦'),element('strong','cover-title',item.title),element('small','cover-author',item.author));
+    };
     if(item.cover){
       const image=element('img','result-cover-image');image.src=item.cover;image.alt='';image.loading='lazy';
-      image.onerror=()=>{image.remove();cover.append(element('span','',item.kind==='audio'?'♫':'▤'));};cover.append(image);
-    }else cover.append(element('span','',item.kind==='audio'?'♫':'▤'));
+      image.onerror=fallbackCover;cover.append(image);
+    }else fallbackCover();
     const body=element('div','result-body');
-    body.append(element('h2','',item.title),element('p','',item.author),element('p','',item.kind==='audio'?'♫ Audiolivro disponível':'▤ Edição para ler online'));
+    const badges=element('div','result-badges');
+    badges.append(element('span','language-badge',item.language||'Idioma não verificado'),element('span','format-badge',item.kind==='audio'?'♫ Áudio':'▤ Leitura online'));
+    body.append(badges,element('h2','',item.title),element('p','result-author',item.author));
     if(item.duration)body.append(element('p','',item.duration));
     const label=element('label','result-category-label','Guardar na estante: '),selector=element('select');
     for(const [id,name] of shelves){const option=element('option','',name);option.value=id;selector.append(option);}

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#102923">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./aurora-online.css?v=3">
+  <link rel="stylesheet" href="./aurora-online.css?v=4">
   <title>Leitor online • Biblioteca Aurora</title>
 </head>
 <body class="explore-page online-reader-page">
@@ -23,6 +23,10 @@
       <label class="chapter-label" for="onlineChapter">Capítulo
         <select id="onlineChapter"></select>
       </label>
+      <div class="reader-settings" aria-label="Preferências de leitura">
+        <div class="reader-font-buttons"><span>Tamanho da letra</span><button id="onlineFontDown" type="button" aria-label="Diminuir letra">A−</button><button id="onlineFontUp" type="button" aria-label="Aumentar letra">A+</button></div>
+        <label for="onlineTheme">Papel <select id="onlineTheme"><option value="sepia">Amarelo suave</option><option value="claro">Branco</option><option value="noite">Modo noite</option></select></label>
+      </div>
       <div class="online-pages" aria-label="Páginas do livro">
         <div id="onlineLeft" class="online-paper"></div>
         <div id="onlineRight" class="online-paper"></div>
@@ -51,6 +55,6 @@
       <p>As obras e suas edições podem ter condições de uso diferentes no Brasil. A Aurora exibe a leitura dentro do aplicativo quando a biblioteca de origem permite.</p>
     </details>
   </main>
-  <script src="./aurora-leitura-online.js?v=3" defer></script>
+  <script src="./aurora-leitura-online.js?v=4" defer></script>
 </body>
 </html>

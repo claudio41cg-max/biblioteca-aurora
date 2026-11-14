@@ -15,6 +15,24 @@
   };
   $('onlineTitle').textContent=title.slice(0,180);
   let pages=[],currentPage=0,currentText='',chapterTitle=bookTitle,chapterList=[],changingChapter=false;
+  const paper=$('wikiReader').querySelector('.online-pages');
+  const preferencesKey='aurora-online-reader-settings-v1';
+  let preferences={size:18,theme:'sepia'};
+  try{
+    const saved=JSON.parse(localStorage.getItem(preferencesKey)||'{}');
+    if(Number.isFinite(saved.size))preferences.size=Math.max(16,Math.min(27,saved.size));
+    if(['sepia','claro','noite'].includes(saved.theme))preferences.theme=saved.theme;
+  }catch{}
+  const applyPreferences=()=>{
+    paper.style.setProperty('--online-font-size',preferences.size+'px');
+    paper.dataset.theme=preferences.theme;
+    $('onlineTheme').value=preferences.theme;
+    try{localStorage.setItem(preferencesKey,JSON.stringify(preferences));}catch{}
+  };
+  applyPreferences();
+  $('onlineFontDown').addEventListener('click',()=>{preferences.size=Math.max(16,preferences.size-1);applyPreferences();});
+  $('onlineFontUp').addEventListener('click',()=>{preferences.size=Math.min(27,preferences.size+1);applyPreferences();});
+  $('onlineTheme').addEventListener('change',()=>{preferences.theme=$('onlineTheme').value;applyPreferences();});
   const pageSize=()=>window.matchMedia?.('(max-width:600px)').matches?1:2;
   function showPage(){
     if(!pages.length)return;
@@ -26,6 +44,11 @@
     $('onlinePrev').disabled=changingChapter||(currentPage<=0&&index<=0);
     $('onlineNext').disabled=changingChapter||(currentPage+step>=pages.length&&index>=chapterList.length-1);
     try{sessionStorage.setItem('aurora-online-page:'+host+':'+chapterTitle,String(currentPage));}catch{}
+  }
+  function animatePage(){
+    paper.classList.remove('page-turn');
+    void paper.offsetWidth;
+    paper.classList.add('page-turn');
   }
   function splitPages(text){
     const blocks=text.split(/\n{2,}/).map(x=>x.trim()).filter(Boolean);
@@ -56,6 +79,7 @@
     if(resume)try{old=Number(sessionStorage.getItem('aurora-online-page:'+host+':'+page)||0);}catch{}
     currentPage=Math.max(0,Math.min(Number.isFinite(old)?old:0,pages.length-1));
     $('wikiReader').hidden=false;showPage();
+    animatePage();
     status('Leitura online, sem arquivo salvo no celular.');
   }
   async function listChapters(){
@@ -150,13 +174,27 @@
   $('onlinePrev').addEventListener('click',()=>{
     if(changingChapter)return;
     if(currentPage<=0)changeChapter(-1);
-    else{currentPage=Math.max(0,currentPage-pageSize());showPage();}
+    else{currentPage=Math.max(0,currentPage-pageSize());showPage();animatePage();}
   });
   $('onlineNext').addEventListener('click',()=>{
     if(changingChapter)return;
     if(currentPage+pageSize()>=pages.length)changeChapter(1);
-    else{currentPage+=pageSize();showPage();}
+    else{currentPage+=pageSize();showPage();animatePage();}
   });
+  let touchStart=null;
+  paper.addEventListener('touchstart',event=>{
+    if(event.touches.length!==1)return;
+    touchStart={x:event.touches[0].clientX,y:event.touches[0].clientY};
+  },{passive:true});
+  paper.addEventListener('touchend',event=>{
+    if(!touchStart||!event.changedTouches.length)return;
+    const dx=event.changedTouches[0].clientX-touchStart.x;
+    const dy=event.changedTouches[0].clientY-touchStart.y;
+    touchStart=null;
+    if(Math.abs(dx)<65||Math.abs(dy)>Math.abs(dx)*.65)return;
+    const button=$(dx<0?'onlineNext':'onlinePrev');
+    if(!button.disabled)button.click();
+  },{passive:true});
   window.addEventListener('resize',showPage);
   $('downloadCurrent').addEventListener('click',()=>{
     if(!currentText)return;
