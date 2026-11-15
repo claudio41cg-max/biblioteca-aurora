@@ -116,3 +116,18 @@ body.epub-reader{
   border:1px solid #b19063;border-radius:9px;background:#30453b;
   color:#f1d8ad;font:14px Georgia,serif;
 }
+
+/* Folha de papel inteiramente opaca, com sombra delicada na dobra. */
+.epub-reader .epub-sheet{opacity:1;background-color:#fffdf6;isolation:isolate}
+.epub-reader[data-reader-theme="light"] .epub-sheet{background:#fffdf6;color:#342a22}
+.epub-reader[data-reader-theme="sepia"] .epub-sheet{background:#f0e1c6;color:#392c21}
+.epub-reader[data-reader-theme="night"] .epub-sheet{background:#24312f;color:#f0e5d0}
+.epub-reader .theme-controls button{
+  min-width:0;border:1px solid #87998988;background:#30473d;color:#e8e8d7;
+  box-shadow:none;border-radius:11px;font:15px Georgia,serif;transition:background .16s,color .16s,border-color .16s;
+}
+.epub-reader .theme-controls button[aria-pressed="true"]{
+  background:linear-gradient(145deg,#d9b582,#c49a66);border-color:#f1d4a3;
+  color:#302317;box-shadow:inset 0 0 0 1px #fff5,0 0 0 1px #d7b47b35;
+}
+.epub-reader .theme-controls button:focus-visible{outline:2px solid #efd09b;outline-offset:2px}

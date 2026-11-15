@@ -1,0 +1,43 @@
+import {strict as assert} from 'node:assert';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+
+const read=file=>readFileSync(new URL('../'+file,import.meta.url),'utf8');
+const window={};
+vm.runInNewContext(read('aurora-titulos.js'),{window});
+const clean=window.AuroraTitles.display;
+const junk='A Hipotese Do Amor Sucesso Do TikTok (Portuguese Edition) Ali Hazelwood 2022 Editora Arqueiro Ltda 9786555653311 38a687e3e026f433ae18b2728 Annas Archive';
+assert.equal(clean(junk),'A hipótese do amor','Sobrenome, editora, ISBN e propaganda não podem ocupar a lombada');
+assert.equal(clean('A Culpa É Das Estrelas.epub'),'A Culpa É Das Estrelas');
+assert.equal(clean('Bíblia-Interlinear.pages'),'Bíblia-Interlinear');
+
+const reader=read('aurora-epub-reader.js');
+const themeSource=reader.slice(reader.indexOf('  const themeButtons='),reader.indexOf('  let speech=null;'));
+assert.ok(themeSource.includes('function applyTheme()'));
+const classes=new Set(['flip-host','stf__parent','sepia']);
+const host={classList:{remove(...values){values.forEach(value=>classes.delete(value));},add(...values){values.forEach(value=>classes.add(value));}}};
+const buttons=['light','sepia','night'].map(theme=>({dataset:{theme},pressed:null,events:{},setAttribute(name,value){if(name==='aria-pressed')this.pressed=value;},addEventListener(name,fn){this.events[name]=fn;}}));
+const panel={querySelectorAll:()=>buttons};
+const document={body:{dataset:{}}};
+const settings={theme:'sepia'};
+let saved=0,updated=0;
+new Function('panel','document','host','flip','settings','saveSettings',themeSource)(panel,document,host,{update(){updated++;}},settings,()=>{saved++;});
+assert.equal(document.body.dataset.readerTheme,'sepia');
+assert.deepEqual(buttons.map(button=>button.pressed),['false','true','false']);
+buttons[0].events.click();
+assert.equal(document.body.dataset.readerTheme,'light');
+assert.deepEqual(buttons.map(button=>button.pressed),['true','false','false']);
+assert.ok(classes.has('stf__parent'),'O motor físico do folheio não pode perder suas classes');
+assert.ok(classes.has('light'));
+assert.ok(!classes.has('sepia'));
+assert.equal(saved,1);
+assert.equal(updated,2);
+
+assert.match(reader,/maxShadowOpacity:\.18/,'A dobra não deve deixar a folha escura');
+assert.match(read('aurora-novos-leitores.css'),/\.theme-controls button\[aria-pressed="true"\]/);
+assert.match(read('aurora-novos-leitores.css'),/data-reader-theme="night"/);
+assert.match(read('aurora-importados.js'),/if\(book\.coverSource==='generated'/,'Só capas ilustrativas podem ser recriadas');
+assert.match(read('aurora-som-folhas.js'),/filter\.type='lowpass'/);
+assert.match(read('index.html'),/aurora-titulos\.js\?v=1/);
+assert.match(read('ler-epub.html'),/aurora-titulos\.js\?v=1/);
+console.log('EPUB v38: tema único, folha opaca, título limpo e som mais leve.');

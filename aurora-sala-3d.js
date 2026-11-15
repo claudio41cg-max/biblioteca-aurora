@@ -14,7 +14,7 @@
   const readerURL=book=>book.format==='online'
     ?(/^(\.\/)?ler-online\.html\?/.test(book.readerURL||'')?book.readerURL:'./explorar-livros.html')
     :book.format==='epub'
-    ?'./ler-epub.html?livro='+encodeURIComponent(book.id)+'&v=5'
+    ?'./ler-epub.html?livro='+encodeURIComponent(book.id)+'&v=6'
     :book.format==='audio'?'./ouvir-livro.html?livro='+encodeURIComponent(book.id)+'&v=1'
     :'./meus-livros.html?livro='+encodeURIComponent(book.id)+'&open=1&v=20';
   const editionURL=book=>book.format==='epub'||book.format==='audio'||book.format==='online'?readerURL(book):'./meus-livros.html?livro='+encodeURIComponent(book.id)+'&v=20';
@@ -113,7 +113,7 @@
     if(active)return;
     // Toda edição adicionada passa pelo mesmo visor, mesmo quando não traz capa.
     if(book&&!book.cover&&window.AuroraFormats?.createDigitalCover){
-      book.cover=window.AuroraFormats.createDigitalCover(book.name||book.title,book.author,book.format);
+      book.cover=window.AuroraFormats.createDigitalCover(window.AuroraTitles?.display(book.title||book.name)||book.title||book.name,book.author,book.format);
       book.coverSource='generated';
     }
     if(!book?.cover){location.href=editionURL(book);return;}
@@ -127,7 +127,8 @@
     scene.classList.remove('three-ready');
     scene.classList.remove('aurora-force-css');
     scene.classList.add('cover-loading');
-    $('auroraShowTitle').textContent=known?.title||book.title||book.name;
+    const displayTitle=window.AuroraTitles?.display(known?.title||book.title||book.name)||book.title||book.name;
+    $('auroraShowTitle').textContent=displayTitle;
     $('auroraShowAuthor').textContent='por '+(known?.author||book.author||'Autor não informado');
     $('auroraShowCategory').value=categories.includes(book.category)?book.category:'ficcao';
     $('auroraShowCategory').disabled=book.format==='demo';
@@ -147,7 +148,7 @@
     // A textura usada no primeiro quadro é a mesma que seguirá no modelo WebGL.
     window.__auroraSelectedBook={id:book.id,name:book.name||book.title,
       cover:book.cover,back:book.back,spine:book.spine,ratio,total:book.total};
-    cover.alt=(book.coverSource==='generated'?'Capa ilustrativa de ':'Capa da edição ')+(book.title||book.name);
+    cover.alt=(book.coverSource==='generated'?'Capa ilustrativa de ':'Capa da edição ')+displayTitle;
     cover.src=book.cover;
     window.dispatchEvent(new CustomEvent('aurora:book-selected',{detail:window.__auroraSelectedBook}));
     if(cover.complete&&cover.naturalWidth)scene.classList.remove('cover-loading');
@@ -155,9 +156,9 @@
     session.fallback=setTimeout(()=>{
       if(active!==session||session.started)return;
       if(!cover.naturalWidth&&window.AuroraFormats?.createDigitalCover){
-        book.cover=window.AuroraFormats.createDigitalCover(book.name||book.title,book.author,book.format);
+        book.cover=window.AuroraFormats.createDigitalCover(displayTitle,book.author,book.format);
         book.coverSource='generated';
-        cover.alt='Capa ilustrativa de '+(book.title||book.name);
+        cover.alt='Capa ilustrativa de '+displayTitle;
         cover.src=book.cover;
         window.__auroraSelectedBook.cover=book.cover;
       }

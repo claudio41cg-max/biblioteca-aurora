@@ -22,12 +22,12 @@
     let details;
     if(format==='epub'){
       const epub=await formats.openEpub(data);
-      details={name:epub.title||formats.cleanName(file.name),author:epub.author,
+      details={name:window.AuroraTitles?.display(epub.title||formats.cleanName(file.name))||epub.title||formats.cleanName(file.name),author:epub.author,
         description:epub.description,cover:epub.cover,total:epub.spine.length,
         coverSource:epub.cover?'original':'generated'};
     }else{
       details=await formats.audioMetadata(data,file.name);
-      details.name=details.title||formats.cleanName(file.name);
+      details.name=window.AuroraTitles?.display(details.title||formats.cleanName(file.name))||details.title||formats.cleanName(file.name);
       details.total=Math.max(130,Math.floor(data.byteLength/50000));
     }
     if(!details.cover&&selectedAudioCover)details.cover=await formats.blobToData(selectedAudioCover);

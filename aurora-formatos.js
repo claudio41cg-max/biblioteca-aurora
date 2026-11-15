@@ -36,7 +36,7 @@
     ctx.font='bold 19px Georgia,serif';ctx.fillText('BIBLIOTECA AURORA',300,104);
     ctx.lineWidth=2;ctx.strokeStyle='#d8b78488';
     ctx.beginPath();ctx.moveTo(185,134);ctx.lineTo(415,134);ctx.stroke();
-    const name=String(title||'Livro digital').trim();
+    const name=window.AuroraTitles?.display(title)||String(title||'Livro digital').trim();
     const words=name.split(/\s+/);
     const lines=[];let line='';
     ctx.font='bold 57px Georgia,serif';

@@ -38,15 +38,16 @@
   const hash = input => Array.from(input).reduce((sum,ch)=>((sum*31+ch.charCodeAt(0))|0),7)>>>0;
   function makeSpine(item) {
     const seed = hash(item.title);
+    const displayTitle=window.AuroraTitles?.display(item.title)||item.title;
     const button = document.createElement('button');
     button.className = 'book-spine';
     button.type = 'button';
-    button.dataset.title = normalize(item.title);
+    button.dataset.title = normalize(displayTitle);
     button.dataset.rawTitle = item.title;
     button.dataset.source = item.source || 'demo';
     if(item.source==='epub')button.dataset.coverSource=item.coverSource||'original';
-    button.title = item.title + (item.source === 'demo' ? ' • livro demonstrativo' : ' • tocar para pegar');
-    button.setAttribute('aria-label', 'Pegar ' + item.title);
+    button.title = displayTitle + (item.source === 'demo' ? ' • livro demonstrativo' : ' • tocar para pegar');
+    button.setAttribute('aria-label', 'Pegar ' + displayTitle);
     const realPDF=['pdf','epub','audio'].includes(item.source);
     const bookHeight=realPDF?160+seed%17:151+seed%24;
     const estimatedWidth=realPDF?Math.max(28,Math.min(62,27+Number(item.total||0)/27)):37+seed%13;
@@ -85,7 +86,7 @@
     }
     const label=document.createElement('span');
     label.className='spine-title';
-    label.textContent=item.title.replace(/[-_]+/g,' ');
+    label.textContent=displayTitle.replace(/[-_]+/g,' ');
     button.append(label);
     if (item.source && item.source !== 'demo') {
       const source = document.createElement('span');

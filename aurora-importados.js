@@ -80,7 +80,7 @@
       const imported=books.map(book=>({
         id:book.id,
         format:book.format||'pdf',
-        title:window.AuroraBookInfo?.find(book.name)?.title||book.name||'Livro sem título',
+        title:window.AuroraTitles?.display(window.AuroraBookInfo?.find(book.name)?.title||book.name)||book.name||'Livro sem título',
         name:book.name||'Livro sem título',
         author:book.author||'',
         country:book.country||'',
@@ -102,6 +102,11 @@
       for(const book of imported){
         const row=document.getElementById('shelf-'+book.category);
         if(!row) continue;
+        // Capas ilustrativas antigas podem conter o nome bruto do arquivo.
+        // Recriar apenas essas capas; capas originais das edições são intocáveis.
+        if(book.coverSource==='generated'&&book.title!==book.name&&window.AuroraFormats?.createDigitalCover){
+          book.cover=window.AuroraFormats.createDigitalCover(book.title,book.author,book.format);
+        }
         const button=shelf.makeSpine({
           title:book.title,
           source:book.format||'pdf',

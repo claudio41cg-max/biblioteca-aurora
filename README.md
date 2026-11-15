@@ -83,6 +83,12 @@ O percurso estante → exemplar 3D → leitura é mantido para PDF, EPUB e TXT i
 
 Audiolivros continuam com seus controles de reprodução. Digitalizações de fontes externas incorporadas por iframe mantêm o visual próprio do serviço de origem, que a Aurora não consegue modificar. Nenhuma importação antiga precisa ser repetida para receber os novos controles.
 
+### Edição 38: acabamento do EPUB e títulos legíveis
+
+Os três temas do EPUB (Claro, Sépia e Noturno) agora apresentam **exatamente um botão selecionado** e são aplicados às folhas sem remover classes que o motor de folheio usa. A sombra da folha foi reduzida para evitar aspecto acinzentado e excessivamente translúcido durante o giro. O ruído de virar página ganhou ataque e encerramento mais suaves, com dois movimentos de fricção filtrados, sem arquivo ou serviço externo; a mudança também alcança o leitor PDF e TXT.
+
+As lombadas e os títulos apresentados no 3D e no leitor deixam de mostrar caudas de propaganda, editora, ISBN e códigos, como no nome longo de **A Hipótese do Amor**. Os dados originais ficam preservados no armazenamento do usuário. Capas originais não são alteradas; apenas capas **ilustrativas geradas pela Aurora** podem ser recriadas com o título limpo.
+
 ## Desenvolvimento e segurança
 
 Execute `npm run dev -- --host 0.0.0.0 --port 4173 --strictPort` e abra a prévia local.

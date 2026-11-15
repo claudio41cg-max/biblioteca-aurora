@@ -113,7 +113,7 @@
     host.replaceChildren(...elements);
     if(window.St?.PageFlip&&elements.length>1){
       try{
-        flip=new St.PageFlip(host,{width,height,size:'fixed',showCover:false,drawShadow:true,maxShadowOpacity:.55,
+        flip=new St.PageFlip(host,{width,height,size:'fixed',showCover:false,drawShadow:true,maxShadowOpacity:.18,
           flippingTime:900,usePortrait:innerWidth<670,mobileScrollSupport:false,swipeDistance:20,autoSize:false});
         flip.loadFromHTML(elements);
         let soundedDuringTurn=false;
@@ -208,7 +208,17 @@
   $('fontChoice').addEventListener('change',event=>{settings.font=event.target.value;changeAppearance();});
   $('fontSize').addEventListener('change',event=>{settings.size=Number(event.target.value);$('sizeValue').textContent=settings.size;changeAppearance();});
   $('lineHeight').addEventListener('change',event=>{settings.line=Number(event.target.value)/10;$('lineValue').textContent=settings.line.toFixed(1).replace('.',',');changeAppearance();});
-  panel.querySelectorAll('[data-theme]').forEach(button=>button.addEventListener('click',()=>{settings.theme=button.dataset.theme;saveSettings();host.className='flip-host '+settings.theme;}));
+  const themeButtons=[...panel.querySelectorAll('.theme-controls [data-theme]')];
+  function applyTheme(){
+    document.body.dataset.readerTheme=settings.theme;
+    // Preservar as classes internas que o St.PageFlip coloca no contêiner.
+    // Substituir className quebrava o desenho e podia manter a cor anterior.
+    if(host){host.classList.remove('light','sepia','night');host.classList.add(settings.theme);}
+    themeButtons.forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.theme===settings.theme)));
+    flip?.update?.();
+  }
+  applyTheme();
+  themeButtons.forEach(button=>button.addEventListener('click',()=>{settings.theme=button.dataset.theme;saveSettings();applyTheme();}));
   let speech=null;
   function stopSpeech(){if('speechSynthesis' in window){speechSynthesis.cancel();speech=null;$('readAloud').textContent='♫ Ouvir o texto';}}
   $('readAloud').addEventListener('click',()=>{
@@ -234,7 +244,7 @@
       if(!id)throw new Error('Nenhum livro foi selecionado.');
       book=await formats.readRecord('books',id);
       if(!book||book.format!=='epub')throw new Error('Este EPUB não foi encontrado neste aparelho.');
-      $('bookTitle').textContent=book.name;
+      $('bookTitle').textContent=window.AuroraTitles?.display(book.name)||book.name;
       epub=await formats.openEpub(book.data);
       const saved=await formats.readRecord('progress',id).catch(()=>null);
       if(Number.isInteger(saved?.bookmark)){$('bookmark').dataset.bookmarked='true';$('bookmark').textContent='🔖';}

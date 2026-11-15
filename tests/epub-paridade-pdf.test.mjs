@@ -10,9 +10,9 @@ const showcase=read('aurora-sala-3d.css');
 const css=read('aurora-novos-leitores.css');
 const sound=read('aurora-som-folhas.js');
 
-assert.match(html,/aurora-epub-reader\.js\?v=5/);
-assert.match(html,/aurora-som-folhas\.js\?v=1/);
-assert.match(pdf,/aurora-som-folhas\.js\?v=1/);
+assert.match(html,/aurora-epub-reader\.js\?v=6/);
+assert.match(html,/aurora-som-folhas\.js\?v=2/);
+assert.match(pdf,/aurora-som-folhas\.js\?v=2/);
 assert.match(pdf,/Som suave de folhas ao virar/);
 assert.match(html,/Som suave de folhas ao virar/);
 assert.match(css,/body\.epub-reader/);
