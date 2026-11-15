@@ -137,7 +137,7 @@
         }
       });
       shelfBooks.forEach(book=>{
-        const openSharedTxt=()=>{location.href='./ler-epub.html?txt='+encodeURIComponent(book.title)+'&v=7';};
+        const openSharedTxt=()=>{location.href='./ler-epub.html?txt='+encodeURIComponent(book.title)+'&v=8';};
         const button=makeSpine(book);
         button.addEventListener('click',()=>{
           if(!window.AuroraShelfViewer?.open){book.source==='txt'?openSharedTxt():openText(book.title);return;}

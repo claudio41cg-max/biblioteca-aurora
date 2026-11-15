@@ -33,7 +33,7 @@ assert.ok(!classes.has('sepia'));
 assert.equal(saved,1);
 assert.equal(updated,2);
 
-assert.match(reader,/maxShadowOpacity:\.55/,'A dobra deve usar a sombra física do PDF');
+assert.match(reader,/maxShadowOpacity:\.62/,'A dobra deve ter uma sombra física mais forte e delicada');
 assert.match(reader,/getContext\('2d',\{alpha:false\}\)/,'Papel do EPUB deve ser opaco como o PDF');
 assert.match(read('aurora-novos-leitores.css'),/\.theme-controls button\[aria-pressed="true"\]/);
 assert.match(read('aurora-novos-leitores.css'),/data-reader-theme="night"/);

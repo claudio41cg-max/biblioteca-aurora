@@ -10,13 +10,13 @@ const showcase=read('aurora-sala-3d.css');
 const css=read('aurora-novos-leitores.css');
 const sound=read('aurora-som-folhas.js');
 
-assert.match(html,/aurora-epub-reader\.js\?v=7/);
+assert.match(html,/aurora-epub-reader\.js\?v=8/);
 assert.match(html,/aurora-som-folhas\.js\?v=2/);
 assert.match(pdf,/aurora-som-folhas\.js\?v=2/);
 assert.match(pdf,/Som suave de folhas ao virar/);
 assert.match(html,/Som suave de folhas ao virar/);
 assert.match(css,/body\.epub-reader/);
-assert.match(css,/\.epub-reader \.epub-sheet-number|\.epub-reader \.epub-page-number/);
+assert.match(css,/\.epub-reader \.epub-sheet-number|\.epub-reader \.epub-page-number|\.epub-reader \.epub-page-canvas/);
 assert.match(showcase,/background:transparent/);
 assert.match(showcase,/Palatino Linotype/);
 assert.match(epub,/String\(value\|\|''\).*split\('\\n'\)/,'O novo canvas conserva as quebras de parágrafo');
@@ -25,16 +25,17 @@ assert.match(epub,/getContext\('2d',\{alpha:false\}\)/,'O EPUB deve usar pixels 
 assert.match(epub,/changeState/,'Folhas EPUB iniciam o som durante o folheio');
 assert.match(pdf,/changeState/,'Folhas PDF iniciam o som durante o folheio');
 
-// Simula St.PageFlip.destroy() retirando o host inteiro, como acontece em
-// alguns EPUBs após a troca de capítulos. O novo livro deve continuar visível.
-const source=epub.slice(epub.indexOf('  function drawPages(){'),epub.indexOf('  function goPage('));
-assert.ok(source.includes('function drawPages(){'));
+// O CanvasRender evita as camadas HTML translúcidas. A reconstrução do host
+// deve continuar funcionando mesmo quando destroy() remove o nó anterior.
+const source=epub.slice(epub.indexOf('  async function drawPages(){'),epub.indexOf('  function goPage('));
+assert.ok(source.includes('async function drawPages(){'));
 const created=[];
 const makeElement=tag=>{
   const element={tag,dataset:{},style:{},className:'',children:[],attributes:{},
     append(...items){this.children.push(...items);},
     replaceChildren(...items){this.children=items;},
     setAttribute(name,value){this.attributes[name]=value;},
+    querySelector(selector){return selector==='canvas'?this.children.find(child=>child.tag==='canvas'):null;},
     classList:{add(name){element.className+=' '+name;},toggle(name,on){if(on)element.className+=' '+name;}}};
   created.push(element);
   return element;
@@ -43,7 +44,7 @@ const stage={child:null,replaceChildren(...items){this.child=items[0]||null;}};
 const document={createElement:makeElement};
 const window={St:{PageFlip:class{
   constructor(host){this.host=host;this.events=new Map();}
-  loadFromHTML(elements){this.elements=elements;}
+  loadFromImages(images){this.images=images;}
   on(event,handler){this.events.set(event,handler);}
   turnToPage(page){this.current=page;}
   destroy(){stage.child=null;}
@@ -53,10 +54,11 @@ const makeDraw=new Function('document','stage','window',`
   let flip={destroy(){stage.child=null}};
   let pages=['Primeira folha','Segunda folha','Terceira folha'];
   let page=1,windowStart=0,windowLength=0;
+  let drawGeneration=0;
   const PAGE_WINDOW=24,settings={theme:'light',font:'Georgia',size:18,line:1.55};
   const St=window.St;
   const pageDimensions=()=>({width:270,height:375});
-  const paintSheet=content=>({textContent:content,tag:'canvas'});
+  const paintSheet=content=>({textContent:content,tag:'canvas',toDataURL:()=> 'data:image/jpeg,'+content});
   const refresh=()=>{},remember=()=>{},stopSpeech=()=>{};
   const innerWidth=390;
   const $=()=>({textContent:''});
@@ -64,13 +66,13 @@ const makeDraw=new Function('document','stage','window',`
   return {drawPages,getHost:()=>host,getFlip:()=>flip};
 `);
 const runner=makeDraw(document,stage,window);
-runner.drawPages();
+await runner.drawPages();
 assert.equal(stage.child,runner.getHost(),'Nova folha montada após destruir motor anterior');
-assert.equal(runner.getFlip().elements.length,3,'As três páginas continuam no livro');
+assert.equal(runner.getFlip().images.length,3,'As três páginas continuam no livro');
 assert.equal(runner.getFlip().current,1,'A página salva continua aberta');
-runner.drawPages();
+await runner.drawPages();
 assert.equal(stage.child,runner.getHost(),'Outra troca de capítulo preserva o host do EPUB');
-assert.equal(runner.getFlip().elements[0].children[0].textContent,'Primeira folha');
+assert.equal(runner.getFlip().images[0],'data:image/jpeg,Primeira folha');
 
 // O som funciona sem downloads e permite silenciar ambos os leitores.
 const values=new Map();

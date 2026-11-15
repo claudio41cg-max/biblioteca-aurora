@@ -12,7 +12,8 @@ const onlineCss=read('aurora-online.css');
 const onlineJs=read('aurora-leitura-online.js');
 const threeD=read('aurora-sala-3d.js');
 
-assert.ok(epub.indexOf('id="previousChapter"')>epub.indexOf('id="settings"'), 'Capítulos EPUB ficam no painel Aa');
+assert.doesNotMatch(epub,/id="(?:previousChapter|nextChapter|chapterLabel)"/,'Os controles de capítulo foram retirados das configurações');
+assert.match(epub,/id="previousPage"/);
 assert.match(epubCss,/\.epub-reader \.epub-page-controls\{\s*min-height:34px;height:34px/);
 assert.match(read('aurora-epub-reader.js'),/const ratio=innerWidth<=670 \? \.64 : \.72/);
 assert.match(threeD,/ler-epub\.html\?livro=/,'EPUB mantém entrada física 3D');

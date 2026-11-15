@@ -2,6 +2,14 @@
 
 Biblioteca pessoal PWA, hospedada no GitHub Pages, com estante realista, livros por categoria, PDF e TXT e visualização 3D.
 
+## Edição 40: um mesmo padrão para PDF, EPUB e TXT
+
+- O visor 3D da estante principal e o visor 3D interno dos PDFs agora têm fundo **off-white**, letras escuras e detalhes dourados discretos. Os controles Estante, categoria e Descrição ficam sem moldura, inclusive ao voltar da leitura.
+- Para evitar as folhas transparentes, o EPUB/TXT passou do renderizador HTML do St.PageFlip para o **renderizador Canvas** (`loadFromImages`): o texto e as ilustrações são primeiro pintados em folhas JPEG sem canal alfa, e o próprio motor faz a dobra, as sombras e o brilho. O PDF preserva seu folheio original que já funcionava.
+- Os leitores PDF, EPUB e TXT oferecem botões inferiores com **↶ / ↷**, contagem central, marcador no topo e painel Aa com o mesmo modelo de fonte, tamanho, entrelinha, papel Claro/Sépia/Noturno, som e narração. O EPUB não mostra mais os controles de capítulos; ao terminar uma parte, Próxima avança para a seguinte.
+- As preferências visuais passam a ser compartilhadas via `aurora-reading-preferences-v2` no mesmo aparelho. Opções especiais do PDF (zoom, texto adaptado e página direta) ficam recolhidas em "Opções adicionais do PDF". As fontes e entrelinhas alteram PDFs somente quando o arquivo permite **Texto adaptado**; páginas digitalizadas conservam a aparência original e zoom.
+- Os livros importados não foram alterados, nem os capítulos, as capas originais, as descrições e as informações de progresso salvas.
+
 ## Uso no celular
 
 ### EPUB: páginas e capítulos completos

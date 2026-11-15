@@ -104,9 +104,9 @@ body.epub-reader{
   min-height:34px;height:34px;padding:2px 10px;max-width:540px;
 }
 .epub-reader .epub-page-controls button{
-  min-height:28px;padding:3px 9px;background:transparent;
-  border:1px solid #ac916b75;border-radius:8px;color:#e4cdae;
-  font:12px Georgia,serif;
+  min-height:34px;min-width:47px;padding:0 12px;background:transparent;
+  border:1px solid #ac916b75;border-radius:11px;color:#e4cdae;
+  font:26px/1 Georgia,serif;
 }
 .epub-reader .epub-page-controls span{font:12px Georgia,serif}
 .epub-reader .reader-bottom{min-height:19px;height:19px;padding:0 8px 3px;font-size:10px}

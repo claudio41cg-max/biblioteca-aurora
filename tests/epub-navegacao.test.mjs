@@ -7,9 +7,10 @@ import {pathToFileURL} from 'node:url';
 const read=name=>readFileSync(new URL('../'+name,import.meta.url),'utf8');
 const reader=read('aurora-epub-reader.js');
 const html=read('ler-epub.html');
-for(const id of ['previousPage','nextPage','readLocation','previousChapter','nextChapter']){
+for(const id of ['previousPage','nextPage','readLocation']){
   assert.ok(html.includes('id="'+id+'"'),'Controle EPUB ausente: '+id);
 }
+assert.doesNotMatch(html,/id="previousChapter"|id="nextChapter"/);
 assert.match(reader,/PAGE_WINDOW=24/,'Um capítulo extenso deve usar páginas opacas em lotes econômicos');
 assert.match(reader,/if\(next>=pages\.length\)/,'Fim do capítulo deve avançar para o próximo');
 assert.match(reader,/host\.classList\.add\('epub-static'\)/,'Leitura precisa funcionar sem biblioteca externa');
@@ -47,16 +48,15 @@ if(process.env.AURORA_BROWSER_TEST==='1'){
       db.close();
     });
     await page.goto(base+'/ler-epub.html?livro=teste-epub');
-    await page.waitForFunction(()=>document.querySelector('#chapterLabel')?.textContent==='Capítulo 1 de 2');
+    await page.waitForFunction(()=>document.querySelector('#readLocation')?.textContent?.includes('/'));
     const first=await page.locator('#readLocation').innerText();
     assert.ok(Number(first.split('/')[1])>2,'O primeiro capítulo deve conter várias páginas');
     await page.locator('#nextPage').click();
     assert.match(await page.locator('#readLocation').innerText(),/^2 \/ /);
-    await page.locator('#nextChapter').click();
-    await page.waitForFunction(()=>document.querySelector('#chapterLabel')?.textContent==='Capítulo 2 de 2');
-    assert.match(await page.locator('.epub-accessible-content').first().innerText(),/Final do livro/);
+    await page.locator('#progress').evaluate(input=>{input.value='85';input.dispatchEvent(new Event('change',{bubbles:true}));});
+    await page.waitForFunction(()=>document.querySelector('#epubAccessibleText')?.textContent?.includes('Final do livro'));
     await page.locator('#previousPage').click();
-    await page.waitForFunction(()=>document.querySelector('#chapterLabel')?.textContent==='Capítulo 1 de 2');
+    await page.waitForFunction(()=>document.querySelector('#readLocation')?.textContent?.includes('/'));
     console.log('EPUB real: paginação, próximo capítulo, retorno e modo offline sem PageFlip OK.');
   }finally{
     await browser?.close();

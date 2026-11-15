@@ -7,8 +7,8 @@ const css=read('aurora-reader.css');
 const sw=read('sw.js');
 
 for(const id of ['close','title','count','bookmark','readerSettings','readerPrefs','readerPrefsClose',
-  'readerZoom','readerZoomValue','readerTextMode','readerTextPrefs','readerFont','readerFontSize',
-  'readerLineHeight','pageNumber','goto','scrub','position','viewport','flipbook']){
+  'readerZoom','readerZoomValue','readerTextMode','readerFont','readerFontSize',
+  'readerLineHeight','pageNumber','goto','scrub','position','viewport','flipbook','previousPage','nextPage','readerSpeak']){
   assert.match(html,new RegExp(`id="${id}"`),`${id} deve permanecer disponível`);
 }
 for(const removed of ['minus10','plus10','zoomOut','zoomIn']){
@@ -23,13 +23,13 @@ assert.match(html,/active\.zoom===1\|\|active\.textMode/,'O zoom do texto não b
 assert.match(html,/active\.flip\.flipNext\('bottom'\)/,'O PDF ampliado deve poder virar folhas para frente');
 assert.match(html,/active\.flip\.flipPrev\('bottom'\)/,'O PDF ampliado deve poder virar folhas para trás');
 assert.match(html,/persistProgress\(active\)/,'Marcador continua salvando progresso');
-assert.match(html,/aurora-reader\.css\?v=4/);
+assert.match(html,/aurora-reader\.css\?v=5/);
 assert.match(css,/\.reader-prefs\[hidden\]/);
 assert.match(css,/\.reader\.zoomed \.viewport/);
 assert.match(css,/\.reader \.(?:page|pdf-readable-text)/);
-assert.match(sw,/\.\/aurora-reader\.css\?v=4/);
+assert.match(sw,/\.\/aurora-reader\.css\?v=5/);
 assert.match(read('manifest.webmanifest'),/index\.html\?v=22/);
-for(const font of ['serif','sans','times','palatino','handwritten','mono']){
+for(const font of ['Georgia','Palatino Linotype','Garamond','Times New Roman','Arial','Verdana']){
   assert.match(html,new RegExp(`<option value="${font}"`),`A fonte ${font} deve estar disponível`);
 }
 const embedded=[...html.matchAll(/<script(?:\s+[^>]*)?>([\s\S]*?)<\/script>/g)]

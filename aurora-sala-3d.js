@@ -74,12 +74,12 @@
   const readerURL=book=>book.format==='online'
     ?(/^(\.\/)?ler-online\.html\?/.test(book.readerURL||'')?book.readerURL:'./explorar-livros.html')
     :book.format==='txt'
-    ?'./ler-epub.html?txt='+encodeURIComponent(book.name||book.title)+'&v=7'
+    ?'./ler-epub.html?txt='+encodeURIComponent(book.name||book.title)+'&v=8'
     :book.format==='epub'
-    ?'./ler-epub.html?livro='+encodeURIComponent(book.id)+'&v=7'
+    ?'./ler-epub.html?livro='+encodeURIComponent(book.id)+'&v=8'
     :book.format==='audio'?'./ouvir-livro.html?livro='+encodeURIComponent(book.id)+'&v=1'
-    :'./meus-livros.html?livro='+encodeURIComponent(book.id)+'&open=1&v=20';
-  const editionURL=book=>['epub','txt','audio','online'].includes(book.format)?readerURL(book):'./meus-livros.html?livro='+encodeURIComponent(book.id)+'&v=20';
+    :'./meus-livros.html?livro='+encodeURIComponent(book.id)+'&open=1&v=21';
+  const editionURL=book=>['epub','txt','audio','online'].includes(book.format)?readerURL(book):'./meus-livros.html?livro='+encodeURIComponent(book.id)+'&v=21';
   let fallbackPose={x:-.09,y:.28};
 
   function setPose(x,y){
