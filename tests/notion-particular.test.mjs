@@ -7,10 +7,10 @@ const page=read('minha-biblioteca-privada.html');
 const code=read('aurora-notion-privado.js');
 assert.match(read('index.html'),/href="\.\/minha-biblioteca-privada\.html"/);
 assert.match(read('explorar-livros.html'),/href="\.\/minha-biblioteca-privada\.html"/);
-assert.match(page,/id="notionFrame"/);
+assert.match(page,/id="notionOutside"/);
 assert.match(page,/id="notionUrl"/);
 assert.doesNotMatch(page+code+read('sw.js'),/fresh-cart-13d|1bb6c85ec4978320bdb5810664167c39/i,'acesso pago não pode ir ao GitHub');
-assert.match(read('sw.js'),/aurora-notion-privado\.js\?v=1/);
+assert.match(read('sw.js'),/aurora-notion-privado\.js\?v=2/);
 
 class Element{
   constructor(){this.handlers={};this.value='';this.src='';this.href='';this.hidden=true;this.open=true;this.textContent='';}
@@ -30,7 +30,7 @@ vm.runInNewContext(code,{
   history:{replaceState(...args){historyCalls.push(args);}}
 });
 assert.equal(saved.get('aurora-private-notion-link-v1'),privateUrl);
-assert.equal(get('notionFrame').src,privateUrl,'catálogo é incorporado na página privada');
+assert.equal(get('notionOutside').href,privateUrl,'atalho particular é exibido apenas no aparelho');
 assert.equal(get('privateNotionReader').hidden,false);
 assert.equal(get('notionConfiguration').open,false);
 assert.equal(historyCalls.length,1,'fragmento de conexão deve ser removido do histórico');

@@ -1,7 +1,7 @@
-const CACHE = 'aurora-v30';
+const CACHE = 'aurora-v31';
 const CORE = [
   './', './index.html', './index.html?v=22', './meus-livros.html?v=22',
-  './explorar-livros.html', './ler-online.html', './minha-biblioteca-privada.html', './aurora-notion-privado.js?v=1', './aurora-online.css?v=5',
+  './explorar-livros.html', './ler-online.html', './minha-biblioteca-privada.html', './aurora-notion-privado.js?v=2', './aurora-online.css?v=6',
   './aurora-online.js?v=5', './aurora-online-estante.js?v=2', './aurora-leitura-online.js?v=5',
   './ler-epub.html', './ouvir-livro.html', './aurora-novos-leitores.css?v=1',
   './aurora-formatos.js?v=1', './aurora-novos-formatos.js?v=1',

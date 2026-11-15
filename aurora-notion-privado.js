@@ -15,12 +15,11 @@
   };
   const show=value=>{
     const url=validate(value);
-    $('notionFrame').src=url;
     $('notionOutside').href=url;
     $('privateNotionReader').hidden=false;
     $('notionConfiguration').open=false;
     $('notionUrl').value='';
-    status('Seu catálogo particular está conectado neste aparelho. Pesquise usando a lupa da biblioteca abaixo.');
+    status('Sua biblioteca particular está salva neste aparelho. Toque em abrir para pesquisar.');
   };
   const connect=value=>{
     const url=validate(value);
@@ -32,13 +31,8 @@
     try{connect($('notionUrl').value);}
     catch(error){status(error.message||'Não foi possível salvar o endereço.');}
   });
-  $('notionReload').addEventListener('click',()=>{
-    try{const url=validate(localStorage.getItem(KEY));$('notionFrame').src=url;status('Atualizando o catálogo do Notion…');}
-    catch{status('Conecte o catálogo novamente.');}
-  });
   $('notionDisconnect').addEventListener('click',()=>{
     localStorage.removeItem(KEY);
-    $('notionFrame').removeAttribute('src');
     $('privateNotionReader').hidden=true;
     $('notionConfiguration').open=true;
     status('Acesso removido deste aparelho. Sua biblioteca no Notion não foi alterada.');

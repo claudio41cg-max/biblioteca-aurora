@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#122c29">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./aurora-online.css?v=5">
+  <link rel="stylesheet" href="./aurora-online.css?v=6">
   <title>Biblioteca particular • Biblioteca Aurora</title>
 </head>
 <body class="explore-page private-notion-page">
@@ -16,7 +16,7 @@
     </div>
     <p class="eyebrow">BIBLIOTECA AURORA</p>
     <h1>Minha <em>biblioteca particular</em></h1>
-    <p class="intro">Acesse e pesquise seu catálogo do Notion sem adicionar os arquivos ao armazenamento do celular.</p>
+    <p class="intro">Guarde o acesso ao seu catálogo comprado sem publicar o endereço para outras pessoas.</p>
   </header>
   <main class="private-notion-main">
     <details id="notionConfiguration" class="private-notion-configuration" open>
@@ -31,17 +31,18 @@
     <p id="notionStatus" class="search-status" role="status" aria-live="polite">Conecte sua biblioteca particular para começar.</p>
     <section id="privateNotionReader" class="private-notion-reader" hidden>
       <div class="private-notion-toolbar">
-        <span>⌕ Use a lupa dentro do catálogo para pesquisar títulos e autores.</span>
-        <button id="notionReload" type="button">Atualizar catálogo</button>
+        <span>Seu catálogo está conectado à Aurora neste aparelho.</span>
       </div>
-      <iframe id="notionFrame" title="Catálogo pessoal do Notion dentro da Biblioteca Aurora" loading="eager" referrerpolicy="no-referrer" allow="clipboard-read; clipboard-write"></iframe>
-      <p class="private-notion-note">Esta área exibe o catálogo no próprio visualizador do Notion. Os direitos e o acesso aos arquivos continuam sob responsabilidade de quem administra a biblioteca original. A Aurora não copia nem distribui esses livros.</p>
+      <div class="private-notion-access">
+        <p>O Notion não permitiu incorporar essa biblioteca diretamente no aplicativo. Por enquanto, toque no botão para abrir o catálogo e usar a lupa de pesquisa dele.</p>
+        <a id="notionOutside" class="private-notion-open" href="#" target="_blank" rel="noopener noreferrer">⌕ Abrir e pesquisar minha biblioteca</a>
+      </div>
+      <p class="private-notion-note">Seu endereço fica salvo só neste aparelho. A Aurora não copia nem distribui os livros comprados. Para que a busca aconteça inteiramente na tela da Aurora, o responsável pelo catálogo precisa autorizar uma integração ou fornecer o código de incorporação permitido pelo Notion.</p>
       <div class="private-notion-footer">
-        <a id="notionOutside" class="back-link" href="#" target="_blank" rel="noopener noreferrer">Abrir no Notion, se o visualizador não carregar</a>
         <button id="notionDisconnect" type="button">Esquecer acesso neste aparelho</button>
       </div>
     </section>
   </main>
-  <script src="./aurora-notion-privado.js?v=1" defer></script>
+  <script src="./aurora-notion-privado.js?v=2" defer></script>
 </body>
 </html>
