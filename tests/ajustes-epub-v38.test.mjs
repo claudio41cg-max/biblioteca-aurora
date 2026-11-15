@@ -21,7 +21,7 @@ const panel={querySelectorAll:()=>buttons};
 const document={body:{dataset:{}}};
 const settings={theme:'sepia'};
 let saved=0,updated=0;
-new Function('panel','document','host','flip','settings','saveSettings',themeSource)(panel,document,host,{update(){updated++;}},settings,()=>{saved++;});
+new Function('panel','document','host','flip','settings','saveSettings','epub','pages','drawPages',themeSource)(panel,document,host,{update(){updated++;}},settings,()=>{saved++;},null,[],()=>{});
 assert.equal(document.body.dataset.readerTheme,'sepia');
 assert.deepEqual(buttons.map(button=>button.pressed),['false','true','false']);
 buttons[0].events.click();
@@ -33,7 +33,8 @@ assert.ok(!classes.has('sepia'));
 assert.equal(saved,1);
 assert.equal(updated,2);
 
-assert.match(reader,/maxShadowOpacity:\.18/,'A dobra não deve deixar a folha escura');
+assert.match(reader,/maxShadowOpacity:\.55/,'A dobra deve usar a sombra física do PDF');
+assert.match(reader,/getContext\('2d',\{alpha:false\}\)/,'Papel do EPUB deve ser opaco como o PDF');
 assert.match(read('aurora-novos-leitores.css'),/\.theme-controls button\[aria-pressed="true"\]/);
 assert.match(read('aurora-novos-leitores.css'),/data-reader-theme="night"/);
 assert.match(read('aurora-importados.js'),/if\(book\.coverSource==='generated'/,'Só capas ilustrativas podem ser recriadas');

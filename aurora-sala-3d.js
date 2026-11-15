@@ -11,13 +11,75 @@
   const categories=['romance','adulto','ficcao','brasileiros'];
   let active=null;
   const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
+  const niceTitle=title=>window.AuroraTitles?.display(title)||String(title||'Livro sem título');
+  const formatName={pdf:'PDF',epub:'EPUB',txt:'TXT',audio:'Audiolivro',online:'Leitura on-line',demo:'Demonstração'};
+  function showBookDetails(session){
+    if(!session)return;
+    const book=session.book;
+    const known=window.AuroraBookInfo?.find(book.title||book.name);
+    $('auroraShowTitle').textContent=niceTitle(known?.title||book.title||book.name);
+    $('auroraShowAuthor').textContent='por '+(known?.author||book.author||'Autor não informado');
+    $('auroraDescriptionAuthor').textContent=known?.author||book.author||'Não informado';
+    $('auroraDescriptionOrigin').textContent=known?.country||book.country||'Não informada';
+    $('auroraDescriptionYear').textContent=known?.year||book.year||'Não informado';
+    const total=Math.max(0,Number(book.total)||0);
+    const pages=book.format==='pdf'
+      ?total?total+' páginas nesta edição':'Não identificadas'
+      :book.format==='epub'
+        ?(known?.referencePages?known.referencePages+' páginas na edição impressa de referência; ':'')+
+          'paginação ajustável'+(total?' ('+total+' partes no arquivo)':'')
+        :book.format==='txt'?total?'Cerca de '+total+' páginas digitais':'Paginação ajustável'
+        :'Não informadas';
+    $('auroraDescriptionPages').textContent=pages;
+    $('auroraDescriptionFormat').textContent=formatName[book.format]||String(book.format||'Não identificado').toUpperCase();
+    const description=String(known?.description||book.description||'').trim();
+    $('auroraDescriptionStory').textContent=description||'Esta edição não contém uma sinopse. Abra a descrição para consultar um trecho inicial, quando o formato permitir.';
+    session.needsExcerpt=!description;
+  }
+  async function supplyInitialExcerpt(session){
+    if(!session?.needsExcerpt||session.excerptRequested)return;
+    session.excerptRequested=true;
+    const book=session.book;
+    let source='';
+    try{
+      if(book.format==='txt'){
+        const texts=JSON.parse(localStorage.getItem('aurora-books')||'{}');
+        source=texts[book.name]||texts[book.title]||'';
+      }else if(book.format==='epub'&&window.AuroraFormats){
+        const record=await window.AuroraFormats.readRecord('books',book.id);
+        if(record?.data){
+          const epub=await window.AuroraFormats.openEpub(record.data);
+          for(let i=0;i<Math.min(epub.spine.length,7);i++){
+            const blocks=await window.AuroraFormats.epubChapterContent(epub,i);
+            source=blocks.filter(item=>item.type==='text').map(item=>item.text).join(' ').trim();
+            if(source.length>170)break;
+          }
+        }
+      }
+      if(active!==session)return;
+      source=source.replace(/\s+/g,' ').trim();
+      if(source.length>100){
+        const short=source.slice(0,370);
+        const end=short.search(/[.!?…](?:\s|$)/);
+        $('auroraDescriptionStory').textContent='Trecho inicial do arquivo (não é sinopse): '+
+          (end>90?short.slice(0,end+1):short.replace(/\s+\S*$/,'')+'…');
+      }else $('auroraDescriptionStory').textContent='Esta edição não contém uma sinopse. Não há dados suficientes para apresentar a história com segurança.';
+    }catch(error){
+      if(active===session){
+        console.warn('Prévia da descrição indisponível:',error);
+        $('auroraDescriptionStory').textContent='Esta edição não contém uma sinopse. Você pode abrir o livro para conhecer a história.';
+      }
+    }
+  }
   const readerURL=book=>book.format==='online'
     ?(/^(\.\/)?ler-online\.html\?/.test(book.readerURL||'')?book.readerURL:'./explorar-livros.html')
+    :book.format==='txt'
+    ?'./ler-epub.html?txt='+encodeURIComponent(book.name||book.title)+'&v=7'
     :book.format==='epub'
-    ?'./ler-epub.html?livro='+encodeURIComponent(book.id)+'&v=6'
+    ?'./ler-epub.html?livro='+encodeURIComponent(book.id)+'&v=7'
     :book.format==='audio'?'./ouvir-livro.html?livro='+encodeURIComponent(book.id)+'&v=1'
     :'./meus-livros.html?livro='+encodeURIComponent(book.id)+'&open=1&v=20';
-  const editionURL=book=>book.format==='epub'||book.format==='audio'||book.format==='online'?readerURL(book):'./meus-livros.html?livro='+encodeURIComponent(book.id)+'&v=20';
+  const editionURL=book=>['epub','txt','audio','online'].includes(book.format)?readerURL(book):'./meus-livros.html?livro='+encodeURIComponent(book.id)+'&v=20';
   let fallbackPose={x:-.09,y:.28};
 
   function setPose(x,y){
@@ -117,7 +179,6 @@
       book.coverSource='generated';
     }
     if(!book?.cover){location.href=editionURL(book);return;}
-    const known=window.AuroraBookInfo?.find(book.title||book.name);
     const session={button,book,origin:button.getBoundingClientRect(),started:false,finished:false};
     active=session;
     showcase.hidden=false;
@@ -127,15 +188,10 @@
     scene.classList.remove('three-ready');
     scene.classList.remove('aurora-force-css');
     scene.classList.add('cover-loading');
-    const displayTitle=window.AuroraTitles?.display(known?.title||book.title||book.name)||book.title||book.name;
-    $('auroraShowTitle').textContent=displayTitle;
-    $('auroraShowAuthor').textContent='por '+(known?.author||book.author||'Autor não informado');
+    const displayTitle=niceTitle(window.AuroraBookInfo?.find(book.title||book.name)?.title||book.title||book.name);
+    showBookDetails(session);
     $('auroraShowCategory').value=categories.includes(book.category)?book.category:'ficcao';
     $('auroraShowCategory').disabled=book.format==='demo';
-    $('auroraDescriptionAuthor').textContent=known?.author||book.author||'Não informado';
-    $('auroraDescriptionOrigin').textContent=known?.country||book.country||'Não informada';
-    $('auroraDescriptionYear').textContent=known?.year||book.year||'Não informado';
-    $('auroraDescriptionStory').textContent=known?.description||book.description||'Este livro ainda não tem sinopse cadastrada.';
     $('auroraShowDescription').open=false;
     const ratio=clamp(Number(book.ratio)||.72,.59,.84);
     cssBook.style.setProperty('--book-ratio',String(ratio));
@@ -204,7 +260,17 @@
     }
   });
   $('auroraShowBack').addEventListener('click',()=>close());
-  window.addEventListener('popstate',()=>{if(active)close(true);});
+  $('auroraShowDescription').addEventListener('toggle',()=>{
+    if(active&&$('auroraShowDescription').open)void supplyInitialExcerpt(active);
+  });
+  // O Android pode restaurar a página inteira da memória ao usar Voltar.
+  // Reaplicar a limpeza no retorno impede o título bruto do arquivo reaparecer.
+  window.addEventListener('pageshow',()=>{if(active)showBookDetails(active);});
+  window.addEventListener('popstate',()=>{
+    if(!active)return;
+    if(history.state?.auroraViewerId===active.book.id)showBookDetails(active);
+    else close(true);
+  });
   document.addEventListener('keydown',event=>{
     if(event.key==='Escape'&&active?.finished && !event.target?.closest?.('details'))close();
   });

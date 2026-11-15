@@ -47,7 +47,7 @@ assert.equal((await formats.epubChapterContent(book,0)).length,0,'Capítulo real
 const reader=read('aurora-epub-reader.js');
 assert.match(reader,/target\+=direction/,'Capítulos vazios são ignorados ao avançar ou voltar');
 assert.match(reader,/paginateContent\(blocks,size\.width,size\.height\)/);
-assert.match(reader,/epub-image-content/,'Páginas com gravuras têm tratamento próprio');
+assert.match(reader,/context\.drawImage\(picture,/,'Gravuras também devem ser pintadas na folha opaca');
 assert.match(reader,/stage\.addEventListener\('touchend'/,'Navegação por toque permanece ativa após trocar capítulos');
 assert.match(read('aurora-novos-leitores.css'),/\.epub-page-image/);
 console.log('EPUB: texto e imagens em ordem, capítulo vazio ignorado, páginas e toque preservados.');

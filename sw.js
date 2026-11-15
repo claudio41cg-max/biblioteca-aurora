@@ -1,15 +1,15 @@
-const CACHE = 'aurora-v38';
+const CACHE = 'aurora-v39';
 const CORE = [
-  './', './index.html', './index.html?v=22', './index.html?v=35', './index.html?v=36', './index.html?v=37', './index.html?v=38', './meus-livros.html?v=22', './meus-livros.html?v=20',
+  './', './index.html', './index.html?v=22', './index.html?v=35', './index.html?v=36', './index.html?v=37', './index.html?v=38', './index.html?v=39', './meus-livros.html?v=22', './meus-livros.html?v=20',
   './explorar-livros.html', './ler-online.html', './minha-biblioteca-privada.html', './aurora-notion-privado.js?v=2', './aurora-online.css?v=6', './aurora-online.css?v=7',
   './aurora-online.js?v=5', './aurora-online-estante.js?v=3', './aurora-leitura-online.js?v=5', './aurora-leitura-online.js?v=6',
-  './ler-epub.html', './ouvir-livro.html', './aurora-novos-leitores.css?v=1', './aurora-novos-leitores.css?v=2', './aurora-novos-leitores.css?v=3', './aurora-novos-leitores.css?v=4', './aurora-novos-leitores.css?v=5', './aurora-novos-leitores.css?v=6',
+  './ler-epub.html', './ouvir-livro.html', './aurora-novos-leitores.css?v=1', './aurora-novos-leitores.css?v=2', './aurora-novos-leitores.css?v=3', './aurora-novos-leitores.css?v=4', './aurora-novos-leitores.css?v=5', './aurora-novos-leitores.css?v=6', './aurora-novos-leitores.css?v=7',
   './aurora-formatos.js?v=1', './aurora-formatos.js?v=2', './aurora-formatos.js?v=3', './aurora-formatos.js?v=4', './aurora-formatos.js?v=5', './aurora-formatos.js?v=6', './aurora-novos-formatos.js?v=2', './aurora-novos-formatos.js?v=3',
-  './aurora-epub-reader.js?v=2', './aurora-epub-reader.js?v=3', './aurora-epub-reader.js?v=4', './aurora-epub-reader.js?v=5', './aurora-epub-reader.js?v=6', './aurora-audiobook.js?v=1', './aurora-som-folhas.js?v=1', './aurora-som-folhas.js?v=2', './aurora-titulos.js?v=1', './vendor/jszip.min.js',
-  './aurora-estante.css?v=15', './aurora-estante.css?v=16', './aurora-estante.css?v=17', './aurora-avancado.css?v=4', './aurora-sala-3d.css?v=2', './aurora-sala-3d.css?v=3', './aurora-edicao.css?v=1',
+  './aurora-epub-reader.js?v=2', './aurora-epub-reader.js?v=3', './aurora-epub-reader.js?v=4', './aurora-epub-reader.js?v=5', './aurora-epub-reader.js?v=6', './aurora-epub-reader.js?v=7', './aurora-audiobook.js?v=1', './aurora-som-folhas.js?v=1', './aurora-som-folhas.js?v=2', './aurora-titulos.js?v=1', './vendor/jszip.min.js',
+  './aurora-estante.css?v=15', './aurora-estante.css?v=16', './aurora-estante.css?v=17', './aurora-avancado.css?v=4', './aurora-sala-3d.css?v=2', './aurora-sala-3d.css?v=3', './aurora-sala-3d.css?v=4', './aurora-edicao.css?v=1',
   './aurora-ambiente.css?v=2',
-  './aurora-vitrine.css?v=5', './aurora-reader.css?v=3', './aurora-reader.css?v=4', './aurora-sinopses.js?v=2',
-  './aurora-estante.js?v=7', './aurora-estante.js?v=8', './aurora-estante.js?v=9', './aurora-estante.js?v=10', './aurora-sala-3d.js?v=8', './aurora-sala-3d.js?v=9', './aurora-sala-3d.js?v=10', './aurora-sala-3d.js?v=11', './aurora-sala-3d.js?v=12', './aurora-importados.js?v=21', './aurora-importados.js?v=22', './aurora-avancado.js?v=6',
+  './aurora-vitrine.css?v=5', './aurora-reader.css?v=3', './aurora-reader.css?v=4', './aurora-sinopses.js?v=2', './aurora-sinopses.js?v=3',
+  './aurora-estante.js?v=7', './aurora-estante.js?v=8', './aurora-estante.js?v=9', './aurora-estante.js?v=10', './aurora-estante.js?v=11', './aurora-sala-3d.js?v=8', './aurora-sala-3d.js?v=9', './aurora-sala-3d.js?v=10', './aurora-sala-3d.js?v=11', './aurora-sala-3d.js?v=12', './aurora-sala-3d.js?v=13', './aurora-importados.js?v=21', './aurora-importados.js?v=22', './aurora-avancado.js?v=6',
   './aurora-pdf-covers.js?v=1', './aurora-pdf-import.js?v=5',
   './aurora-livro-3d.mjs?v=4', './aurora-edition-surfaces.js?v=1', './assets/prateleira-romances.webp',
   './assets/prateleira-picantes.webp', './assets/prateleira-ficcao.webp',
@@ -41,7 +41,7 @@ self.addEventListener('fetch', event => {
     // O endereço raiz pode permanecer no cache do GitHub Pages após um deploy.
     // A entrada versionada abre a edição atual também nos PWAs já instalados.
     const isAppRoot = new URL(request.url).pathname === new URL(self.registration.scope).pathname;
-    const resource = isAppRoot ? new Request(new URL('./index.html?v=38',self.registration.scope)) : request;
+    const resource = isAppRoot ? new Request(new URL('./index.html?v=39',self.registration.scope)) : request;
     event.respondWith(fetch(resource).then(response => {
       if (response.ok) {
         const copy = response.clone();

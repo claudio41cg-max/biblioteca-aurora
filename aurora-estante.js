@@ -137,16 +137,17 @@
         }
       });
       shelfBooks.forEach(book=>{
+        const openSharedTxt=()=>{location.href='./ler-epub.html?txt='+encodeURIComponent(book.title)+'&v=7';};
         const button=makeSpine(book);
         button.addEventListener('click',()=>{
-          if(!window.AuroraShelfViewer?.open){openText(book.title);return;}
+          if(!window.AuroraShelfViewer?.open){book.source==='txt'?openSharedTxt():openText(book.title);return;}
           const imported=book.source==='txt';
           window.AuroraShelfViewer.open(button,{
             id:(imported?'txt:':'demo:')+normalize(book.title),
             format:imported?'txt':'demo',title:book.title,name:book.title,
             author:book.author,category:getCategory(txtCategories[book.title],book.title),
-            total:Math.max(24,Math.ceil((texts[book.title]||demo).length/450)),ratio:.72,
-            cover:'',coverSource:'generated',openReader:()=>openText(book.title),
+            total:Math.max(1,Math.ceil((texts[book.title]||demo).length/560)),ratio:.72,
+            cover:'',coverSource:'generated',openReader:()=>book.source==='txt'?openSharedTxt():openText(book.title),
             updateCategory:imported?next=>{
               txtCategories[book.title]=next;
               localStorage.setItem('aurora-txt-categories',JSON.stringify(txtCategories));

@@ -3,11 +3,13 @@
   'use strict';
   const $=id=>document.getElementById(id);
   const formats=window.AuroraFormats;
-  const id=new URLSearchParams(location.search).get('livro');
+  const query=new URLSearchParams(location.search);
+  const txtTitle=query.get('txt');
+  const id=txtTitle?'txt:'+txtTitle:query.get('livro');
   const stage=document.querySelector('.reader-stage');
   let host=$('epubFlip');
   let epub=null,flip=null,book=null,chapter=0,page=0,pages=[],working=false,windowStart=0,windowLength=0;
-  const PAGE_WINDOW=48; // evita criar centenas de folhas de uma só vez em EPUBs longos
+  const PAGE_WINDOW=24; // folhas opacas em alta resolução: limitar a memória no celular
   const settings=(()=>{try{return Object.assign({font:'Georgia',size:18,line:1.55,theme:'light'},JSON.parse(localStorage.getItem('aurora-epub-settings')||'{}'));}catch{return {font:'Georgia',size:18,line:1.55,theme:'light'};}})();
   settings.size=Math.max(14,Math.min(28,Number(settings.size)||18));
   settings.line=Math.max(1.3,Math.min(2,Number(settings.line)||1.55));
@@ -36,36 +38,95 @@
     const width=Math.max(155,Math.floor(Math.min(availableWidth,availableHeight*ratio,450)));
     return {width,height:Math.floor(width/ratio)};
   }
-  // Mede o conteúdo da página para que o texto ampliado não ultrapasse as bordas.
-  function paginate(text,width,height){
-    const mobile=innerWidth<=420;
-    const block=document.createElement('div');
-    block.className='epub-sheet-content';
-    Object.assign(block.style,{position:'absolute',visibility:'hidden',height:'auto',width:width+'px',fontFamily:settings.font,fontSize:settings.size+'px',lineHeight:String(settings.line),padding:(mobile?'23px 20px':'30px 27px'),boxSizing:'border-box',whiteSpace:'pre-wrap',overflowWrap:'break-word'});
-    document.body.append(block);
-    // A medida usa a MESMA quebra de linha exibida; sobra lugar para o número da folha.
-    const fits=value=>{block.textContent=value;return block.scrollHeight<=height-34;};
-    const result=[];let current='';
-    const add=()=>{if(current.trim())result.push(current.trim());current='';};
-    for(const paragraph of text.split(/\n\s*\n/).map(part=>part.trim()).filter(Boolean)){
-      const joined=current?current+'\n\n'+paragraph:paragraph;
-      if(fits(joined)){current=joined;continue;}
-      add();
-      if(fits(paragraph)){current=paragraph;continue;}
-      const words=paragraph.split(/\s+/);
-      let offset=0;
-      while(offset<words.length){
-        let low=1,high=words.length-offset,maximum=1;
-        while(low<=high){
-          const mid=(low+high)>>1;
-          if(fits(words.slice(offset,offset+mid).join(' '))){maximum=mid;low=mid+1;}
-          else high=mid-1;
+  // O PDF folheia um canvas opaco, não o texto HTML. Desenhamos o EPUB no mesmo
+  // tipo de superfície: o verso da dobra não revela uma segunda folha embaixo.
+  // A mesma medição determina as quebras e a pintura, sem cortar frases.
+  const paperPalette=()=>({
+    light:{paper:'#fffdf8',ink:'#332a23',edge:'#d6c9ae',number:'#97876f'},
+    sepia:{paper:'#f0e1c6',ink:'#392c21',edge:'#c9b38d',number:'#8d7557'},
+    night:{paper:'#24312f',ink:'#f0e5d0',edge:'#162320',number:'#aeb5a9'}
+  }[settings.theme]);
+  const pageInsets=()=>({top:innerWidth<=420?23:30,left:innerWidth<=420?20:27,bottom:42});
+  const pageLineHeight=()=>settings.size*settings.line;
+  function textLines(value,ctx,usableWidth){
+    const lines=[];
+    for(const raw of String(value||'').replace(/\r/g,'').split('\n')){
+      if(!raw.trim()){lines.push('');continue;}
+      let line='';
+      for(const word of raw.trim().split(/\s+/)){
+        const proposal=line?line+' '+word:word;
+        if(ctx.measureText(proposal).width<=usableWidth){line=proposal;continue;}
+        if(line){lines.push(line);line='';}
+        // Palavras ou links extensos também precisam caber na largura da folha.
+        for(const letter of word){
+          if(line&&ctx.measureText(line+letter).width>usableWidth){lines.push(line);line='';}
+          line+=letter;
         }
-        result.push(words.slice(offset,offset+maximum).join(' '));
-        offset+=maximum;
       }
+      lines.push(line);
     }
-    add();block.remove();return result;
+    return lines;
+  }
+  function paperContext(width,height){
+    const canvas=document.createElement('canvas');
+    const scale=Math.min(2,Math.max(1,window.devicePixelRatio||1));
+    canvas.width=Math.round(width*scale);canvas.height=Math.round(height*scale);
+    canvas.className='epub-page-canvas';canvas.setAttribute('aria-hidden','true');
+    const context=canvas.getContext('2d',{alpha:false});
+    if(!context)return {canvas,context:null};
+    context.setTransform(scale,0,0,scale,0,0);
+    const colors=paperPalette();
+    context.fillStyle=colors.paper;context.fillRect(0,0,width,height);
+    // Sombreamento discreto do papel. A sombra da dobra é feita pelo PageFlip.
+    const edge=context.createLinearGradient(0,0,width,0);
+    edge.addColorStop(0,colors.edge);edge.addColorStop(.025,colors.paper);
+    edge.addColorStop(.96,colors.paper);edge.addColorStop(1,colors.edge);
+    context.fillStyle=edge;context.fillRect(0,0,width,height);
+    return {canvas,context};
+  }
+  function paintSheet(content,width,height,pageNumber){
+    const {canvas,context}=paperContext(width,height);
+    if(!context)return canvas;
+    const colors=paperPalette();
+    const inset=pageInsets();
+    if(content?.type==='image'){
+      const picture=new Image();
+      picture.onload=()=>{
+        const availableWidth=width-2*inset.left;
+        const availableHeight=height-inset.top-inset.bottom;
+        const ratio=Math.min(availableWidth/picture.naturalWidth,availableHeight/picture.naturalHeight);
+        const w=picture.naturalWidth*ratio,h=picture.naturalHeight*ratio;
+        context.drawImage(picture,(width-w)/2,inset.top+(availableHeight-h)/2,w,h);
+      };
+      picture.onerror=()=>{context.fillStyle=colors.ink;context.font='15px Georgia,serif';context.fillText('Ilustração indisponível',inset.left,inset.top);};
+      picture.src=content.src;
+    }else{
+      context.fillStyle=colors.ink;
+      context.font=settings.size+'px '+settings.font;
+      context.textBaseline='top';
+      textLines(content,context,width-2*inset.left).forEach((line,index)=>{
+        context.fillText(line,inset.left,inset.top+index*pageLineHeight());
+      });
+    }
+    context.fillStyle=colors.number;
+    context.font='11px Georgia,serif';context.textAlign='center';context.textBaseline='alphabetic';
+    context.fillText(String(pageNumber),width/2,height-14);
+    return canvas;
+  }
+  // Mede o conteúdo da página antes de pintar, com a própria métrica do canvas.
+  function paginate(text,width,height){
+    const context=document.createElement('canvas').getContext('2d');
+    if(!context)return [text];
+    context.font=settings.size+'px '+settings.font;
+    const inset=pageInsets();
+    const capacity=Math.max(1,Math.floor((height-inset.top-inset.bottom)/pageLineHeight()));
+    const lines=textLines(text,context,width-2*inset.left);
+    const result=[];
+    for(let start=0;start<lines.length;start+=capacity){
+      const slice=lines.slice(start,start+capacity).join('\n').trim();
+      if(slice)result.push(slice);
+    }
+    return result;
   }
   function paginateContent(blocks,width,height){
     const result=[];
@@ -90,17 +151,12 @@
     windowLength=visible.length;
     const elements=visible.map((content,index)=>{
       const sheet=document.createElement('div');sheet.className='epub-sheet';sheet.dataset.density='soft';
-      const inner=document.createElement('div');inner.className='epub-sheet-content';
-      inner.style.fontFamily=settings.font;inner.style.fontSize=settings.size+'px';inner.style.lineHeight=String(settings.line);
-      if(content?.type==='image'){
-        inner.classList.add('epub-image-content');
-        const picture=document.createElement('img');
-        picture.className='epub-page-image';picture.src=content.src;picture.alt=content.alt;
-        picture.loading='lazy';inner.append(picture);
-      }else inner.textContent=content;
-      sheet.append(inner);
-      const number=document.createElement('span');number.className='epub-page-number';number.textContent=String(windowStart+index+1);
-      sheet.append(number);sheet.setAttribute('aria-label','Página '+(windowStart+index+1));return sheet;
+      sheet.append(paintSheet(content,width,height,windowStart+index+1));
+      // Texto acessível, separado do desenho visual para não criar transparência.
+      const accessible=document.createElement('span');accessible.className='epub-accessible-content';
+      accessible.textContent=typeof content==='string'?content:(content?.alt||'Ilustração deste livro');
+      sheet.append(accessible);
+      sheet.setAttribute('aria-label','Página '+(windowStart+index+1));return sheet;
     });
     // St.PageFlip.destroy() pode remover o próprio host. Sempre recriar esse nó
     // evita o EPUB ficar em branco quando muda de capítulo, janela ou tamanho.
@@ -113,7 +169,7 @@
     host.replaceChildren(...elements);
     if(window.St?.PageFlip&&elements.length>1){
       try{
-        flip=new St.PageFlip(host,{width,height,size:'fixed',showCover:false,drawShadow:true,maxShadowOpacity:.18,
+        flip=new St.PageFlip(host,{width,height,size:'fixed',showCover:false,drawShadow:true,maxShadowOpacity:.55,
           flippingTime:900,usePortrait:innerWidth<670,mobileScrollSupport:false,swipeDistance:20,autoSize:false});
         flip.loadFromHTML(elements);
         let soundedDuringTurn=false;
@@ -162,7 +218,9 @@
       // Frontispícios vazios e arquivos de navegação não são mostrados como
       // páginas de erro. Avança até encontrar texto ou imagem de verdade.
       while(target>=0&&target<epub.spine.length){
-        const blocks=await formats.epubChapterContent(epub,target);
+        const blocks=epub.plainText!==undefined
+          ?[{type:'text',text:epub.plainText}]
+          :await formats.epubChapterContent(epub,target);
         found=paginateContent(blocks,size.width,size.height);
         if(found.length)break;
         target+=direction;
@@ -218,7 +276,10 @@
     flip?.update?.();
   }
   applyTheme();
-  themeButtons.forEach(button=>button.addEventListener('click',()=>{settings.theme=button.dataset.theme;saveSettings();applyTheme();}));
+  themeButtons.forEach(button=>button.addEventListener('click',()=>{
+    settings.theme=button.dataset.theme;saveSettings();applyTheme();
+    if(epub&&pages.length)drawPages(); // atualizar também a tinta do canvas
+  }));
   let speech=null;
   function stopSpeech(){if('speechSynthesis' in window){speechSynthesis.cancel();speech=null;$('readAloud').textContent='♫ Ouvir o texto';}}
   $('readAloud').addEventListener('click',()=>{
@@ -242,13 +303,26 @@
   (async()=>{
     try{
       if(!id)throw new Error('Nenhum livro foi selecionado.');
-      book=await formats.readRecord('books',id);
-      if(!book||book.format!=='epub')throw new Error('Este EPUB não foi encontrado neste aparelho.');
+      if(txtTitle){
+        const texts=JSON.parse(localStorage.getItem('aurora-books')||'{}');
+        const source=texts[txtTitle];
+        if(typeof source!=='string'||!source.trim())throw new Error('Este TXT não foi encontrado neste aparelho.');
+        book={id,format:'txt',name:txtTitle};
+        epub={spine:[{path:'texto.txt'}],plainText:source};
+      }else{
+        book=await formats.readRecord('books',id);
+        if(!book||book.format!=='epub')throw new Error('Este EPUB não foi encontrado neste aparelho.');
+        epub=await formats.openEpub(book.data);
+      }
       $('bookTitle').textContent=window.AuroraTitles?.display(book.name)||book.name;
-      epub=await formats.openEpub(book.data);
       const saved=await formats.readRecord('progress',id).catch(()=>null);
       if(Number.isInteger(saved?.bookmark)){$('bookmark').dataset.bookmarked='true';$('bookmark').textContent='🔖';}
       await loadChapter(Math.max(0,Math.min(epub.spine.length-1,saved?.chapter||0)),saved?.page||0);
-    }catch(error){report('Não foi possível abrir o EPUB: '+error.message);}
+      if(txtTitle&&!saved){
+        const old=Number(localStorage.getItem('aurora-page-v2:'+txtTitle)||0);
+        const restored=Math.max(0,Math.min(pages.length-1,Math.round(old*560/epub.plainText.length*pages.length)));
+        if(restored>0){page=restored;drawPages();remember();}
+      }
+    }catch(error){report('Não foi possível abrir o livro: '+error.message);}
   })();
 })();

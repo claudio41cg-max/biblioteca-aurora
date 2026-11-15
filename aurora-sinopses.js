@@ -7,6 +7,21 @@
     .replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
   const works = [
     {
+      keys:['ahipotesedoamor','hipotesedoamor','thelovehypothesis'],
+      title:'A hipótese do amor',author:'Ali Hazelwood',country:'Estados Unidos',year:'2021',referencePages:384,
+      description:'Olive Smith, doutoranda em biologia, não acredita muito em relacionamentos duradouros. Para convencer a melhor amiga de que sua vida amorosa está resolvida, ela improvisa um namoro de mentira com Adam Carlsen, um professor conhecido por sua seriedade. A combinação de ciência, encontros inesperados e sentimentos reais coloca à prova a teoria de Olive sobre o amor.'
+    },
+    {
+      keys:['aculpaedasestrelas','culpaedasestrelas','thefaultinourstars'],
+      title:'A Culpa É das Estrelas',author:'John Green',country:'Estados Unidos',year:'2012',referencePages:336,
+      description:'Hazel Grace Lancaster conhece Augustus Waters em um grupo de apoio. Entre conversas sobre livros, sonhos e o futuro, os dois desenvolvem uma ligação especial e descobrem novas formas de viver intensamente apesar das dificuldades impostas pela doença.'
+    },
+    {
+      keys:['aandorinhadatorre','andorinhadatorre'],
+      title:'A Andorinha da Torre',author:'Raul Pompeia',country:'Brasil',year:'Século XIX',
+      description:'Um narrador recorda a figura de um velho sineiro da torre de uma igreja. Ao som dos sinos, a narrativa evoca memórias, imagens da cidade e a poesia escondida nos pequenos acontecimentos da vida cotidiana.'
+    },
+    {
       keys:['orgulhoepreconceito','orgulhopreconceito'],
       title:'Orgulho e Preconceito',author:'Jane Austen',country:'Inglaterra',year:'1813',
       description:'Na Inglaterra do século XIX, a família Bennet tem cinco filhas e uma preocupação constante: encontrar casamentos que lhes garantam segurança. Elizabeth, inteligente e independente, não pretende aceitar um destino apenas por conveniência. Quando conhece Fitzwilliam Darcy, um homem reservado e de posição social elevada, os dois se deixam levar por primeiras impressões pouco favoráveis. Entre bailes, visitas, comentários maldosos e revelações inesperadas, Elizabeth precisa distinguir orgulho de dignidade, enquanto Darcy confronta seus próprios preconceitos. Jane Austen constrói uma história de amor e amadurecimento que também observa, com humor e ironia, a sociedade de sua época.'

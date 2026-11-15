@@ -10,7 +10,7 @@ const showcase=read('aurora-sala-3d.css');
 const css=read('aurora-novos-leitores.css');
 const sound=read('aurora-som-folhas.js');
 
-assert.match(html,/aurora-epub-reader\.js\?v=6/);
+assert.match(html,/aurora-epub-reader\.js\?v=7/);
 assert.match(html,/aurora-som-folhas\.js\?v=2/);
 assert.match(pdf,/aurora-som-folhas\.js\?v=2/);
 assert.match(pdf,/Som suave de folhas ao virar/);
@@ -19,8 +19,9 @@ assert.match(css,/body\.epub-reader/);
 assert.match(css,/\.epub-reader \.epub-sheet-number|\.epub-reader \.epub-page-number/);
 assert.match(showcase,/background:transparent/);
 assert.match(showcase,/Palatino Linotype/);
-assert.match(epub,/whiteSpace:'pre-wrap'/,'A medição das folhas deve respeitar parágrafos');
-assert.match(epub,/lineHeight:String\(settings\.line\)/,'Espaçamento das folhas acompanha configurações');
+assert.match(epub,/String\(value\|\|''\).*split\('\\n'\)/,'O novo canvas conserva as quebras de parágrafo');
+assert.match(epub,/pageLineHeight=\(\)=>settings\.size\*settings\.line/,'Espaçamento das folhas acompanha configurações');
+assert.match(epub,/getContext\('2d',\{alpha:false\}\)/,'O EPUB deve usar pixels opacos como as páginas PDF');
 assert.match(epub,/changeState/,'Folhas EPUB iniciam o som durante o folheio');
 assert.match(pdf,/changeState/,'Folhas PDF iniciam o som durante o folheio');
 
@@ -52,9 +53,10 @@ const makeDraw=new Function('document','stage','window',`
   let flip={destroy(){stage.child=null}};
   let pages=['Primeira folha','Segunda folha','Terceira folha'];
   let page=1,windowStart=0,windowLength=0;
-  const PAGE_WINDOW=48,settings={theme:'light',font:'Georgia',size:18,line:1.55};
+  const PAGE_WINDOW=24,settings={theme:'light',font:'Georgia',size:18,line:1.55};
   const St=window.St;
   const pageDimensions=()=>({width:270,height:375});
+  const paintSheet=content=>({textContent:content,tag:'canvas'});
   const refresh=()=>{},remember=()=>{},stopSpeech=()=>{};
   const innerWidth=390;
   const $=()=>({textContent:''});
