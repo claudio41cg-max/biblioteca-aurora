@@ -251,6 +251,7 @@
     pageIndex=next;
     say();
     showText(true);
+    window.AuroraPageSound?.play();
   }
   function closeText() {
     $('overlay').classList.remove('show');

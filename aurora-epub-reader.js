@@ -1,13 +1,17 @@
-/* Novo leitor EPUB. O folheio PDF existente não é alterado. */
+/* O EPUB usa o folheio St.PageFlip e a apresentação de leitura do PDF. */
 (() => {
   'use strict';
   const $=id=>document.getElementById(id);
   const formats=window.AuroraFormats;
   const id=new URLSearchParams(location.search).get('livro');
-  const host=$('epubFlip');
+  const stage=document.querySelector('.reader-stage');
+  let host=$('epubFlip');
   let epub=null,flip=null,book=null,chapter=0,page=0,pages=[],working=false,windowStart=0,windowLength=0;
   const PAGE_WINDOW=48; // evita criar centenas de folhas de uma só vez em EPUBs longos
-  const settings=(()=>{try{return Object.assign({font:'Georgia',size:18,theme:'light'},JSON.parse(localStorage.getItem('aurora-epub-settings')||'{}'));}catch{return {font:'Georgia',size:18,theme:'light'};}})();
+  const settings=(()=>{try{return Object.assign({font:'Georgia',size:18,line:1.55,theme:'light'},JSON.parse(localStorage.getItem('aurora-epub-settings')||'{}'));}catch{return {font:'Georgia',size:18,line:1.55,theme:'light'};}})();
+  settings.size=Math.max(14,Math.min(28,Number(settings.size)||18));
+  settings.line=Math.max(1.3,Math.min(2,Number(settings.line)||1.55));
+  if(!['light','sepia','night'].includes(settings.theme))settings.theme='light';
   const pct=()=>Math.round(100*(chapter+page/Math.max(1,pages.length))/Math.max(1,epub?.spine.length||1));
   const report=message=>{$('pageLabel').textContent=message;};
   const remember=()=>{
@@ -16,7 +20,7 @@
   };
   function refresh(){
     $('chapterLabel').textContent='Capítulo '+(chapter+1)+' de '+epub.spine.length;
-    $('pageLabel').textContent='Página '+(page+1)+' de '+pages.length+' • arraste o canto para folhear';
+    $('pageLabel').textContent='Arraste o canto da folha para virar. Sua leitura fica salva.';
     $('readLocation').textContent=(page+1)+' / '+pages.length;
     $('progress').value=pct();$('progressPercent').textContent=pct()+'%';
     $('previousChapter').disabled=chapter===0;
@@ -25,17 +29,21 @@
     $('nextPage').disabled=chapter===epub.spine.length-1&&page===pages.length-1;
   }
   function pageDimensions(){
-    return {width:Math.max(220,Math.min(450,innerWidth-12)),height:Math.max(280,Math.min(700,innerHeight-308))};
+    // A folha ocupa o espaço disponível, como no PDF, sem sobrar uma área escura enorme.
+    const availableWidth=Math.max(165,stage.clientWidth-14);
+    const availableHeight=Math.max(245,stage.clientHeight-18);
+    const width=Math.max(155,Math.floor(Math.min(availableWidth,availableHeight*.72,450)));
+    return {width,height:Math.floor(width/.72)};
   }
   // Mede o conteúdo da página para que o texto ampliado não ultrapasse as bordas.
   function paginate(text,width,height){
     const mobile=innerWidth<=420;
-    const padding=mobile?20:27;
     const block=document.createElement('div');
     block.className='epub-sheet-content';
-    Object.assign(block.style,{position:'absolute',visibility:'hidden',height:'auto',width:(width)+'px',fontFamily:settings.font,fontSize:settings.size+'px',lineHeight:'1.55',padding:(mobile?'23px 20px':'30px 27px'),boxSizing:'border-box'});
+    Object.assign(block.style,{position:'absolute',visibility:'hidden',height:'auto',width:width+'px',fontFamily:settings.font,fontSize:settings.size+'px',lineHeight:String(settings.line),padding:(mobile?'23px 20px':'30px 27px'),boxSizing:'border-box',whiteSpace:'pre-wrap',overflowWrap:'break-word'});
     document.body.append(block);
-    const fits=value=>{block.textContent=value;return block.scrollHeight<=height-3;};
+    // A medida usa a MESMA quebra de linha exibida; sobra lugar para o número da folha.
+    const fits=value=>{block.textContent=value;return block.scrollHeight<=height-34;};
     const result=[];let current='';
     const add=()=>{if(current.trim())result.push(current.trim());current='';};
     for(const paragraph of text.split(/\n\s*\n/).map(part=>part.trim()).filter(Boolean)){
@@ -63,24 +71,41 @@
     windowStart=Math.floor(page/PAGE_WINDOW)*PAGE_WINDOW;
     const visible=pages.slice(windowStart,windowStart+PAGE_WINDOW);
     windowLength=visible.length;
-    host.style.width=(innerWidth>width*2+40?width*2:width)+'px';
-    host.style.height=height+'px';
-    host.className='flip-host '+settings.theme;
-    host.style.overflow='';
     const elements=visible.map((content,index)=>{
       const sheet=document.createElement('div');sheet.className='epub-sheet';sheet.dataset.density='soft';
       const inner=document.createElement('div');inner.className='epub-sheet-content';
-      inner.style.fontFamily=settings.font;inner.style.fontSize=settings.size+'px';
-      inner.textContent=content;sheet.append(inner);sheet.setAttribute('aria-label','Página '+(windowStart+index+1));return sheet;
+      inner.style.fontFamily=settings.font;inner.style.fontSize=settings.size+'px';inner.style.lineHeight=String(settings.line);
+      inner.textContent=content;sheet.append(inner);
+      const number=document.createElement('span');number.className='epub-page-number';number.textContent=String(windowStart+index+1);
+      sheet.append(number);sheet.setAttribute('aria-label','Página '+(windowStart+index+1));return sheet;
     });
+    // St.PageFlip.destroy() pode remover o próprio host. Sempre recriar esse nó
+    // evita o EPUB ficar em branco quando muda de capítulo, janela ou tamanho.
     if(flip){try{flip.destroy();}catch{}flip=null;}
+    host=document.createElement('div');
+    host.id='epubFlip';
+    host.className='flip-host '+settings.theme;
+    host.style.width=width+'px';host.style.height=height+'px';
+    stage.replaceChildren(host);
     host.replaceChildren(...elements);
     if(window.St?.PageFlip&&elements.length>1){
       try{
         flip=new St.PageFlip(host,{width,height,size:'fixed',showCover:false,drawShadow:true,maxShadowOpacity:.55,
-          flippingTime:850,usePortrait:true,mobileScrollSupport:false,swipeDistance:20,autoSize:false});
+          flippingTime:900,usePortrait:innerWidth<670,mobileScrollSupport:false,swipeDistance:20,autoSize:false});
         flip.loadFromHTML(elements);
-        flip.on('flip',event=>{page=Math.min(pages.length-1,windowStart+Number(event.data));refresh();remember();stopSpeech();});
+        let soundedDuringTurn=false;
+        flip.on('changeState',event=>{
+          if(event.data==='flipping'){
+            window.AuroraPageSound?.play();
+            soundedDuringTurn=true;
+          }
+        });
+        flip.on('flip',event=>{
+          const next=Math.min(pages.length-1,windowStart+Number(event.data));
+          if(next!==page&&!soundedDuringTurn)window.AuroraPageSound?.play();
+          soundedDuringTurn=false;
+          page=next;refresh();remember();stopSpeech();
+        });
         if(page>windowStart)flip.turnToPage(page-windowStart);
       }catch(error){console.warn('Folheio EPUB indisponível, leitor simples ativado.',error);try{flip?.destroy();}catch{}flip=null;}
     }
@@ -100,12 +125,12 @@
     if(flip&&next>=windowStart&&next<windowStart+windowLength){
       direction>0?flip.flipNext():flip.flipPrev();
     }else{
-      page=next;drawPages();remember();stopSpeech();
+      page=next;drawPages();remember();stopSpeech();window.AuroraPageSound?.play();
     }
   }
   async function loadChapter(index,desired=0){
     if(working||!epub)return;
-    working=true;stopSpeech();
+    working=true;stopSpeech();report('Preparando as folhas…');
     try{
       const content=await formats.epubChapter(epub,index);
       chapter=index;
@@ -144,8 +169,11 @@
   $('fontChoice').value=settings.font;
   $('fontSize').value=settings.size;
   $('sizeValue').textContent=settings.size;
+  $('lineHeight').value=String(Math.round(settings.line*10));
+  $('lineValue').textContent=settings.line.toFixed(1).replace('.',',');
   $('fontChoice').addEventListener('change',event=>{settings.font=event.target.value;changeAppearance();});
   $('fontSize').addEventListener('change',event=>{settings.size=Number(event.target.value);$('sizeValue').textContent=settings.size;changeAppearance();});
+  $('lineHeight').addEventListener('change',event=>{settings.line=Number(event.target.value)/10;$('lineValue').textContent=settings.line.toFixed(1).replace('.',',');changeAppearance();});
   panel.querySelectorAll('[data-theme]').forEach(button=>button.addEventListener('click',()=>{settings.theme=button.dataset.theme;saveSettings();host.className='flip-host '+settings.theme;}));
   let speech=null;
   function stopSpeech(){if('speechSynthesis' in window){speechSynthesis.cancel();speech=null;$('readAloud').textContent='♫ Ouvir o texto';}}

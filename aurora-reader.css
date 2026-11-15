@@ -98,3 +98,14 @@
   .reader .viewport{margin-top:2px;padding-bottom:46px}
 }
 @media(prefers-reduced-motion:reduce){.reader .flipbook{transition:none}}
+
+/* Ficha 3D de PDFs abertos pela página de acervo: mesmo contorno da estante. */
+.showcase .showhead button,.showcase .showhead .category-editor select{
+  min-height:43px;padding:8px 13px;border:1px solid #cfab77;border-radius:13px;
+  background:transparent;box-shadow:none;color:#f4deb8;
+  font:italic 500 17px 'Palatino Linotype','Book Antiqua',Georgia,serif;letter-spacing:.4px;
+}
+.showcase .showhead button:hover,.showcase .showhead .category-editor select:hover{background:#d5ad751c;border-color:#f1d4a7}
+.showcase .showhead .category-editor select option{background:#2e211a;color:#f5e3c8}
+.reader-page-sound-choice{display:flex;align-items:center;gap:9px;margin:5px 0 15px;color:#f1dfc5;font:13px Georgia,serif}
+.reader-page-sound-choice input{width:18px;height:18px;accent-color:#cfa56e}
