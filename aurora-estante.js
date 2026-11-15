@@ -44,6 +44,7 @@
     button.dataset.title = normalize(item.title);
     button.dataset.rawTitle = item.title;
     button.dataset.source = item.source || 'demo';
+    if(item.source==='epub')button.dataset.coverSource=item.coverSource||'original';
     button.title = item.title + (item.source === 'demo' ? ' • livro demonstrativo' : ' • tocar para pegar');
     button.setAttribute('aria-label', 'Pegar ' + item.title);
     const realPDF=['pdf','epub','audio'].includes(item.source);
@@ -63,8 +64,8 @@
       button.dataset.coverDerived='true';
       button.style.backgroundImage='url('+JSON.stringify(item.cover)+')';
     }
-    // A capa é uma face distinta do volume. Somente a imagem original do arquivo
-    // pode aparecer nela; jamais montamos uma capa fictícia com o título.
+    // A capa é uma face distinta do volume. EPUB sem imagem recebe uma capa
+    // identificada como ilustrativa, nunca apresentada como capa original.
     if(realPDF && item.cover){
       const cover=document.createElement('span');
       cover.className='shelf-book-cover';

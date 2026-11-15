@@ -21,6 +21,46 @@
   const blobToData=blob=>new Promise((resolve,reject)=>{
     const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(reader.error);reader.readAsDataURL(blob);
   });
+  // Capa identificadora quando o EPUB não fornece imagem de capa. Nunca é
+  // apresentada como a fotografia original de uma edição impressa.
+  function createEpubCover(title,author){
+    const canvas=document.createElement('canvas');
+    canvas.width=600;canvas.height=840;
+    const ctx=canvas.getContext('2d');
+    const shade=ctx.createLinearGradient(0,0,600,840);
+    shade.addColorStop(0,'#17392f');shade.addColorStop(.48,'#1f3029');shade.addColorStop(1,'#101c1b');
+    ctx.fillStyle=shade;ctx.fillRect(0,0,600,840);
+    ctx.strokeStyle='#caa66c';ctx.lineWidth=4;ctx.strokeRect(32,32,536,776);
+    ctx.strokeStyle='#caa66c66';ctx.lineWidth=1.5;ctx.strokeRect(44,44,512,752);
+    ctx.fillStyle='#d8b784';ctx.textAlign='center';
+    ctx.font='bold 19px Georgia,serif';ctx.fillText('BIBLIOTECA AURORA',300,104);
+    ctx.lineWidth=2;ctx.strokeStyle='#d8b78488';
+    ctx.beginPath();ctx.moveTo(185,134);ctx.lineTo(415,134);ctx.stroke();
+    const name=String(title||'Livro digital').trim();
+    const words=name.split(/\s+/);
+    const lines=[];let line='';
+    ctx.font='bold 57px Georgia,serif';
+    for(const word of words){
+      const value=line?line+' '+word:word;
+      if(line&&ctx.measureText(value).width>480){lines.push(line);line=word;}
+      else line=value;
+    }
+    if(line)lines.push(line);
+    const fontSize=lines.length>5?35:lines.length>3?44:57;
+    ctx.font='bold '+fontSize+'px Georgia,serif';
+    ctx.fillStyle='#fff4db';
+    const visible=lines.slice(0,7);
+    const spacing=fontSize*1.28;
+    const top=405-(visible.length-1)*spacing/2;
+    visible.forEach((text,i)=>ctx.fillText(text,300,top+i*spacing,500));
+    ctx.fillStyle='#e7cda7';ctx.font='26px Georgia,serif';
+    const writer=String(author||'').trim();
+    if(writer)ctx.fillText(writer,300,645,500);
+    ctx.strokeStyle='#d8b78488';ctx.beginPath();ctx.moveTo(185,696);ctx.lineTo(415,696);ctx.stroke();
+    ctx.font='18px Georgia,serif';ctx.fillStyle='#d8b784';
+    ctx.fillText('CAPA ILUSTRATIVA • EPUB',300,758);
+    return canvas.toDataURL('image/png');
+  }
   async function openEpub(data){
     if(!window.JSZip)throw new Error('O módulo EPUB ainda não carregou. Abra o aplicativo novamente.');
     const zip=await JSZip.loadAsync(data);
@@ -40,7 +80,25 @@
       properties:item.getAttribute('properties')||''
     }]));
     const metaCover=nodes(packageXML,'meta').find(item=>item.getAttribute('name')==='cover')?.getAttribute('content');
-    const coverEntry=[...manifest.entries()].find(([id,item])=>item.properties.split(/\s+/).includes('cover-image')||id===metaCover)?.[1];
+    const images=[...manifest.entries()].filter(([,item])=>item.type.startsWith('image/')&&entry(item.path));
+    let coverEntry=images.find(([id,item])=>item.properties.split(/\s+/).includes('cover-image')||id===metaCover)?.[1];
+    if(!coverEntry)coverEntry=images.find(([id,item])=>/cover|capa|front/i.test(id)||
+      /(?:^|\/)(?:cover|capa|front)[^/]*\.(?:jpe?g|png|webp|svg)$/i.test(item.path))?.[1];
+    // EPUB 2 frequentemente aponta a capa por <guide><reference type="cover">.
+    if(!coverEntry){
+      const reference=nodes(packageXML,'reference').find(item=>/cover/i.test(item.getAttribute('type')||''));
+      const coverPath=reference&&sibling(opfPath,reference.getAttribute('href'));
+      const coverFile=coverPath&&entry(coverPath);
+      if(coverFile){
+        if(images.some(([,item])=>item.path===coverPath))coverEntry=images.find(([,item])=>item.path===coverPath)?.[1];
+        else if(/\.x?html?$/i.test(coverPath)){
+          const doc=new DOMParser().parseFromString(await coverFile.async('text'),'text/html');
+          const source=doc.querySelector('img')?.getAttribute('src')||'';
+          const path=source&&sibling(coverFile.name,source);
+          coverEntry=images.find(([,item])=>item.path===path)?.[1];
+        }
+      }
+    }
     let cover='';
     if(coverEntry&&entry(coverEntry.path)){
       const bytes=await entry(coverEntry.path).async('uint8array');
@@ -141,5 +199,5 @@
     const tx=db.transaction(store,'readwrite');tx.objectStore(store).put(item);
     tx.oncomplete=()=>{db.close();resolve();};tx.onerror=()=>{db.close();reject(tx.error);};
   }));}
-  window.AuroraFormats={openEpub,epubChapter,audioMetadata,database,readRecord,saveRecord,cleanName,blobToData};
+  window.AuroraFormats={openEpub,epubChapter,audioMetadata,database,readRecord,saveRecord,cleanName,blobToData,createEpubCover};
 })();

@@ -11,8 +11,58 @@
   };
   request.onerror=()=>console.warn('Não foi possível consultar os PDFs guardados neste aparelho.');
   const readerPath=book=>book.format==='epub'?'ler-epub.html':book.format==='audio'?'ouvir-livro.html':'meus-livros.html';
+  function showRecoveredEpubCover(button,book){
+    if(!book.cover)return;
+    button.style.backgroundImage='url('+JSON.stringify(book.cover)+')';
+    button.dataset.coverDerived='true';
+    button.dataset.coverSource=book.coverSource||'original';
+    if(!button.querySelector('.shelf-book-cover')){
+      const face=document.createElement('span');face.className='shelf-book-cover';
+      face.setAttribute('aria-hidden','true');
+      const img=document.createElement('img');img.src=book.cover;img.alt='';
+      face.append(img);
+      const pages=document.createElement('span');pages.className='shelf-book-pages';
+      pages.setAttribute('aria-hidden','true');
+      button.prepend(face,pages);
+    }
+    button.dataset.hasRealCover='true';
+  }
+  async function recoverMissingEpubCover(book){
+    const formats=window.AuroraFormats;
+    if(!formats)return;
+    const stored=await formats.readRecord('books',book.id);
+    if(!stored)return;
+    let cover=stored.cover||'';
+    let coverSource=stored.coverSource||'original';
+    if(!cover&&stored.data){
+      try{
+        const epub=await formats.openEpub(stored.data);
+        cover=epub.cover;
+      }catch(error){console.warn('Capa embutida no EPUB indisponível:',error);}
+      coverSource=cover?'original':'generated';
+    }
+    if(!cover){cover=formats.createEpubCover(book.name,book.author);coverSource='generated';}
+    book.cover=cover;
+    book.coverSource=coverSource;
+    if(stored.cover!==cover||stored.coverSource!==coverSource){
+      stored.cover=cover;stored.coverSource=coverSource;
+      await formats.saveRecord('books',stored).catch(error=>console.warn('Capa temporária não salva:',error));
+    }
+  }
   // O livro físico segue no MESMO visor WebGL até o centro da tela.
-  function takeBookFromShelf(button,book){
+  async function takeBookFromShelf(button,book){
+    if(button.disabled)return;
+    if(book.format==='epub'&&!book.cover){
+      button.disabled=true;
+      button.setAttribute('aria-busy','true');
+      try{
+        await recoverMissingEpubCover(book);
+        showRecoveredEpubCover(button,book);
+      }finally{
+        button.disabled=false;
+        button.removeAttribute('aria-busy');
+      }
+    }
     if(window.AuroraShelfViewer?.open)window.AuroraShelfViewer.open(button,book);
     else location.href='./'+readerPath(book)+'?livro='+encodeURIComponent(book.id);
   }
@@ -37,6 +87,7 @@
         year:book.year||'',
         description:book.description||'',
         cover:book.cover||'',
+        coverSource:book.coverSource||'original',
         back:book.back||'',
         spine:book.spine||'',
         spineAspect:book.spineAspect||0,
@@ -56,15 +107,20 @@
           source:book.format||'pdf',
           total:book.total,
           cover:book.cover,
+          coverSource:book.coverSource,
           spine:book.spine,
           spineAspect:book.spineAspect,
           ratio:book.ratio,
           bookmarked:book.bookmarked
         });
         button.dataset.bookId=book.id;
-        button.title=book.title+' • tocar para ver a capa original em 3D';
+        button.title=book.title+(book.coverSource==='generated'?' • capa ilustrativa; tocar para abrir em 3D':' • tocar para ver a edição em 3D');
         button.addEventListener('click',()=>{
-          takeBookFromShelf(button,book);
+          takeBookFromShelf(button,book).catch(error=>{
+            console.warn('Não foi possível preparar a capa EPUB:',error);
+            if(window.AuroraShelfViewer?.open)window.AuroraShelfViewer.open(button,book);
+            else location.href='./'+readerPath(book)+'?livro='+encodeURIComponent(book.id);
+          });
         });
         // Um título do catálogo demonstrativo dá lugar à edição realmente baixada.
         const duplicate=Array.from(row.querySelectorAll('.book-spine')).find(node=>

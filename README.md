@@ -6,6 +6,10 @@ Biblioteca pessoal PWA, hospedada no GitHub Pages, com estante realista, livros 
 
 ### EPUB: páginas e capítulos completos
 
+**EPUB também passa pela estante 3D:** ao tocar em um EPUB importado, a Aurora usa o mesmo voo até o centro da tela, a rotação e a abertura do livro que já existiam para PDF. Quando o EPUB traz uma capa embutida, ela é usada no volume 3D. Para versões que não declaram a capa corretamente, o importador procura também imagens identificadas como `cover`/`capa` e referências `guide` de EPUB 2. Se realmente não houver capa, cria uma arte tipográfica identificada **CAPA ILUSTRATIVA • EPUB**; ela não finge ser a capa original de uma edição física.
+
+EPUBs importados antes dessa atualização **não precisam ser baixados novamente**: ao tocar em um deles sem imagem, a Aurora tenta recuperar a capa do arquivo que já está no IndexedDB, salva a correção e abre o mesmo visor físico. Isso não modifica os PDFs existentes nem o conteúdo do EPUB. O leitor de capítulos `ler-epub.html` continua separado, iniciado ao abrir a capa 3D.
+
 O leitor `ler-epub.html` tem controles **‹ Anterior / Próxima ›** que passam pelas páginas e avançam automaticamente ao próximo capítulo quando o atual termina. As setas do teclado e o gesto lateral também funcionam; se a biblioteca de animação externa estiver indisponível, os controles continuam funcionando no modo de leitura simples. O efeito de folhear é mantido quando o PageFlip carrega.
 
 Os EPUBs são percorridos na ordem `spine` do pacote, com leitura de parágrafos e blocos XHTML. Para arquivos grandes, apenas 48 folhas são montadas no visualizador de cada vez, evitando sobrecarregar o celular. Arquivos continuam locais no IndexedDB e o progresso salvo segue sendo recuperado. O service worker também permite reabrir a URL do leitor com `?livro=...` offline, depois de os recursos terem sido instalados em cache.

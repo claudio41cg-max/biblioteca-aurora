@@ -12,7 +12,7 @@
   let active=null;
   const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
   const readerURL=book=>book.format==='epub'
-    ?'./ler-epub.html?livro='+encodeURIComponent(book.id)+'&v=1'
+    ?'./ler-epub.html?livro='+encodeURIComponent(book.id)+'&v=2'
     :book.format==='audio'?'./ouvir-livro.html?livro='+encodeURIComponent(book.id)+'&v=1'
     :'./meus-livros.html?livro='+encodeURIComponent(book.id)+'&open=1&v=19';
   const editionURL=book=>book.format==='epub'||book.format==='audio'?readerURL(book):'./meus-livros.html?livro='+encodeURIComponent(book.id)+'&v=19';
@@ -97,6 +97,11 @@
 
   function open(button,book){
     if(active)return;
+    // Não salta o visor 3D quando uma edição EPUB não possui foto da capa.
+    if(book?.format==='epub'&&!book.cover&&window.AuroraFormats?.createEpubCover){
+      book.cover=window.AuroraFormats.createEpubCover(book.name||book.title,book.author);
+      book.coverSource='generated';
+    }
     if(!book?.cover){location.href=editionURL(book);return;}
     const known=window.AuroraBookInfo?.find(book.title||book.name);
     const session={button,book,origin:button.getBoundingClientRect(),started:false,finished:false};
@@ -127,7 +132,7 @@
     // A textura usada no primeiro quadro é a mesma que seguirá no modelo WebGL.
     window.__auroraSelectedBook={id:book.id,name:book.name||book.title,
       cover:book.cover,back:book.back,spine:book.spine,ratio,total:book.total};
-    cover.alt='Capa original de '+(book.title||book.name);
+    cover.alt=(book.coverSource==='generated'?'Capa ilustrativa do EPUB ':'Capa da edição ')+(book.title||book.name);
     cover.src=book.cover;
     window.dispatchEvent(new CustomEvent('aurora:book-selected',{detail:window.__auroraSelectedBook}));
     if(cover.complete&&cover.naturalWidth)scene.classList.remove('cover-loading');
