@@ -1,11 +1,11 @@
-const CACHE = 'aurora-v31';
+const CACHE = 'aurora-v32';
 const CORE = [
   './', './index.html', './index.html?v=22', './meus-livros.html?v=22',
   './explorar-livros.html', './ler-online.html', './minha-biblioteca-privada.html', './aurora-notion-privado.js?v=2', './aurora-online.css?v=6',
   './aurora-online.js?v=5', './aurora-online-estante.js?v=2', './aurora-leitura-online.js?v=5',
-  './ler-epub.html', './ouvir-livro.html', './aurora-novos-leitores.css?v=1',
-  './aurora-formatos.js?v=1', './aurora-novos-formatos.js?v=1',
-  './aurora-epub-reader.js?v=1', './aurora-audiobook.js?v=1', './vendor/jszip.min.js',
+  './ler-epub.html', './ouvir-livro.html', './aurora-novos-leitores.css?v=1', './aurora-novos-leitores.css?v=2',
+  './aurora-formatos.js?v=1', './aurora-formatos.js?v=2', './aurora-novos-formatos.js?v=1',
+  './aurora-epub-reader.js?v=2', './aurora-audiobook.js?v=1', './vendor/jszip.min.js',
   './aurora-estante.css?v=15', './aurora-avancado.css?v=4', './aurora-sala-3d.css?v=2', './aurora-edicao.css?v=1',
   './aurora-ambiente.css?v=2',
   './aurora-vitrine.css?v=5', './aurora-reader.css?v=3', './aurora-sinopses.js?v=2',
@@ -48,7 +48,7 @@ self.addEventListener('fetch', event => {
         caches.open(CACHE).then(cache => cache.put(request,copy)).catch(() => {});
       }
       return response;
-    }).catch(() => caches.match(request).then(result => result || caches.match('./index.html'))));
+    }).catch(() => caches.match(request,{ignoreSearch:true}).then(result => result || caches.match('./index.html'))));
     return;
   }
   event.respondWith(caches.match(request).then(cached => {

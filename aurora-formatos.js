@@ -12,18 +12,26 @@
     }
     return parts.join('/');
   };
-  const sibling=(root,href)=>normalizePath(root.split('/').slice(0,-1).concat(decodeURIComponent(href.split('#')[0])).join('/'));
+  const sibling=(root,href)=>{
+    const address=String(href||'').split('#')[0].split('?')[0];
+    let decoded=address;
+    try{decoded=decodeURIComponent(address);}catch{}
+    return normalizePath(root.split('/').slice(0,-1).concat(decoded.replace(/\\/g,'/')).join('/'));
+  };
   const blobToData=blob=>new Promise((resolve,reject)=>{
     const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(reader.error);reader.readAsDataURL(blob);
   });
   async function openEpub(data){
     if(!window.JSZip)throw new Error('O módulo EPUB ainda não carregou. Abra o aplicativo novamente.');
     const zip=await JSZip.loadAsync(data);
+    // Algumas edições trazem nomes percent-encoded ou diferenças de maiúsculas no ZIP.
+    const filenames=new Map(Object.keys(zip.files).filter(path=>!zip.files[path].dir).map(path=>[path.toLowerCase(),path]));
+    const entry=path=>zip.file(path)||zip.file(filenames.get(String(path).toLowerCase())||'');
     const container=zip.file('META-INF/container.xml');
     if(!container)throw new Error('Este arquivo não possui a estrutura de um EPUB válido.');
     const containerXML=xml(await container.async('text'));
     const opfPath=byLocal(containerXML,'rootfile')?.getAttribute('full-path');
-    const opf=opfPath&&zip.file(opfPath);
+    const opf=opfPath&&entry(opfPath);
     if(!opf)throw new Error('O índice do EPUB não foi encontrado.');
     const packageXML=xml(await opf.async('text'));
     const manifest=new Map(nodes(packageXML,'item').map(item=>[item.getAttribute('id'),{
@@ -34,16 +42,20 @@
     const metaCover=nodes(packageXML,'meta').find(item=>item.getAttribute('name')==='cover')?.getAttribute('content');
     const coverEntry=[...manifest.entries()].find(([id,item])=>item.properties.split(/\s+/).includes('cover-image')||id===metaCover)?.[1];
     let cover='';
-    if(coverEntry&&zip.file(coverEntry.path)){
-      const bytes=await zip.file(coverEntry.path).async('uint8array');
+    if(coverEntry&&entry(coverEntry.path)){
+      const bytes=await entry(coverEntry.path).async('uint8array');
       const mime=coverEntry.type.startsWith('image/')?coverEntry.type:'image/jpeg';
       cover=await blobToData(new Blob([bytes],{type:mime}));
     }
-    const spine=nodes(packageXML,'itemref').map(item=>manifest.get(item.getAttribute('idref')))
-      .filter(item=>item&&(/xhtml|html/.test(item.type)||/\.x?html?$/i.test(item.path))&&zip.file(item.path));
+    const isReadable=item=>item&&(/xhtml|html/.test(item.type)||/\.x?html?$/i.test(item.path))&&entry(item.path);
+    let spine=nodes(packageXML,'itemref').filter(item=>item.getAttribute('linear')!=='no')
+      .map(item=>manifest.get(item.getAttribute('idref'))).filter(isReadable);
+    // Recupera edições imperfeitas sem spine, seguindo a ordem do manifest.
+    if(!spine.length)spine=[...manifest.values()].filter(item=>
+      isReadable(item)&&!item.properties.split(/\s+/).includes('nav')&&!/\b(cover|capa)\b/i.test(item.path));
     if(!spine.length)throw new Error('Não encontramos capítulos de texto neste EPUB.');
     const metadata=byLocal(packageXML,'metadata')||packageXML;
-    return {zip,spine,title:byLocal(metadata,'title')?.textContent?.trim()||'',
+    return {zip,spine:spine.map(item=>({...item,path:entry(item.path).name})),title:byLocal(metadata,'title')?.textContent?.trim()||'',
       author:byLocal(metadata,'creator')?.textContent?.trim()||'',
       description:byLocal(metadata,'description')?.textContent?.trim()||'',
       cover};
@@ -54,8 +66,13 @@
     const doc=new DOMParser().parseFromString(await book.zip.file(item.path).async('text'),'text/html');
     doc.querySelectorAll('script,style,nav,svg,aside,head').forEach(node=>node.remove());
     const body=doc.body;
-    const elements=Array.from(body.querySelectorAll('h1,h2,h3,h4,p,li,blockquote,pre'));
-    const paragraphs=(elements.length?elements:[body]).map(node=>node.textContent.replace(/\s+/g,' ').trim()).filter(Boolean);
+    // EPUBs também usam <div>/<section> e quebras <br> em vez de parágrafos.
+    body.querySelectorAll('br').forEach(node=>node.replaceWith('\n'));
+    const blocks='h1,h2,h3,h4,h5,h6,p,li,blockquote,pre,dt,dd,div,section,article';
+    const elements=Array.from(body.querySelectorAll(blocks)).filter(node=>
+      !node.querySelector(blocks));
+    const clean=text=>String(text||'').replace(/[^\S\n]+/g,' ').replace(/\n\s*\n/g,'\n').trim();
+    const paragraphs=(elements.length?elements:[body]).map(node=>clean(node.textContent)).filter(Boolean);
     return paragraphs.join('\n\n');
   }
   const decodeText=(bytes,encoding)=>{

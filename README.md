@@ -4,6 +4,14 @@ Biblioteca pessoal PWA, hospedada no GitHub Pages, com estante realista, livros 
 
 ## Uso no celular
 
+### EPUB: páginas e capítulos completos
+
+O leitor `ler-epub.html` tem controles **‹ Anterior / Próxima ›** que passam pelas páginas e avançam automaticamente ao próximo capítulo quando o atual termina. As setas do teclado e o gesto lateral também funcionam; se a biblioteca de animação externa estiver indisponível, os controles continuam funcionando no modo de leitura simples. O efeito de folhear é mantido quando o PageFlip carrega.
+
+Os EPUBs são percorridos na ordem `spine` do pacote, com leitura de parágrafos e blocos XHTML. Para arquivos grandes, apenas 48 folhas são montadas no visualizador de cada vez, evitando sobrecarregar o celular. Arquivos continuam locais no IndexedDB e o progresso salvo segue sendo recuperado. O service worker também permite reabrir a URL do leitor com `?livro=...` offline, depois de os recursos terem sido instalados em cache.
+
+EPUBs compostos somente por fotografias das páginas, com DRM ou estrutura corrompida podem precisar de um tratamento próprio e de um arquivo de teste do usuário. Não alteramos o leitor PDF, o exemplar 3D nem as páginas físicas existentes.
+
 ### Minha biblioteca particular (Notion)
 
 Na estante e em **Explorar livros**, o botão **Minha biblioteca particular** abre `minha-biblioteca-privada.html`. O proprietário pode informar o endereço HTTPS do seu Notion Site e salvá-lo **somente no armazenamento local do navegador** (`aurora-private-notion-link-v1`), ou abrir um link pessoal de conexão usando o fragmento `#conectar=<URL codificada>`. Esse fragmento é removido imediatamente da barra de endereço depois de ser lido. **Não inclua o endereço de uma biblioteca paga no código público nem no service worker.** Outros leitores não recebem a configuração.
