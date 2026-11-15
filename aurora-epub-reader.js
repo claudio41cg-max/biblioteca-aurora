@@ -32,8 +32,9 @@
     // A folha ocupa o espaço disponível, como no PDF, sem sobrar uma área escura enorme.
     const availableWidth=Math.max(165,stage.clientWidth-14);
     const availableHeight=Math.max(245,stage.clientHeight-18);
-    const width=Math.max(155,Math.floor(Math.min(availableWidth,availableHeight*.72,450)));
-    return {width,height:Math.floor(width/.72)};
+    const ratio=innerWidth<=670 ? .64 : .72;
+    const width=Math.max(155,Math.floor(Math.min(availableWidth,availableHeight*ratio,450)));
+    return {width,height:Math.floor(width/ratio)};
   }
   // Mede o conteúdo da página para que o texto ampliado não ultrapasse as bordas.
   function paginate(text,width,height){
@@ -213,6 +214,7 @@
   $('readAloud').addEventListener('click',()=>{
     if(speech){stopSpeech();return;}
     if(!('speechSynthesis' in window)){report('A leitura em voz alta não está disponível neste aparelho.');return;}
+    panelOpen(false);
     const content=pages[page];
     speech=new SpeechSynthesisUtterance(typeof content==='string'?content:(content?.alt||'Ilustração deste livro.'));
     speech.lang='pt-BR';speech.rate=1;

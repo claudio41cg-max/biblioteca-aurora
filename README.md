@@ -71,11 +71,17 @@ Os quatro gêneros são Romances, Romances picantes, Ficção e aventuras e Auto
 
 - PDFs, capas, fotografias e metadados das edições: IndexedDB `aurora-pdf-library`, nas stores `books` e `progress`, mantendo a versão 2.
 - TXT importados: `localStorage` em `aurora-books`; categorias em `aurora-txt-categories`.
-- Páginas do leitor TXT: chave `aurora-page:` seguida do título.
+- Páginas do leitor TXT: chave `aurora-page-v2:` seguida do título; o progresso salvo na antiga chave `aurora-page:` é migrado ao abrir o livro.
 - Anotações antigas (preservadas, mas sem painel na vitrine): chave `aurora-notes:` por livro; preferências em `aurora-room-v1` e `aurora-shelf-order-v1`.
 - Nenhum PDF importado é enviado ao GitHub ou para outro servidor. É necessário abrir **o mesmo endereço no mesmo navegador e aparelho** para acessar os livros locais.
 
 Para ler PDF e renderizar o volume 3D pela primeira vez, é preciso estar conectado à internet para carregar as bibliotecas PDF.js, PageFlip e Three.js. O service worker guarda recursos acessados para uso posterior quando disponíveis.
+
+### Edição 37: folhas maiores em todos os leitores
+
+O percurso estante → exemplar 3D → leitura é mantido para PDF, EPUB e TXT importados, e para os títulos online adicionados à estante. O PDF conserva suas páginas físicas e o leitor existente. No EPUB, o painel **Aa** reúne capítulos, voz, fonte e tema; a folha usa a altura livre e mantém o folheio com som. No TXT, o celular exibe **uma folha larga por vez** (duas no computador), com fonte, tema e voz no botão **Aa**, além do som de páginas. Para textos Wikisource/Wikilivros, a folha ocupa mais da tela, as opções ficam recolhidas e a passagem de página também emite som.
+
+Audiolivros continuam com seus controles de reprodução. Digitalizações de fontes externas incorporadas por iframe mantêm o visual próprio do serviço de origem, que a Aurora não consegue modificar. Nenhuma importação antiga precisa ser repetida para receber os novos controles.
 
 ## Desenvolvimento e segurança
 

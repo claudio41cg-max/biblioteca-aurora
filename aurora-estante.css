@@ -77,6 +77,34 @@ input[type=file]{display:none}
 }
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 
+/* TXT segue a leitura limpa do PDF: folha ampla, opções recolhidas em Aa. */
+#overlay{padding:env(safe-area-inset-top) 7px env(safe-area-inset-bottom);overflow:hidden;background:radial-gradient(ellipse at 50% 37%,#443122,#21170f 76%,#140e0a)}
+#overlay.show{display:flex;flex-direction:column}
+#overlay .reader-head{height:53px;min-height:53px;flex:none;width:100%;max-width:960px;margin:0 auto 3px;padding:4px 5px;border-bottom:1px solid #9e7b5633}
+#overlay .reader-head h2{min-width:0;flex:1;color:#f4e3c9;font:normal 15px/1.25 'Palatino Linotype',Georgia,serif;white-space:nowrap}
+#overlay .reader-head .btn{min-height:35px;padding:6px 11px;background:#332920;border:1px solid #947454;border-radius:10px;color:#f3d9b5;font:600 13px Georgia,serif}
+#overlay .reader-intro{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+#overlay .stage{flex:1;min-height:0;width:min(100%,940px);max-width:none;margin:auto;display:flex;align-items:stretch;perspective:1500px;padding:3px 0}
+#overlay .book-open{flex:1;min-width:0;width:100%;min-height:0;height:100%;border:2px solid #b09a7a;border-radius:2px 7px 7px 2px;box-shadow:0 15px 26px #0009;overflow:hidden}
+#overlay .paper{min-width:0;flex:1;width:50%;min-height:0;overflow-y:auto;overscroll-behavior:contain;white-space:pre-wrap;overflow-wrap:anywhere;padding:clamp(17px,3vw,31px);background:linear-gradient(90deg,#dac9aa,#fffbef 6%,#fff9ea 95%,#e6dac5);color:#342a21;font:var(--txt-font-size,17px)/1.6 Georgia,serif}
+#overlay .paper.right{background:linear-gradient(90deg,#d6c4a7,#fff9e8 10%,#fffaf0 96%);box-shadow:inset 7px 0 12px #60432122}
+#overlay[data-txt-theme="claro"] .paper{background:#fff;color:#2e2922}
+#overlay[data-txt-theme="noite"] .paper{background:#24312d;color:#f0e8d8}
+#overlay .reader-actions{flex:none;min-height:44px;max-width:620px;width:100%;margin:0 auto;padding:4px 0;gap:10px}
+#overlay .reader-actions .btn{padding:6px 10px;min-height:32px;background:transparent;border:1px solid #b8996f88;border-radius:9px;color:#f0d8b7;font:13px Georgia,serif;box-shadow:none}
+#overlay .reader-actions .pagecount{flex:1;text-align:center;color:#dac4a5;font:12px Georgia,serif}
+#overlay .txt-reader-prefs[hidden]{display:none!important}
+#overlay .txt-reader-prefs{position:absolute;z-index:35;top:calc(57px + env(safe-area-inset-top));right:12px;left:12px;margin:0 0 0 auto;width:min(370px,calc(100vw - 24px));max-height:72dvh;overflow:auto;padding:17px;border:1px solid #bc9b6b;border-radius:15px;background:#24312c;box-shadow:0 18px 45px #000c;color:#f4e3c8;font:14px Georgia,serif}
+#overlay .txt-reader-prefs-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:17px}
+#overlay .txt-reader-prefs h3{font:normal 22px Georgia,serif;margin:0}
+#overlay .txt-reader-prefs>label:not(.txt-page-sound){display:flex;gap:9px;justify-content:space-between;align-items:center;margin:14px 0}
+#overlay .txt-reader-prefs input[type=range]{width:46%;accent-color:#cba371}
+#overlay .txt-reader-prefs select{background:#1c2d27;color:#f4dfbd;border:1px solid #a98e68;border-radius:8px;padding:8px}
+#overlay .txt-reader-prefs button{padding:7px 10px;border:1px solid #a98e68;border-radius:8px;background:#30463b;color:#f6dfbb;font:13px Georgia,serif}
+#overlay .txt-audio-tools{display:flex;justify-content:space-between;gap:8px;margin:17px 0}
+#overlay .txt-page-sound{margin-top:12px;font:14px Georgia,serif}
+@media(max-width:699px){#overlay .paper{width:100%;font-size:var(--txt-font-size,17px);padding:clamp(18px,5vw,31px)}#overlay .paper.right{display:none!important}}
+
 /* Livro físico individual: capa original na lateral, páginas e contato com a madeira.
    Sem foto da lombada, a imagem usada vem da borda da capa do próprio PDF. */
 .bookrow{perspective:1050px;perspective-origin:50% 64%;padding-top:20px;min-height:197px}

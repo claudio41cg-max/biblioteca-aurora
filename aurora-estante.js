@@ -175,6 +175,7 @@
     localStorage.setItem('aurora-books',JSON.stringify(saved));
     localStorage.setItem('aurora-txt-categories',JSON.stringify(txtCategories));
     localStorage.removeItem('aurora-page:'+title);
+    localStorage.removeItem('aurora-page-v2:'+title);
     hideTitle(title);
     return true;
   }
@@ -221,13 +222,39 @@
   });
 
   let current='',chunks=[],pageIndex=0,startX=0;
+  const txtStep=()=>window.innerWidth>=700?2:1;
+  const txtPrefs=(()=>{
+    try{return Object.assign({size:17,theme:'sepia'},JSON.parse(localStorage.getItem('aurora-txt-reader-settings-v1')||'{}'));}
+    catch{return {size:17,theme:'sepia'};}
+  })();
+  txtPrefs.size=Math.max(14,Math.min(24,Number(txtPrefs.size)||17));
+  if(!['sepia','claro','noite'].includes(txtPrefs.theme))txtPrefs.theme='sepia';
+  function applyTxtPrefs(){
+    $('overlay').style.setProperty('--txt-font-size',txtPrefs.size+'px');
+    $('overlay').dataset.txtTheme=txtPrefs.theme;
+    $('txtFontSize').value=String(txtPrefs.size);
+    $('txtFontSizeValue').textContent=String(txtPrefs.size);
+    $('txtTheme').value=txtPrefs.theme;
+    try{localStorage.setItem('aurora-txt-reader-settings-v1',JSON.stringify(txtPrefs));}catch{}
+  }
+  applyTxtPrefs();
+  function toggleTxtPrefs(show){
+    $('txtReaderPrefs').hidden=!show;
+    $('txtSettingsButton').setAttribute('aria-expanded',String(show));
+  }
+  $('txtSettingsButton').addEventListener('click',()=>toggleTxtPrefs($('txtReaderPrefs').hidden));
+  $('txtPrefsClose').addEventListener('click',()=>toggleTxtPrefs(false));
+  $('txtFontSize').addEventListener('input',event=>{txtPrefs.size=Number(event.target.value);applyTxtPrefs();});
+  $('txtTheme').addEventListener('change',event=>{txtPrefs.theme=event.target.value;applyTxtPrefs();});
   const say = message => {if('speechSynthesis' in window) speechSynthesis.cancel();};
   function openText(title) {
     current=title;
     const full=texts[title] || demo;
     chunks=full.match(/[\s\S]{1,560}/g) || [''];
-    const stored=Number(localStorage.getItem('aurora-page:'+title) || 0);
-    pageIndex=Math.max(0,Math.min(Number.isFinite(stored)?stored:0,Math.ceil(chunks.length/2)-1));
+    const restored=localStorage.getItem('aurora-page-v2:'+title);
+    const old=localStorage.getItem('aurora-page:'+title);
+    const stored=restored===null?Number(old||0)*2:Number(restored);
+    pageIndex=Math.max(0,Math.min(Number.isFinite(stored)?stored:0,chunks.length-1));
     $('readerTitle').textContent=title;
     $('overlay').classList.add('show');
     $('overlay').setAttribute('aria-hidden','false');
@@ -235,19 +262,22 @@
     showText();
   }
   function showText(animate=false) {
-    $('left').textContent=chunks[pageIndex*2] || '';
-    $('right').textContent=chunks[pageIndex*2+1] || '';
-    $('count').textContent=(pageIndex*2+1)+'–'+Math.min(pageIndex*2+2,chunks.length)+' de '+chunks.length;
+    const step=txtStep();
+    $('left').textContent=chunks[pageIndex] || '';
+    $('right').hidden=step===1;
+    $('right').textContent=step===2?(chunks[pageIndex+1]||''):'';
+    $('count').textContent=step===2?(pageIndex+1)+'–'+Math.min(pageIndex+2,chunks.length)+' de '+chunks.length:(pageIndex+1)+' / '+chunks.length;
     if(animate) {
-      $('right').classList.remove('flip');
-      void $('right').offsetWidth;
-      $('right').classList.add('flip');
+      const paper=step===1?$('left'):$('right');
+      paper.classList.remove('flip');
+      void paper.offsetWidth;
+      paper.classList.add('flip');
     }
-    localStorage.setItem('aurora-page:'+current,String(pageIndex));
+    localStorage.setItem('aurora-page-v2:'+current,String(pageIndex));
   }
   function turn(amount) {
-    const next=pageIndex+amount;
-    if(next<0 || next>=Math.ceil(chunks.length/2)) return;
+    const next=pageIndex+amount*txtStep();
+    if(next<0 || next>=chunks.length) return;
     pageIndex=next;
     say();
     showText(true);
@@ -257,6 +287,7 @@
     $('overlay').classList.remove('show');
     $('overlay').setAttribute('aria-hidden','true');
     document.body.style.overflow='';
+    toggleTxtPrefs(false);
     say();
   }
   $('close').addEventListener('click',closeText);
@@ -275,6 +306,7 @@
     const distance=event.changedTouches[0].clientX-startX;
     if(Math.abs(distance)>55) turn(distance<0?1:-1);
   },{passive:true});
+  window.addEventListener('resize',()=>{if($('overlay').classList.contains('show'))showText();});
   document.addEventListener('keydown',event=>{
     if(!$('overlay').classList.contains('show')) return;
     if(event.key==='ArrowRight') turn(1);

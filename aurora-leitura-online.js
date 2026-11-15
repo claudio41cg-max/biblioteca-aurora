@@ -45,10 +45,11 @@
     $('onlineNext').disabled=changingChapter||(currentPage+step>=pages.length&&index>=chapterList.length-1);
     try{sessionStorage.setItem('aurora-online-page:'+host+':'+chapterTitle,String(currentPage));}catch{}
   }
-  function animatePage(){
+  function animatePage(playSound=false){
     paper.classList.remove('page-turn');
     void paper.offsetWidth;
     paper.classList.add('page-turn');
+    if(playSound)window.AuroraPageSound?.play();
   }
   function splitPages(text){
     const blocks=text.split(/\n{2,}/).map(x=>x.trim()).filter(Boolean);
@@ -175,6 +176,7 @@
     changingChapter=true;showPage();
     try{
       await wikiPage(next,false);$('onlineChapter').value=next;
+      window.AuroraPageSound?.play();
       if(direction<0){currentPage=Math.floor((pages.length-1)/pageSize())*pageSize();showPage();}
       window.scrollTo({top:0,behavior:'smooth'});
     }catch(error){chapterTitle=previous;status('Não foi possível abrir o próximo capítulo. Tente novamente.');}
@@ -183,12 +185,12 @@
   $('onlinePrev').addEventListener('click',()=>{
     if(changingChapter)return;
     if(currentPage<=0)changeChapter(-1);
-    else{currentPage=Math.max(0,currentPage-pageSize());showPage();animatePage();}
+    else{currentPage=Math.max(0,currentPage-pageSize());showPage();animatePage(true);}
   });
   $('onlineNext').addEventListener('click',()=>{
     if(changingChapter)return;
     if(currentPage+pageSize()>=pages.length)changeChapter(1);
-    else{currentPage+=pageSize();showPage();animatePage();}
+    else{currentPage+=pageSize();showPage();animatePage(true);}
   });
   let touchStart=null;
   paper.addEventListener('touchstart',event=>{

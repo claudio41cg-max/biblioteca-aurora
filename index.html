@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#081d1d">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./aurora-estante.css?v=16">
+  <link rel="stylesheet" href="./aurora-estante.css?v=17">
   <link rel="stylesheet" href="./aurora-avancado.css?v=4">
   <link rel="stylesheet" href="./aurora-ambiente.css?v=2">
   <link rel="stylesheet" href="./aurora-sala-3d.css?v=3">
@@ -178,9 +178,16 @@
     <div class="reader-head">
       <button class="btn" id="close" type="button">← Estante</button>
       <h2 id="readerTitle"></h2>
-      <button class="btn" id="listen" type="button">♫ Ouvir</button>
+      <button class="btn" id="txtSettingsButton" type="button" aria-controls="txtReaderPrefs" aria-expanded="false">Aa</button>
     </div>
     <p class="reader-intro">Arraste a página ou use as setas para folhear. A narração usa a voz do aparelho.</p>
+    <section class="txt-reader-prefs" id="txtReaderPrefs" hidden aria-label="Personalizar leitura">
+      <div class="txt-reader-prefs-head"><h3>Personalizar leitura</h3><button type="button" id="txtPrefsClose">Fechar</button></div>
+      <label>Tamanho das letras <input type="range" id="txtFontSize" min="14" max="24" value="17"><output id="txtFontSizeValue">17</output></label>
+      <label>Papel <select id="txtTheme"><option value="sepia">Sépia</option><option value="claro">Claro</option><option value="noite">Noturno</option></select></label>
+      <div class="txt-audio-tools"><button class="btn" id="listen" type="button">♫ Ouvir</button><button class="btn" id="stop" type="button">■ Parar áudio</button></div>
+      <label class="txt-page-sound"><input type="checkbox" data-page-sound checked> Som suave ao folhear</label>
+    </section>
     <div class="stage"><div class="book-open" id="openbook">
       <div class="paper" id="left"></div><div class="paper right" id="right"></div>
     </div></div>
@@ -188,14 +195,12 @@
       <button class="btn" id="prev" type="button">← Anterior</button>
       <span class="pagecount" id="count"></span>
       <button class="btn" id="next" type="button">Próxima →</button>
-      <button class="btn" id="stop" type="button">■ Parar áudio</button>
-      <label class="txt-page-sound"><input type="checkbox" data-page-sound checked> Som das folhas</label>
     </div>
   </section>
   <script src="./aurora-sinopses.js?v=2" defer></script>
   <script src="./aurora-som-folhas.js?v=1" defer></script>
-  <script src="./aurora-estante.js?v=8" defer></script>
-  <script src="./aurora-sala-3d.js?v=10" defer></script>
+  <script src="./aurora-estante.js?v=9" defer></script>
+  <script src="./aurora-sala-3d.js?v=11" defer></script>
   <script src="./aurora-importados.js?v=21" defer></script>
   <script src="./aurora-avancado.js?v=6" defer></script>
   <script src="./aurora-online-estante.js?v=3" defer></script>
