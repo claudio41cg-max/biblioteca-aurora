@@ -14,7 +14,7 @@
   const readerURL=book=>book.format==='online'
     ?(/^(\.\/)?ler-online\.html\?/.test(book.readerURL||'')?book.readerURL:'./explorar-livros.html')
     :book.format==='epub'
-    ?'./ler-epub.html?livro='+encodeURIComponent(book.id)+'&v=3'
+    ?'./ler-epub.html?livro='+encodeURIComponent(book.id)+'&v=4'
     :book.format==='audio'?'./ouvir-livro.html?livro='+encodeURIComponent(book.id)+'&v=1'
     :'./meus-livros.html?livro='+encodeURIComponent(book.id)+'&open=1&v=20';
   const editionURL=book=>book.format==='epub'||book.format==='audio'||book.format==='online'?readerURL(book):'./meus-livros.html?livro='+encodeURIComponent(book.id)+'&v=20';

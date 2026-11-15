@@ -115,25 +115,69 @@
       isReadable(item)&&!item.properties.split(/\s+/).includes('nav')&&!/\b(cover|capa)\b/i.test(item.path));
     if(!spine.length)throw new Error('Não encontramos capítulos de texto neste EPUB.');
     const metadata=byLocal(packageXML,'metadata')||packageXML;
-    return {zip,spine:spine.map(item=>({...item,path:entry(item.path).name})),title:byLocal(metadata,'title')?.textContent?.trim()||'',
+    return {zip,filenames,spine:spine.map(item=>({...item,path:entry(item.path).name})),title:byLocal(metadata,'title')?.textContent?.trim()||'',
       author:byLocal(metadata,'creator')?.textContent?.trim()||'',
       description:byLocal(metadata,'description')?.textContent?.trim()||'',
       cover};
   }
-  async function epubChapter(book,index){
+  // Mantém a ordem original de texto e imagens, inclusive nas páginas de abertura.
+  // Todas as imagens são lidas de dentro do próprio EPUB, sem requisições externas.
+  async function epubChapterContent(book,index){
     const item=book.spine[index];
-    if(!item)return '';
+    if(!item)return [];
     const doc=new DOMParser().parseFromString(await book.zip.file(item.path).async('text'),'text/html');
-    doc.querySelectorAll('script,style,nav,svg,aside,head').forEach(node=>node.remove());
+    doc.querySelectorAll('script,style,nav,aside,head,iframe,form').forEach(node=>node.remove());
     const body=doc.body;
-    // EPUBs também usam <div>/<section> e quebras <br> em vez de parágrafos.
-    body.querySelectorAll('br').forEach(node=>node.replaceWith('\n'));
-    const blocks='h1,h2,h3,h4,h5,h6,p,li,blockquote,pre,dt,dd,div,section,article';
-    const elements=Array.from(body.querySelectorAll(blocks)).filter(node=>
-      !node.querySelector(blocks));
-    const clean=text=>String(text||'').replace(/[^\S\n]+/g,' ').replace(/\n\s*\n/g,'\n').trim();
-    const paragraphs=(elements.length?elements:[body]).map(node=>clean(node.textContent)).filter(Boolean);
-    return paragraphs.join('\n\n');
+    if(!body)return [];
+    const blocks=[];
+    const breaks=new Set(['p','div','section','article','h1','h2','h3','h4','h5','h6','li','ul','ol','blockquote','pre','br','hr','figure','figcaption','table','tr']);
+    let pending='';
+    const flush=()=>{
+      const value=pending.replace(/\s+/g,' ').trim();
+      if(value)blocks.push({type:'text',text:value});
+      pending='';
+    };
+    function walk(node){
+      if(node.nodeType===3){pending+=node.nodeValue||'';return;}
+      if(node.nodeType!==1)return;
+      const tag=node.localName?.toLowerCase()||'';
+      if(['script','style','iframe','form','nav','aside','head'].includes(tag))return;
+      if(tag==='img'||tag==='image'||tag==='object'){
+        flush();
+        const src=node.getAttribute('src')||node.getAttribute('href')||node.getAttribute('xlink:href')||node.getAttribute('data')||'';
+        if(src)blocks.push({type:'image',path:src,alt:node.getAttribute('alt')||node.getAttribute('title')||''});
+        return;
+      }
+      if(tag==='br'||tag==='hr'){flush();return;}
+      if(breaks.has(tag))flush();
+      for(const child of node.childNodes)walk(child);
+      if(breaks.has(tag))flush();
+    }
+    walk(body);flush();
+    const resolved=[];
+    for(const block of blocks){
+      if(block.type==='text'){resolved.push(block);continue;}
+      const source=block.path;
+      if(/^data:image\/(?:png|jpe?g|gif|webp|svg\+xml);base64,/i.test(source)&&source.length<9e6){
+        resolved.push({type:'image',src:source,alt:block.alt});continue;
+      }
+      if(/^(?:https?:|file:|\/\/)/i.test(source))continue;
+      const path=sibling(item.path,source);
+      const file=book.zip.file(path)||book.zip.file(book.filenames?.get(path.toLowerCase())||'');
+      if(!file||file._data?.uncompressedSize>8e6)continue;
+      const extension=path.split('.').pop()?.toLowerCase();
+      const mime=({jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',webp:'image/webp',gif:'image/gif',svg:'image/svg+xml'})[extension];
+      if(!mime)continue;
+      try{
+        const bytes=await file.async('uint8array');
+        resolved.push({type:'image',src:await blobToData(new Blob([bytes],{type:mime})),alt:block.alt});
+      }catch(error){console.warn('Imagem deste capítulo EPUB não pôde ser exibida:',error);}
+    }
+    return resolved;
+  }
+  async function epubChapter(book,index){
+    const blocks=await epubChapterContent(book,index);
+    return blocks.filter(part=>part.type==='text').map(part=>part.text).join('\n\n');
   }
   const decodeText=(bytes,encoding)=>{
     const codec=encoding===1||encoding===2?'utf-16':encoding===3?'utf-8':'iso-8859-1';
@@ -201,5 +245,5 @@
     const tx=db.transaction(store,'readwrite');tx.objectStore(store).put(item);
     tx.oncomplete=()=>{db.close();resolve();};tx.onerror=()=>{db.close();reject(tx.error);};
   }));}
-  window.AuroraFormats={openEpub,epubChapter,audioMetadata,database,readRecord,saveRecord,cleanName,blobToData,createEpubCover,createDigitalCover};
+  window.AuroraFormats={openEpub,epubChapter,epubChapterContent,audioMetadata,database,readRecord,saveRecord,cleanName,blobToData,createEpubCover,createDigitalCover};
 })();

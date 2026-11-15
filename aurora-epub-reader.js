@@ -64,7 +64,23 @@
         offset+=maximum;
       }
     }
-    add();block.remove();return result.length?result:['Este capítulo não contém texto selecionável.'];
+    add();block.remove();return result;
+  }
+  function paginateContent(blocks,width,height){
+    const result=[];
+    let text=[];
+    const flush=()=>{
+      if(text.length)result.push(...paginate(text.join('\n\n'),width,height));
+      text=[];
+    };
+    for(const part of blocks){
+      if(part.type==='image'){
+        flush();
+        result.push({type:'image',src:part.src,alt:part.alt||'Ilustração deste livro'});
+      }else if(part.type==='text'&&part.text?.trim())text.push(part.text);
+    }
+    flush();
+    return result;
   }
   function drawPages(){
     const {width,height}=pageDimensions();
@@ -75,7 +91,13 @@
       const sheet=document.createElement('div');sheet.className='epub-sheet';sheet.dataset.density='soft';
       const inner=document.createElement('div');inner.className='epub-sheet-content';
       inner.style.fontFamily=settings.font;inner.style.fontSize=settings.size+'px';inner.style.lineHeight=String(settings.line);
-      inner.textContent=content;sheet.append(inner);
+      if(content?.type==='image'){
+        inner.classList.add('epub-image-content');
+        const picture=document.createElement('img');
+        picture.className='epub-page-image';picture.src=content.src;picture.alt=content.alt;
+        picture.loading='lazy';inner.append(picture);
+      }else inner.textContent=content;
+      sheet.append(inner);
       const number=document.createElement('span');number.className='epub-page-number';number.textContent=String(windowStart+index+1);
       sheet.append(number);sheet.setAttribute('aria-label','Página '+(windowStart+index+1));return sheet;
     });
@@ -110,6 +132,7 @@
       }catch(error){console.warn('Folheio EPUB indisponível, leitor simples ativado.',error);try{flip?.destroy();}catch{}flip=null;}
     }
     if(!flip){
+      if(host.parentElement!==stage)stage.replaceChildren(host);
       host.replaceChildren(...elements);
       host.classList.add('epub-static');
       elements.forEach((sheet,i)=>{sheet.classList.toggle('is-current',windowStart+i===page);sheet.style.width=width+'px';sheet.style.height=height+'px';});
@@ -120,7 +143,7 @@
   function goPage(direction){
     if(!epub||working)return;
     const next=page+direction;
-    if(next<0){if(chapter>0)loadChapter(chapter-1,Infinity);return;}
+    if(next<0){if(chapter>0)loadChapter(chapter-1,Infinity,-1);return;}
     if(next>=pages.length){if(chapter<epub.spine.length-1)loadChapter(chapter+1);return;}
     if(flip&&next>=windowStart&&next<windowStart+windowLength){
       direction>0?flip.flipNext():flip.flipPrev();
@@ -128,28 +151,38 @@
       page=next;drawPages();remember();stopSpeech();window.AuroraPageSound?.play();
     }
   }
-  async function loadChapter(index,desired=0){
+  async function loadChapter(index,desired=0,direction=desired===Infinity?-1:1){
     if(working||!epub)return;
     working=true;stopSpeech();report('Preparando as folhas…');
     try{
-      const content=await formats.epubChapter(epub,index);
-      chapter=index;
       const size=pageDimensions();
-      pages=paginate(content,size.width,size.height);
+      let target=index;
+      let found=[];
+      // Frontispícios vazios e arquivos de navegação não são mostrados como
+      // páginas de erro. Avança até encontrar texto ou imagem de verdade.
+      while(target>=0&&target<epub.spine.length){
+        const blocks=await formats.epubChapterContent(epub,target);
+        found=paginateContent(blocks,size.width,size.height);
+        if(found.length)break;
+        target+=direction;
+      }
+      if(!found.length)throw new Error('Não encontramos conteúdo legível nos capítulos restantes.');
+      chapter=target;
+      pages=found;
       page=Math.max(0,Math.min(pages.length-1,desired));
       drawPages();remember();
     }catch(error){report('Erro ao abrir capítulo: '+error.message);}finally{working=false;}
   }
-  $('previousChapter').addEventListener('click',()=>{if(chapter>0)loadChapter(chapter-1);});
+  $('previousChapter').addEventListener('click',()=>{if(chapter>0)loadChapter(chapter-1,0,-1);});
   $('nextChapter').addEventListener('click',()=>{if(chapter<epub.spine.length-1)loadChapter(chapter+1);});
   $('previousPage').addEventListener('click',()=>goPage(-1));
   $('nextPage').addEventListener('click',()=>goPage(1));
   // Mesmo sem o módulo de animação (ou ao terminar um capítulo), o dedo continua navegando.
   let touchStart=null;
-  host.addEventListener('touchstart',event=>{
+  stage.addEventListener('touchstart',event=>{
     if(event.touches.length===1)touchStart={x:event.touches[0].clientX,y:event.touches[0].clientY};
   },{passive:true});
-  host.addEventListener('touchend',event=>{
+  stage.addEventListener('touchend',event=>{
     if(!touchStart||!event.changedTouches.length)return;
     const dx=event.changedTouches[0].clientX-touchStart.x;
     const dy=event.changedTouches[0].clientY-touchStart.y;
@@ -180,7 +213,9 @@
   $('readAloud').addEventListener('click',()=>{
     if(speech){stopSpeech();return;}
     if(!('speechSynthesis' in window)){report('A leitura em voz alta não está disponível neste aparelho.');return;}
-    speech=new SpeechSynthesisUtterance(pages[page]||'');speech.lang='pt-BR';speech.rate=1;
+    const content=pages[page];
+    speech=new SpeechSynthesisUtterance(typeof content==='string'?content:(content?.alt||'Ilustração deste livro.'));
+    speech.lang='pt-BR';speech.rate=1;
     speech.onend=stopSpeech;speech.onerror=stopSpeech;
     speechSynthesis.speak(speech);$('readAloud').textContent='■ Parar voz';
   });

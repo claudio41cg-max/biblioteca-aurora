@@ -59,6 +59,8 @@ body.epub-reader{
   line-height:1.55;white-space:pre-wrap;overflow:hidden;overflow-wrap:break-word;
   text-align:left;hyphens:auto;
 }
+.epub-reader .epub-image-content{display:flex;align-items:center;justify-content:center}
+.epub-reader .epub-page-image{display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain}
 .epub-reader .epub-page-number{
   position:absolute;bottom:13px;left:0;right:0;text-align:center;
   font:11px Georgia,serif;color:#9e896b;pointer-events:none;
