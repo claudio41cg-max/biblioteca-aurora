@@ -23,6 +23,6 @@ assert.doesNotMatch(pdf,/\$\('descriptionDetails'\)\.open=false/);
 assert.match(main,/aurora-sala-3d.css\?v=6/);
 assert.match(main,/aurora-sala-3d.js\?v=15/);
 assert.match(pdf,/aurora-vitrine.css\?v=7/);
-assert.match(file('sw.js'),/aurora-v41/);
+assert.match(file('sw.js'),/aurora-v42/);
 
 console.log('V41: o creme, a tipografia e a descrição aberta valem para as duas telas 3D.');

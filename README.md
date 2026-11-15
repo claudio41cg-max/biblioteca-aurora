@@ -1,5 +1,11 @@
 # Biblioteca Aurora
 
+## Atualização v42 — comparação de uma prateleira mais realista
+
+- Apenas **Romances**, a primeira prateleira, recebeu um visual experimental com iluminação de madeira, sombreamento mais profundo, volumes com alturas e espessuras distintas, detalhes finos nas lombadas e capas reais preservadas.
+- O botão **Ver original / Ver realista** no cabeçalho de Romances permite comparar os dois estilos imediatamente. A preferência fica salva somente no navegador do usuário; o teste começa ativado.
+- As outras prateleiras, todos os livros importados, capas originais, interação de pegar e girar em 3D, página de leitura e sistema de organização continuam como estavam. A biblioteca pode voltar ao visual original sem perder dados.
+
 ## Atualização v41 — sala creme e sinopse à vista
 
 - As duas apresentações do livro 3D usam o mesmo fundo creme quente, mais próximo da madeira e dos detalhes dourados da biblioteca. Os textos são marrom-escuro para manter a leitura confortável.

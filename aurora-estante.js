@@ -23,6 +23,9 @@
   const saved = safeRead('aurora-books',{});
   const txtCategories = safeRead('aurora-txt-categories',{});
   const hiddenTitles = new Set(safeRead('aurora-hidden-books',[]));
+  // Laboratório visual restrito à primeira prateleira: as demais continuam intactas.
+  const shelfPreviewKey='aurora-realistic-shelf-preview-v1';
+  let realisticPreview=(()=>{try{return localStorage.getItem(shelfPreviewKey)!=='original';}catch{return true;}})();
   const texts = Object.assign({},saved);
   const knownCategories = new Map();
   categories.forEach(cat => cat.books.forEach(([title]) => knownCategories.set(normalize(title),cat.id)));
@@ -56,6 +59,8 @@
     button.style.setProperty('--book-width',naturalWidth+'px');
     button.style.setProperty('--book-height',bookHeight+'px');
     button.style.setProperty('--cover-width',Math.round(bookHeight*format)+'px');
+    button.style.setProperty('--premium-height',((seed%25)-5)+'px');
+    button.style.setProperty('--premium-width',((seed%11)-3)+'px');
     button.style.setProperty('--tilt',((seed%5)-2)*.35+'deg');
     button.style.setProperty('--spine-pos',((seed%8)/7*100)+'%');
     if(realPDF && item.spine){
@@ -114,6 +119,7 @@
       const section=document.createElement('section');
       section.className='category';
       section.id='category-'+category.id;
+      if(category.id==='romance')section.classList.toggle('shelf-premium',realisticPreview);
       const header=document.createElement('div');
       header.className='section-title';
       const title=document.createElement('h2');
@@ -122,6 +128,25 @@
       count.className='count';
       count.id='count-'+category.id;
       header.append(title,count);
+      if(category.id==='romance'){
+        const toggle=document.createElement('button');
+        toggle.className='shelf-preview-toggle';
+        toggle.type='button';
+        toggle.setAttribute('aria-label','Comparar visual da prateleira de Romances');
+        toggle.title='Comparar esta prateleira com o visual anterior';
+        const updatePreview=()=>{
+          section.classList.toggle('shelf-premium',realisticPreview);
+          toggle.setAttribute('aria-pressed',String(realisticPreview));
+          toggle.textContent=realisticPreview?'Ver original':'Ver realista';
+        };
+        toggle.addEventListener('click',()=>{
+          realisticPreview=!realisticPreview;
+          try{localStorage.setItem(shelfPreviewKey,realisticPreview?'realista':'original');}catch{}
+          updatePreview();
+        });
+        updatePreview();
+        header.append(toggle);
+      }
       const cabinet=document.createElement('div');
       cabinet.className='cabinet cabinet-'+index;
       const row=document.createElement('div');
