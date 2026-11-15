@@ -102,11 +102,11 @@
 /* Ficha 3D dos PDFs: tipografia sem contorno, também após o botão Voltar. */
 .showcase .showhead button,.showcase .showhead .category-editor select{
   min-height:43px;padding:8px 13px;border:0;border-radius:0;
-  background:transparent;box-shadow:none;color:#4c3827;
-  font:italic 500 21px 'Palatino Linotype','Book Antiqua',Georgia,serif;letter-spacing:.4px;
+  background:transparent;box-shadow:none;color:#553725;
+  font:italic 500 22px 'Palatino Linotype','Book Antiqua',Georgia,serif;letter-spacing:.4px;
 }
 .showcase .showhead button:hover,.showcase .showhead .category-editor select:hover{background:transparent;color:#78512e}
-.showcase .showhead .category-editor select option{background:#fffdf8;color:#352f28}
+.showcase .showhead .category-editor select option{background:#fbf1df;color:#4a3326}
 
 /* Leitura de PDF com o mesmo painel central do EPUB. */
 .reader .reader-prefs{

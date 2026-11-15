@@ -1,5 +1,12 @@
 # Biblioteca Aurora
 
+## Atualização v41 — sala creme e sinopse à vista
+
+- As duas apresentações do livro 3D usam o mesmo fundo creme quente, mais próximo da madeira e dos detalhes dourados da biblioteca. Os textos são marrom-escuro para manter a leitura confortável.
+- Títulos, autores, comandos e sinopses receberam tipografia de inspiração editorial, em famílias serifadas elegantes. Os comandos continuam sem molduras.
+- A descrição abre automaticamente ao pegar qualquer livro no visor 3D, tanto no visor principal quanto no de PDF, e pode ser fechada ao tocar no título da descrição.
+- As capas, a movimentação 3D, a navegação de páginas, os ajustes de leitura e os livros já importados foram preservados.
+
 Biblioteca pessoal PWA, hospedada no GitHub Pages, com estante realista, livros por categoria, PDF e TXT e visualização 3D.
 
 ## Edição 40: um mesmo padrão para PDF, EPUB e TXT

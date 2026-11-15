@@ -69,7 +69,7 @@
     @media(max-width:500px){.toolbar{padding:12px 9px;gap:6px}.category-picker{flex-basis:100%}.category-picker select{max-width:none;width:min(230px,67vw)}}
   </style>
   <link rel="stylesheet" href="./aurora-edicao.css?v=1">
-  <link rel="stylesheet" href="./aurora-vitrine.css?v=6">
+  <link rel="stylesheet" href="./aurora-vitrine.css?v=7">
   <link rel="stylesheet" href="./aurora-reader.css?v=5">
 </head>
 <body>
@@ -115,7 +115,7 @@
     </div>
     <p id="coverNotice" class="cover-notice" role="status"></p>
     <p id="showresume" class="showresume" role="status" aria-live="polite"></p>
-    <details id="descriptionDetails" class="book-description">
+    <details id="descriptionDetails" class="book-description" open>
       <summary>Descrição do livro</summary>
       <div class="description-body">
         <p><strong>Autor:</strong> <span id="descriptionAuthor"></span></p>
@@ -384,7 +384,8 @@
       $('book3d').style.setProperty('--depth',(halfDepth*2)+'px');
       $('bookCategory').value = book.category;
       $('showresume').textContent = book.page > 0 ? `Sua leitura está salva na página ${book.page + 1}. Toque para continuar.` : 'Toque na capa para começar a leitura.';
-      $('descriptionDetails').open=false;
+      $('descriptionDetails').open=true;
+      $('showcase').scrollTop=0;
       $('descriptionAuthor').textContent=known?.author||book.author||'Não informado';
       $('descriptionOrigin').textContent=known?.country||book.country||'Não informada';
       $('descriptionYear').textContent=known?.year||book.year||'Não informado';

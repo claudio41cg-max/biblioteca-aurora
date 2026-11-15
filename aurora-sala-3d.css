@@ -4,12 +4,12 @@ body.aurora-showcase-open{overflow:hidden}
 .aurora-showcase{
   position:fixed;inset:0;z-index:3500;display:flex;flex-direction:column;
   align-items:center;padding:env(safe-area-inset-top) 15px calc(24px + env(safe-area-inset-bottom));
-  overflow-y:auto;overflow-x:hidden;isolation:isolate;color:#352f28;color-scheme:light;
-  font-family:Georgia,'Times New Roman',serif;
+  overflow-y:auto;overflow-x:hidden;isolation:isolate;color:#4a3326;color-scheme:light;
+  font-family:'Palatino Linotype','Book Antiqua',Georgia,serif;
 }
 .aurora-showcase::before{
   content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:0;
-  background:radial-gradient(ellipse at 47% 28%,#fffdf8 0%,#f6f3ec 45%,#e8e2d7 77%,#dbd2c5 100%);
+  background:radial-gradient(ellipse at 47% 28%,#fbf1df 0%,#f2e4cf 45%,#e8d5b9 77%,#dcc4a3 100%);
   transition:opacity .9s ease;
 }
 .aurora-showcase.arriving::before,.aurora-showcase.settled::before{opacity:1}
@@ -18,9 +18,9 @@ body.aurora-showcase-open{overflow:hidden}
   flex-wrap:nowrap;gap:12px;flex:none;margin:14px auto 15px;
 }
 .aurora-show-controls button,.aurora-show-controls select{
-  height:45px;min-width:0;border:0;border-radius:0;color:#4c3827;
+  height:45px;min-width:0;border:0;border-radius:0;color:#553725;
   background:transparent;box-shadow:none;
-  padding:8px 8px;font:italic 500 21px/1.15 'Palatino Linotype','Book Antiqua',Georgia,serif;
+  padding:8px 8px;font:italic 500 22px/1.15 'Palatino Linotype','Book Antiqua',Georgia,serif;
   letter-spacing:.4px;
 }
 .aurora-show-controls button{flex:0 1 138px;cursor:pointer}
@@ -28,15 +28,15 @@ body.aurora-showcase-open{overflow:hidden}
 .aurora-show-controls select{display:block;width:100%;max-width:100%;cursor:pointer;text-align:center;text-overflow:ellipsis}
 .aurora-show-controls button:hover,.aurora-show-controls select:hover{background:transparent;color:#78512e;text-shadow:0 0 8px #be9b7166}
 .aurora-show-controls button:focus-visible,.aurora-show-controls select:focus-visible{outline:2px solid #f1d4a7;outline-offset:3px}
-.aurora-show-controls select option{background:#fffdf8;color:#352f28;font-style:normal}
+.aurora-show-controls select option{background:#fbf1df;color:#4a3326;font-style:normal}
 .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .aurora-show-heading{width:min(100%,740px);text-align:center;flex:none}
 .aurora-show-heading h2{
-  font:normal clamp(26px,6vw,40px)/1.14 Georgia,serif;letter-spacing:-.6px;
-  margin:4px auto 8px;color:#322b25;overflow-wrap:anywhere;
+  font:italic 500 clamp(26px,6vw,40px)/1.16 'Palatino Linotype','Book Antiqua',Georgia,serif;
+  letter-spacing:-.45px;margin:4px auto 8px;color:#432e22;overflow-wrap:anywhere;
   display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;line-clamp:4;overflow:hidden;
 }
-.aurora-show-heading p{font:14px/1.5 system-ui,sans-serif;color:#76695b;margin:0}
+.aurora-show-heading p{font:italic 16px/1.5 'Palatino Linotype','Book Antiqua',Georgia,serif;color:#7a5c43;margin:0}
 .aurora-show-controls,.aurora-show-heading,.aurora-show-description{transition:opacity .4s ease,transform .4s ease}
 .aurora-showcase:not(.settled) .aurora-show-controls,
 .aurora-showcase:not(.settled) .aurora-show-heading,
@@ -102,17 +102,18 @@ body.aurora-showcase-open{overflow:hidden}
 .aurora-css-book .volume-bottom{bottom:0;transform-origin:center bottom;transform:translateZ(calc(0px - var(--half-depth))) rotateX(-90deg)}
 .aurora-show-description{
   width:min(100%,735px);flex:none;margin:0 auto 30px;border:0;
-  border-radius:0;background:transparent;color:#433a30;
-  font:14px/1.6 system-ui,sans-serif;box-shadow:none;
+  border-radius:0;background:transparent;color:#4d382b;
+  font:16px/1.7 'Palatino Linotype','Book Antiqua',Georgia,serif;box-shadow:none;
 }
 .aurora-show-description summary{
-  cursor:pointer;padding:12px 18px;font:italic 500 21px/1.3 'Palatino Linotype','Book Antiqua',Georgia,serif;
-  list-style-position:inside;color:#5b4330;
+  cursor:pointer;padding:12px 18px;font:italic 500 23px/1.3 'Palatino Linotype','Book Antiqua',Georgia,serif;
+  list-style-position:inside;color:#583b27;
 }
 .aurora-show-description summary:hover{color:#986b40;text-shadow:0 0 8px #be9b7166}
 .aurora-show-description summary:focus-visible{outline:2px solid #f1d4a7;outline-offset:3px}
 .aurora-description-text{padding:0 20px 18px;line-height:1.7}
 .aurora-description-text p{margin:10px 0}
+.aurora-description-text strong{color:#573923}
 @media(max-height:690px){.aurora-show-scene{height:clamp(285px,47svh,400px)}.aurora-show-controls{margin:8px auto}}
 @media(max-width:350px){.aurora-show-controls{gap:8px}.aurora-show-controls button,.aurora-show-controls select{padding:8px 7px;font-size:16px}}
 @media(prefers-reduced-motion:reduce){.aurora-showcase::before,.aurora-show-controls,.aurora-show-heading,.aurora-show-description{transition:none}}

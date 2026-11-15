@@ -1,8 +1,8 @@
-/* Vitrine do exemplar: dimensões estáveis, capa original e descrição sob demanda. */
+/* Vitrine do exemplar: capa original e descrição aberta no fundo creme. */
 .showcase{
   padding:env(safe-area-inset-top) 16px calc(24px + env(safe-area-inset-bottom));
-  background:radial-gradient(ellipse at 47% 28%,#fffdf8 0%,#f6f3ec 45%,#e8e2d7 77%,#dbd2c5 100%);
-  color:#352f28;color-scheme:light;scrollbar-color:#b59e84 transparent;
+  background:radial-gradient(ellipse at 47% 28%,#fbf1df 0%,#f2e4cf 45%,#e8d5b9 77%,#dcc4a3 100%);
+  color:#4a3326;color-scheme:light;scrollbar-color:#b59e84 transparent;
 }
 .showhead{
   width:min(100%,730px);
@@ -41,17 +41,17 @@
   flex:none;
 }
 .book-heading h2{
-  color:#322b25;
-  font:normal clamp(27px,6vw,43px)/1.16 Georgia,'Times New Roman',serif;
-  letter-spacing:-.5px;
+  color:#432e22;
+  font:italic 500 clamp(27px,6vw,43px)/1.16 'Palatino Linotype','Book Antiqua',Georgia,serif;
+  letter-spacing:-.45px;
   text-wrap:pretty;
   margin:0 0 7px;
   text-shadow:0 1px 5px #fff8;
 }
 .book-author{
   margin:0;
-  color:#76695b;
-  font:14px/1.5 system-ui,sans-serif;
+  color:#7a5c43;
+  font:italic 16px/1.5 'Palatino Linotype','Book Antiqua',Georgia,serif;
 }
 .scene{
   width:min(100%,850px);
@@ -98,13 +98,13 @@
   border:0;
   border-radius:0;
   background:transparent;
-  color:#45382c;
+  color:#4d382b;
   overflow:hidden;
 }
 .book-description summary{
   padding:17px 19px;
   cursor:pointer;
-  font:italic 500 21px 'Palatino Linotype','Book Antiqua',Georgia,serif;
+  font:italic 500 23px 'Palatino Linotype','Book Antiqua',Georgia,serif;
   list-style:none;
   display:flex;
   align-items:center;
@@ -115,19 +115,19 @@
 .book-description summary::after{content:'⌄';font-size:21px;line-height:1;color:#795a3f;transition:transform .2s}
 .book-description[open] summary::after{transform:rotate(180deg)}
 .book-description summary:focus-visible{outline:2px solid #ffe3b0;outline-offset:-4px}
-.description-body{padding:0 19px 19px;border-top:0;font:14px/1.75 system-ui,sans-serif;color:#53463a}
+.description-body{padding:0 19px 19px;border-top:0;font:16px/1.75 'Palatino Linotype','Book Antiqua',Georgia,serif;color:#4d382b}
 .description-body p{margin:10px 0}
-.description-body strong{color:#423224}
-.description-body .description-text{margin:18px 0 0;white-space:pre-line;font-size:15px;line-height:1.75}
+.description-body strong{color:#573923}
+.description-body .description-text{margin:18px 0 0;white-space:pre-line;font-size:16px;line-height:1.75}
 @media(max-width:540px){
   .showcase{padding-left:14px;padding-right:14px}
   .showhead{margin:13px auto 15px}
   .book-heading{margin:0 auto}
   .book-heading h2{font-size:clamp(27px,7vw,35px)}
-  .book-author{font-size:13px}
+  .book-author{font-size:15px}
   .scene{height:clamp(375px,52svh,490px);margin:0 auto}
   .book-description{margin-top:5px}
-  .book-description summary{padding:15px 16px;font-size:20px}
+  .book-description summary{padding:15px 16px;font-size:22px}
   .description-body{padding:0 16px 17px}
 }
 @media(max-height:680px) and (max-width:540px){

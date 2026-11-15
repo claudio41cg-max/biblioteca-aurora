@@ -41,14 +41,14 @@ assert.match(flip,/const currentDraw=\+\+drawGeneration/,
 assert.match(flip,/aurora-reading-preferences-v2/);
 assert.match(pdf,/aurora-reading-preferences-v2/);
 
-// Ambos os visores 3D precisam trocar a sala marrom pelo off-white.
-assert.match(main3d,/#fffdf8 0%,#f6f3ec 45%,#e8e2d7/);
-assert.match(pdf3d,/#fffdf8 0%,#f6f3ec 45%,#e8e2d7/);
+// Ambos os visores 3D usam o mesmo creme, preservando o padrão da biblioteca.
+assert.match(main3d,/#fbf1df 0%,#f2e4cf 45%,#e8d5b9/);
+assert.match(pdf3d,/#fbf1df 0%,#f2e4cf 45%,#e8d5b9/);
 assert.match(main3d,/\.aurora-show-description\{[\s\S]*?border:0/);
 assert.match(pdf3d,/\.book-description\{[\s\S]*?border:0/);
 assert.match(pdfCss,/\.showcase \.showhead button,\.showcase \.showhead \.category-editor select\{[\s\S]*?border:0/);
 assert.match(pdfCss,/\.reader \.reader-prefs-card/);
 assert.match(pdfCss,/\.pdf-page-controls/);
-assert.match(read('sw.js'),/aurora-v40/);
+assert.match(read('sw.js'),/aurora-v41/);
 
-console.log('V40: off-white nos dois visores, mesmo Aa e navegação, EPUB sem transparência HTML.');
+console.log('V41: creme nos dois visores, mesmo Aa e navegação, EPUB sem transparência HTML.');

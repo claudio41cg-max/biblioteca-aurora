@@ -192,7 +192,9 @@
     showBookDetails(session);
     $('auroraShowCategory').value=categories.includes(book.category)?book.category:'ficcao';
     $('auroraShowCategory').disabled=book.format==='demo';
-    $('auroraShowDescription').open=false;
+    // A sinopse já fica visível ao pegar o livro; pode ser recolhida ao toque.
+    $('auroraShowDescription').open=true;
+    showcase.scrollTop=0;
     const ratio=clamp(Number(book.ratio)||.72,.59,.84);
     cssBook.style.setProperty('--book-ratio',String(ratio));
     const halfDepth=clamp(23+(Number(book.total)||180)/70,22,41);
