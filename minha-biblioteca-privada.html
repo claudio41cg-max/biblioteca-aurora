@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#122c29">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./aurora-online.css?v=5">
+  <title>Biblioteca particular • Biblioteca Aurora</title>
+</head>
+<body class="explore-page private-notion-page">
+  <header class="explore-header">
+    <div class="reader-nav">
+      <a class="back-link" href="./index.html">← Minha estante</a>
+      <a class="back-link" href="./explorar-livros.html">Buscar livros gratuitos</a>
+    </div>
+    <p class="eyebrow">BIBLIOTECA AURORA</p>
+    <h1>Minha <em>biblioteca particular</em></h1>
+    <p class="intro">Acesse e pesquise seu catálogo do Notion sem adicionar os arquivos ao armazenamento do celular.</p>
+  </header>
+  <main class="private-notion-main">
+    <details id="notionConfiguration" class="private-notion-configuration" open>
+      <summary>Conectar ou trocar meu catálogo particular</summary>
+      <form id="notionConnectForm" class="private-notion-form">
+        <label for="notionUrl">Endereço da sua biblioteca do Notion</label>
+        <input type="url" id="notionUrl" placeholder="https://sua-biblioteca.notion.site/..." autocomplete="url" spellcheck="false" required>
+        <button type="submit">Salvar só neste aparelho</button>
+      </form>
+      <p class="reader-small">O endereço fica salvo apenas neste navegador. Não é enviado ao GitHub nem aparece para outras pessoas que usam a Aurora.</p>
+    </details>
+    <p id="notionStatus" class="search-status" role="status" aria-live="polite">Conecte sua biblioteca particular para começar.</p>
+    <section id="privateNotionReader" class="private-notion-reader" hidden>
+      <div class="private-notion-toolbar">
+        <span>⌕ Use a lupa dentro do catálogo para pesquisar títulos e autores.</span>
+        <button id="notionReload" type="button">Atualizar catálogo</button>
+      </div>
+      <iframe id="notionFrame" title="Catálogo pessoal do Notion dentro da Biblioteca Aurora" loading="eager" referrerpolicy="no-referrer" allow="clipboard-read; clipboard-write"></iframe>
+      <p class="private-notion-note">Esta área exibe o catálogo no próprio visualizador do Notion. Os direitos e o acesso aos arquivos continuam sob responsabilidade de quem administra a biblioteca original. A Aurora não copia nem distribui esses livros.</p>
+      <div class="private-notion-footer">
+        <a id="notionOutside" class="back-link" href="#" target="_blank" rel="noopener noreferrer">Abrir no Notion, se o visualizador não carregar</a>
+        <button id="notionDisconnect" type="button">Esquecer acesso neste aparelho</button>
+      </div>
+    </section>
+  </main>
+  <script src="./aurora-notion-privado.js?v=1" defer></script>
+</body>
+</html>

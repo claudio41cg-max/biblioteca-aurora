@@ -4,6 +4,12 @@ Biblioteca pessoal PWA, hospedada no GitHub Pages, com estante realista, livros 
 
 ## Uso no celular
 
+### Minha biblioteca particular (Notion)
+
+Na estante e em **Explorar livros**, o botão **Minha biblioteca particular** abre `minha-biblioteca-privada.html`. O proprietário pode informar o endereço HTTPS do seu Notion Site e salvá-lo **somente no armazenamento local do navegador** (`aurora-private-notion-link-v1`), ou abrir um link pessoal de conexão usando o fragmento `#conectar=<URL codificada>`. Esse fragmento é removido imediatamente da barra de endereço depois de ser lido. **Não inclua o endereço de uma biblioteca paga no código público nem no service worker.** Outros leitores não recebem a configuração.
+
+A página incorpora o Notion Site no visualizador permitido pela plataforma e usa a própria busca do Notion, sem tentar ler a tabela via API, contornar login ou copiar PDFs e EPUBs. O site original e suas marcas podem aparecer dentro do quadro. Se a incorporação não funcionar ou exigir autenticação, há um link explícito para abrir o Notion. Consulta integrada pela mesma caixa de pesquisa da Aurora só será possível com acesso autorizado da integração à base do Notion e hospedagem segura dos tokens. Quem compartilha apenas um link de visualização de um workspace externo não concede acesso à API do banco de dados.
+
 ### Explorar livros online (sem baixar automaticamente)
 
 Na página principal, **⌕ Buscar livros** abre `explorar-livros.html`. A pesquisa consulta, em paralelo, até quatro acervos de livros (Wikisource, Open Library, Wikilivros e obras do Project Gutenberg catalogadas pelo Internet Archive). Para audiolivros, consulta o LibriVox e, caso falhe, o catálogo de gravações do Internet Archive. Resultados aparecem dentro da Aurora, sem links externos visíveis na busca. As APIs externas podem estar indisponíveis ou sujeitas a bloqueios de CORS no navegador. É possível escolher português ou todos os idiomas.
