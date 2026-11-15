@@ -1,15 +1,15 @@
-const CACHE = 'aurora-v33';
+const CACHE = 'aurora-v34';
 const CORE = [
   './', './index.html', './index.html?v=22', './meus-livros.html?v=22',
   './explorar-livros.html', './ler-online.html', './minha-biblioteca-privada.html', './aurora-notion-privado.js?v=2', './aurora-online.css?v=6',
-  './aurora-online.js?v=5', './aurora-online-estante.js?v=2', './aurora-leitura-online.js?v=5',
+  './aurora-online.js?v=5', './aurora-online-estante.js?v=3', './aurora-leitura-online.js?v=5',
   './ler-epub.html', './ouvir-livro.html', './aurora-novos-leitores.css?v=1', './aurora-novos-leitores.css?v=2',
-  './aurora-formatos.js?v=1', './aurora-formatos.js?v=2', './aurora-formatos.js?v=3', './aurora-novos-formatos.js?v=2',
+  './aurora-formatos.js?v=1', './aurora-formatos.js?v=2', './aurora-formatos.js?v=3', './aurora-formatos.js?v=4', './aurora-novos-formatos.js?v=2',
   './aurora-epub-reader.js?v=2', './aurora-audiobook.js?v=1', './vendor/jszip.min.js',
   './aurora-estante.css?v=15', './aurora-avancado.css?v=4', './aurora-sala-3d.css?v=2', './aurora-edicao.css?v=1',
   './aurora-ambiente.css?v=2',
   './aurora-vitrine.css?v=5', './aurora-reader.css?v=3', './aurora-sinopses.js?v=2',
-  './aurora-estante.js?v=6', './aurora-sala-3d.js?v=7', './aurora-importados.js?v=21', './aurora-avancado.js?v=6',
+  './aurora-estante.js?v=7', './aurora-sala-3d.js?v=8', './aurora-importados.js?v=21', './aurora-avancado.js?v=6',
   './aurora-pdf-covers.js?v=1', './aurora-pdf-import.js?v=5',
   './aurora-livro-3d.mjs?v=4', './aurora-edition-surfaces.js?v=1', './assets/prateleira-romances.webp',
   './assets/prateleira-picantes.webp', './assets/prateleira-ficcao.webp',

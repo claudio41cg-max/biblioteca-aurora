@@ -5,7 +5,7 @@ import vm from 'node:vm';
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const main=read('index.html'),explore=read('explorar-livros.html'),reader=read('ler-online.html');
 assert.match(main,/href="\.\/explorar-livros.html"/);
-assert.match(main,/aurora-online-estante\.js\?v=2/);
+assert.match(main,/aurora-online-estante\.js\?v=3/);
 assert.match(main,/id="book3d"/);
 assert.match(main,/id="openbook"/);
 assert.match(explore,/id="tabBooks"/);
@@ -92,4 +92,15 @@ vm.runInNewContext(read('aurora-online-estante.js'),{document:shelfDoc,window:{A
 assert.equal(rows.get('shelf-romance').children.length,2);
 rows.get('shelf-romance').children[0].handlers.click();
 assert.match(fakeLocation.href,/^\.\/ler-online\.html/,'lombada abre apenas a Aurora');
+const rows3=new Map([['shelf-romance',new Element()],['shelf-ficcao',new Element()],['shelf-adulto',new Element()],['shelf-brasileiros',new Element()]]);
+let physicalBook=null;
+vm.runInNewContext(read('aurora-online-estante.js'),{
+  document:{getElementById:id=>rows3.get(id),addEventListener(){},dispatchEvent(){}},
+  window:{AuroraShelf:shelf,AuroraShelfViewer:{open:(_button,book)=>physicalBook=book},addEventListener(){}},
+  location:{href:''},localStorage:fakeStorage,URLSearchParams,Event:class{}
+});
+rows3.get('shelf-romance').children[0].handlers.click();
+assert.equal(physicalBook.format,'online');
+assert.match(physicalBook.readerURL,/^\.\/ler-online\.html/);
+assert.equal(typeof physicalBook.updateCategory,'function');
 console.log('Busca em múltiplos acervos, fallback, audiolivro e leitura interna validados.');

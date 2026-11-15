@@ -6,6 +6,10 @@ Biblioteca pessoal PWA, hospedada no GitHub Pages, com estante realista, livros 
 
 ### EPUB: páginas e capítulos completos
 
+**Entrada 3D unificada (edição 34):** toda lombada adicionada à estante deve passar pelo mesmo volume físico e animação antes de abrir seu leitor. Isso inclui PDF e EPUB locais, TXT importado e referências de livros online. Ao abrir a capa de um TXT, a Aurora retorna ao leitor de texto já existente na estante; ao abrir a capa de uma obra online, segue para `ler-online.html`, mantendo os arquivos na fonte original. Audiolivros com capa também seguem o visor. Livros demonstrativos sem conteúdo integral apresentam uma capa explicitamente identificada como **DEMONSTRAÇÃO**, sem afirmar que a obra completa foi instalada.
+
+O visor gera capas ilustrativas para edições sem imagens e, se uma capa remota não carregar, preserva a entrada 3D usando uma capa local. A seleção de categoria de livros TXT ou online atualiza respectivamente `aurora-txt-categories` e `aurora-online-books-v1`; PDFs e EPUBs continuam utilizando IndexedDB. Os leitores de PDF, EPUB, TXT e online permanecem com suas características individuais; apenas a retirada, rotação e abertura do livro foram padronizadas.
+
 **EPUB também passa pela estante 3D:** ao tocar em um EPUB importado, a Aurora usa o mesmo voo até o centro da tela, a rotação e a abertura do livro que já existiam para PDF. Quando o EPUB traz uma capa embutida, ela é usada no volume 3D. Para versões que não declaram a capa corretamente, o importador procura também imagens identificadas como `cover`/`capa` e referências `guide` de EPUB 2. Se realmente não houver capa, cria uma arte tipográfica identificada **CAPA ILUSTRATIVA • EPUB**; ela não finge ser a capa original de uma edição física.
 
 EPUBs importados antes dessa atualização **não precisam ser baixados novamente**: ao tocar em um deles sem imagem, a Aurora tenta recuperar a capa do arquivo que já está no IndexedDB, salva a correção e abre o mesmo visor físico. Isso não modifica os PDFs existentes nem o conteúdo do EPUB. O leitor de capítulos `ler-epub.html` continua separado, iniciado ao abrir a capa 3D.

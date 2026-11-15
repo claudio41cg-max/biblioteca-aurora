@@ -21,9 +21,9 @@
   const blobToData=blob=>new Promise((resolve,reject)=>{
     const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(reader.error);reader.readAsDataURL(blob);
   });
-  // Capa identificadora quando o EPUB não fornece imagem de capa. Nunca é
-  // apresentada como a fotografia original de uma edição impressa.
-  function createEpubCover(title,author){
+  // Capa identificadora para livros sem imagem própria (EPUB, TXT, online).
+  // Nunca é apresentada como fotografia da edição original.
+  function createDigitalCover(title,author,format='EPUB'){
     const canvas=document.createElement('canvas');
     canvas.width=600;canvas.height=840;
     const ctx=canvas.getContext('2d');
@@ -58,9 +58,11 @@
     if(writer)ctx.fillText(writer,300,645,500);
     ctx.strokeStyle='#d8b78488';ctx.beginPath();ctx.moveTo(185,696);ctx.lineTo(415,696);ctx.stroke();
     ctx.font='18px Georgia,serif';ctx.fillStyle='#d8b784';
-    ctx.fillText('CAPA ILUSTRATIVA • EPUB',300,758);
+    const labels={epub:'EPUB',txt:'TEXTO',online:'LIVRO ONLINE',demo:'DEMONSTRAÇÃO',audio:'AUDIOLIVRO'};
+    ctx.fillText('CAPA ILUSTRATIVA • '+(labels[String(format).toLowerCase()]||'LIVRO DIGITAL'),300,758);
     return canvas.toDataURL('image/png');
   }
+  const createEpubCover=(title,author)=>createDigitalCover(title,author,'epub');
   async function openEpub(data){
     if(!window.JSZip)throw new Error('O módulo EPUB ainda não carregou. Abra o aplicativo novamente.');
     const zip=await JSZip.loadAsync(data);
@@ -199,5 +201,5 @@
     const tx=db.transaction(store,'readwrite');tx.objectStore(store).put(item);
     tx.oncomplete=()=>{db.close();resolve();};tx.onerror=()=>{db.close();reject(tx.error);};
   }));}
-  window.AuroraFormats={openEpub,epubChapter,audioMetadata,database,readRecord,saveRecord,cleanName,blobToData,createEpubCover};
+  window.AuroraFormats={openEpub,epubChapter,audioMetadata,database,readRecord,saveRecord,cleanName,blobToData,createEpubCover,createDigitalCover};
 })();

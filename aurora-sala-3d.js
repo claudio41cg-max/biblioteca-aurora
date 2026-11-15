@@ -11,11 +11,13 @@
   const categories=['romance','adulto','ficcao','brasileiros'];
   let active=null;
   const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
-  const readerURL=book=>book.format==='epub'
+  const readerURL=book=>book.format==='online'
+    ?(/^(\.\/)?ler-online\.html\?/.test(book.readerURL||'')?book.readerURL:'./explorar-livros.html')
+    :book.format==='epub'
     ?'./ler-epub.html?livro='+encodeURIComponent(book.id)+'&v=2'
     :book.format==='audio'?'./ouvir-livro.html?livro='+encodeURIComponent(book.id)+'&v=1'
     :'./meus-livros.html?livro='+encodeURIComponent(book.id)+'&open=1&v=19';
-  const editionURL=book=>book.format==='epub'||book.format==='audio'?readerURL(book):'./meus-livros.html?livro='+encodeURIComponent(book.id)+'&v=19';
+  const editionURL=book=>book.format==='epub'||book.format==='audio'||book.format==='online'?readerURL(book):'./meus-livros.html?livro='+encodeURIComponent(book.id)+'&v=19';
   let fallbackPose={x:-.09,y:.28};
 
   function setPose(x,y){
@@ -43,6 +45,18 @@
     window.__auroraSelectedBook=null;
     if(!fromHistory && history.state?.auroraViewerId===session.book.id)history.back();
     session.button.focus({preventScroll:true});
+  }
+
+  function enterReader(){
+    const session=active;
+    if(!session?.finished)return;
+    if(typeof session.book.openReader==='function'){
+      const action=session.book.openReader;
+      close();
+      action();
+      return;
+    }
+    location.href=readerURL(session.book);
   }
 
   function finishFlight(session){
@@ -97,9 +111,9 @@
 
   function open(button,book){
     if(active)return;
-    // Não salta o visor 3D quando uma edição EPUB não possui foto da capa.
-    if(book?.format==='epub'&&!book.cover&&window.AuroraFormats?.createEpubCover){
-      book.cover=window.AuroraFormats.createEpubCover(book.name||book.title,book.author);
+    // Toda edição adicionada passa pelo mesmo visor, mesmo quando não traz capa.
+    if(book&&!book.cover&&window.AuroraFormats?.createDigitalCover){
+      book.cover=window.AuroraFormats.createDigitalCover(book.name||book.title,book.author,book.format);
       book.coverSource='generated';
     }
     if(!book?.cover){location.href=editionURL(book);return;}
@@ -116,6 +130,7 @@
     $('auroraShowTitle').textContent=known?.title||book.title||book.name;
     $('auroraShowAuthor').textContent='por '+(known?.author||book.author||'Autor não informado');
     $('auroraShowCategory').value=categories.includes(book.category)?book.category:'ficcao';
+    $('auroraShowCategory').disabled=book.format==='demo';
     $('auroraDescriptionAuthor').textContent=known?.author||book.author||'Não informado';
     $('auroraDescriptionOrigin').textContent=known?.country||book.country||'Não informada';
     $('auroraDescriptionYear').textContent=known?.year||book.year||'Não informado';
@@ -132,15 +147,23 @@
     // A textura usada no primeiro quadro é a mesma que seguirá no modelo WebGL.
     window.__auroraSelectedBook={id:book.id,name:book.name||book.title,
       cover:book.cover,back:book.back,spine:book.spine,ratio,total:book.total};
-    cover.alt=(book.coverSource==='generated'?'Capa ilustrativa do EPUB ':'Capa da edição ')+(book.title||book.name);
+    cover.alt=(book.coverSource==='generated'?'Capa ilustrativa de ':'Capa da edição ')+(book.title||book.name);
     cover.src=book.cover;
     window.dispatchEvent(new CustomEvent('aurora:book-selected',{detail:window.__auroraSelectedBook}));
     if(cover.complete&&cover.naturalWidth)scene.classList.remove('cover-loading');
     // Se WebGL não inicializar neste aparelho, o volume CSS tem seis faces 3D.
     session.fallback=setTimeout(()=>{
       if(active!==session||session.started)return;
-      if(cover.naturalWidth){scene.classList.add('aurora-force-css');beginFlight(session);}
-      else location.href=editionURL(book);
+      if(!cover.naturalWidth&&window.AuroraFormats?.createDigitalCover){
+        book.cover=window.AuroraFormats.createDigitalCover(book.name||book.title,book.author,book.format);
+        book.coverSource='generated';
+        cover.alt='Capa ilustrativa de '+(book.title||book.name);
+        cover.src=book.cover;
+        window.__auroraSelectedBook.cover=book.cover;
+      }
+      scene.classList.remove('cover-loading');
+      scene.classList.add('aurora-force-css');
+      beginFlight(session);
     },2300);
     try{history.pushState({auroraViewerId:book.id},'',location.href);}catch{}
   }
@@ -153,7 +176,7 @@
     if(active?.book.id===event.detail?.id)beginFlight(active);
   });
   window.addEventListener('aurora:open-book',()=>{
-    if(active?.finished)location.href=readerURL(active.book);
+    enterReader();
   });
   let drag=null;
   cssBook.addEventListener('pointerdown',event=>{
@@ -171,12 +194,12 @@
     if(!drag||event.pointerId!==drag.id)return;
     const moved=drag.moved;
     drag=null;
-    if(!moved && active?.finished)location.href=readerURL(active.book);
+    if(!moved)enterReader();
   });
   cssBook.addEventListener('pointercancel',()=>{drag=null;});
   cssBook.addEventListener('keydown',event=>{
     if((event.key==='Enter'||event.key===' ')&&active?.finished&&(!scene.classList.contains('three-ready')||scene.classList.contains('aurora-force-css'))){
-      event.preventDefault();location.href=readerURL(active.book);
+      event.preventDefault();enterReader();
     }
   });
   $('auroraShowBack').addEventListener('click',()=>close());
@@ -188,6 +211,23 @@
     const session=active;
     const category=event.target.value;
     if(!session||!categories.includes(category))return;
+    const moveToCategory=()=>{
+      session.book.category=category;
+      const target=$('shelf-'+category);
+      if(target){
+        const old=session.button.closest('.bookrow')?.id?.slice(6);
+        target.append(session.button);
+        window.AuroraShelf?.refreshCount(old);
+        window.AuroraShelf?.refreshCount(category);
+      }
+    };
+    if(typeof session.book.updateCategory==='function'){
+      Promise.resolve().then(()=>session.book.updateCategory(category)).then(moveToCategory).catch(error=>{
+        console.warn('Categoria não salva:',error);
+        event.target.value=session.book.category;
+      });
+      return;
+    }
     const request=indexedDB.open('aurora-pdf-library',2);
     request.onsuccess=()=>{
       const db=request.result;
@@ -200,14 +240,7 @@
         store.put(get.result);
       };
       tx.oncomplete=()=>{
-        session.book.category=category;
-        const target=$('shelf-'+category);
-        if(target){
-          const old=session.button.closest('.bookrow')?.id?.slice(6);
-          target.append(session.button);
-          window.AuroraShelf?.refreshCount(old);
-          window.AuroraShelf?.refreshCount(category);
-        }
+        moveToCategory();
         db.close();
       };
       tx.onerror=()=>{db.close();event.target.value=session.book.category;};

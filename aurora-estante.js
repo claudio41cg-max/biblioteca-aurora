@@ -137,7 +137,21 @@
       });
       shelfBooks.forEach(book=>{
         const button=makeSpine(book);
-        button.addEventListener('click',()=>openText(book.title));
+        button.addEventListener('click',()=>{
+          if(!window.AuroraShelfViewer?.open){openText(book.title);return;}
+          const imported=book.source==='txt';
+          window.AuroraShelfViewer.open(button,{
+            id:(imported?'txt:':'demo:')+normalize(book.title),
+            format:imported?'txt':'demo',title:book.title,name:book.title,
+            author:book.author,category:getCategory(txtCategories[book.title],book.title),
+            total:Math.max(24,Math.ceil((texts[book.title]||demo).length/450)),ratio:.72,
+            cover:'',coverSource:'generated',openReader:()=>openText(book.title),
+            updateCategory:imported?next=>{
+              txtCategories[book.title]=next;
+              localStorage.setItem('aurora-txt-categories',JSON.stringify(txtCategories));
+            }:undefined
+          });
+        });
         row.append(button);
       });
       cabinet.append(row);
@@ -197,7 +211,10 @@
       }
       draw();
       toggleMenu(false);
-      openText(title);
+      const row=$('shelf-'+getCategory(txtCategories[title],title));
+      const added=Array.from(row?.querySelectorAll('.book-spine')||[]).find(button=>
+        button.dataset.source==='txt'&&button.dataset.title===normalize(title));
+      if(added)added.click();else openText(title);
     } catch(error) {
       alert('Não foi possível importar o TXT: '+(error.message||error));
     } finally {event.target.value='';}
