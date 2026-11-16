@@ -42,13 +42,13 @@ assert.match(flip,/aurora-reading-preferences-v2/);
 assert.match(pdf,/aurora-reading-preferences-v2/);
 
 // Ambos os visores 3D usam o mesmo creme, preservando o padrão da biblioteca.
-assert.match(main3d,/#fbf1df 0%,#f2e4cf 45%,#e8d5b9/);
-assert.match(pdf3d,/#fbf1df 0%,#f2e4cf 45%,#e8d5b9/);
+assert.match(main3d,/#fff8ec 0%,#f6ebda 47%,#eadcc9/);
+assert.match(pdf3d,/#fff8ec 0%,#f6ebda 47%,#eadcc9/);
 assert.match(main3d,/\.aurora-show-description\{[\s\S]*?border:0/);
 assert.match(pdf3d,/\.book-description\{[\s\S]*?border:0/);
 assert.match(pdfCss,/\.showcase \.showhead button,\.showcase \.showhead \.category-editor select\{[\s\S]*?border:0/);
 assert.match(pdfCss,/\.reader \.reader-prefs-card/);
 assert.match(pdfCss,/\.pdf-page-controls/);
-assert.match(read('sw.js'),/aurora-v42/);
+assert.match(read('sw.js'),/aurora-v43/);
 
 console.log('V41: creme nos dois visores, mesmo Aa e navegação, EPUB sem transparência HTML.');
