@@ -109,6 +109,7 @@
         }
         const button=shelf.makeSpine({
           title:book.title,
+          author:book.author,
           source:book.format||'pdf',
           total:book.total,
           cover:book.cover,
