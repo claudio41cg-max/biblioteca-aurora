@@ -1,11 +1,11 @@
-const CACHE = 'aurora-v46';
+const CACHE = 'aurora-v47';
 const CORE = [
-  './', './index.html', './index.html?v=22', './index.html?v=35', './index.html?v=36', './index.html?v=37', './index.html?v=38', './index.html?v=39', './index.html?v=40', './index.html?v=41', './index.html?v=42', './index.html?v=43', './index.html?v=44', './index.html?v=45', './index.html?v=46', './meus-livros.html?v=22', './meus-livros.html?v=20', './meus-livros.html?v=21',
+  './', './index.html', './index.html?v=22', './index.html?v=35', './index.html?v=36', './index.html?v=37', './index.html?v=38', './index.html?v=39', './index.html?v=40', './index.html?v=41', './index.html?v=42', './index.html?v=43', './index.html?v=44', './index.html?v=45', './index.html?v=47', './index.html?v=46', './meus-livros.html?v=22', './meus-livros.html?v=20', './meus-livros.html?v=21',
   './explorar-livros.html', './ler-online.html', './minha-biblioteca-privada.html', './aurora-notion-privado.js?v=2', './aurora-online.css?v=6', './aurora-online.css?v=7',
   './aurora-online.js?v=5', './aurora-online-estante.js?v=3', './aurora-leitura-online.js?v=5', './aurora-leitura-online.js?v=6',
   './ler-epub.html', './ouvir-livro.html', './aurora-novos-leitores.css?v=1', './aurora-novos-leitores.css?v=2', './aurora-novos-leitores.css?v=3', './aurora-novos-leitores.css?v=4', './aurora-novos-leitores.css?v=5', './aurora-novos-leitores.css?v=6', './aurora-novos-leitores.css?v=7', './aurora-novos-leitores.css?v=8',
   './aurora-formatos.js?v=1', './aurora-formatos.js?v=2', './aurora-formatos.js?v=3', './aurora-formatos.js?v=4', './aurora-formatos.js?v=5', './aurora-formatos.js?v=6', './aurora-formatos.js?v=7', './aurora-novos-formatos.js?v=2', './aurora-novos-formatos.js?v=3', './aurora-novos-formatos.js?v=4',
-  './aurora-epub-reader.js?v=2', './aurora-epub-reader.js?v=3', './aurora-epub-reader.js?v=4', './aurora-epub-reader.js?v=5', './aurora-epub-reader.js?v=6', './aurora-epub-reader.js?v=7', './aurora-epub-reader.js?v=8', './aurora-audiobook.js?v=1', './aurora-som-folhas.js?v=1', './aurora-som-folhas.js?v=2', './aurora-titulos.js?v=1', './vendor/jszip.min.js',
+  './aurora-epub-reader.js?v=2', './aurora-epub-reader.js?v=3', './aurora-epub-reader.js?v=4', './aurora-epub-reader.js?v=5', './aurora-epub-reader.js?v=6', './aurora-epub-reader.js?v=7', './aurora-epub-reader.js?v=8', './aurora-audiobook.js?v=1', './aurora-som-folhas.js?v=1', './aurora-som-folhas.js?v=2', './aurora-titulos.js?v=1', './aurora-lombadas.js?v=1', './vendor/jszip.min.js',
   './aurora-estante.css?v=15', './aurora-estante.css?v=16', './aurora-estante.css?v=17', './aurora-avancado.css?v=4', './aurora-sala-3d.css?v=2', './aurora-sala-3d.css?v=3', './aurora-sala-3d.css?v=4', './aurora-sala-3d.css?v=5', './aurora-sala-3d.css?v=6', './aurora-sala-3d.css?v=7', './aurora-edicao.css?v=1',
   './aurora-ambiente.css?v=2', './aurora-estante-realista.css?v=1', './aurora-estante-realista.css?v=2', './aurora-estante-realista.css?v=3', './aurora-catalogos.css?v=1',
   './aurora-vitrine.css?v=5', './aurora-vitrine.css?v=6', './aurora-vitrine.css?v=7', './aurora-vitrine.css?v=8', './aurora-reader.css?v=3', './aurora-reader.css?v=4', './aurora-reader.css?v=5', './aurora-sinopses.js?v=2', './aurora-sinopses.js?v=3',
@@ -23,9 +23,21 @@ const CORE = [
   './manifest.webmanifest'
 ];
 
+// Protege a instalação em conexões lentas: só a página atual é obrigatória.
+const NAVIGATION_TIMEOUT_MS = 6000;
+async function fetchWithTimeout(resource, milliseconds) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), milliseconds);
+  try { return await fetch(resource, {signal: controller.signal}); }
+  finally { clearTimeout(timer); }
+}
 self.addEventListener('install', event => {
   self.skipWaiting();
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(CORE)));
+  event.waitUntil(caches.open(CACHE).then(async cache => {
+    // Se a versão nova não estiver disponível, a antiga não é descartada.
+    await cache.add('./index.html?v=47');
+    await Promise.allSettled(CORE.filter(url => url !== './index.html?v=47').map(url => cache.add(url)));
+  }));
 });
 
 self.addEventListener('activate', event => {
@@ -42,8 +54,8 @@ self.addEventListener('fetch', event => {
     // O endereço raiz pode permanecer no cache do GitHub Pages após um deploy.
     // A entrada versionada abre a edição atual também nos PWAs já instalados.
     const isAppRoot = new URL(request.url).pathname === new URL(self.registration.scope).pathname;
-    const resource = isAppRoot ? new Request(new URL('./index.html?v=46',self.registration.scope)) : request;
-    event.respondWith(fetch(resource).then(response => {
+    const resource = isAppRoot ? new Request(new URL('./index.html?v=47',self.registration.scope)) : request;
+    event.respondWith(fetchWithTimeout(resource,NAVIGATION_TIMEOUT_MS).then(response => {
       if (response.ok) {
         const copy = response.clone();
         caches.open(CACHE).then(cache => cache.put(request,copy)).catch(() => {});
