@@ -21,7 +21,7 @@ assert.match(webgl,/img\.crossOrigin='anonymous'/,'capas remotas respeitam CORS 
 assert.doesNotMatch(webgl,/attempt\(false\)/,'não tenta enviar imagens remotas sem CORS à GPU');
 assert.match(html,/aurora-edition-surfaces\.js\?v=4/);
 assert.match(html,/aurora-livro-3d\.mjs\?v=7/);
-assert.match(worker,/aurora-v46/);
+assert.match(worker,/aurora-v47/);
 assert.match(worker,/index\.html\?v=46/);
 
 function fakeContext(){
