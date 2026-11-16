@@ -83,9 +83,11 @@
     }]));
     const metaCover=nodes(packageXML,'meta').find(item=>item.getAttribute('name')==='cover')?.getAttribute('content');
     const images=[...manifest.entries()].filter(([,item])=>item.type.startsWith('image/')&&entry(item.path));
+    const backMarker=/(?:back[\s_-]?cover|rear[\s_-]?cover|contracapa|contra[\s_-]?capa|capa[\s_-]?(?:verso|traseira)|cover[\s_-]?back)/i;
     let coverEntry=images.find(([id,item])=>item.properties.split(/\s+/).includes('cover-image')||id===metaCover)?.[1];
-    if(!coverEntry)coverEntry=images.find(([id,item])=>/cover|capa|front/i.test(id)||
-      /(?:^|\/)(?:cover|capa|front)[^/]*\.(?:jpe?g|png|webp|svg)$/i.test(item.path))?.[1];
+    if(!coverEntry)coverEntry=images.find(([id,item])=>!backMarker.test(id+' '+item.path)&&
+      (/cover|capa|front/i.test(id)||
+        /(?:^|\/)(?:cover|capa|front)[^/]*\.(?:jpe?g|png|webp|svg)$/i.test(item.path)))?.[1];
     // EPUB 2 frequentemente aponta a capa por <guide><reference type="cover">.
     if(!coverEntry){
       const reference=nodes(packageXML,'reference').find(item=>/cover/i.test(item.getAttribute('type')||''));
@@ -107,6 +109,21 @@
       const mime=coverEntry.type.startsWith('image/')?coverEntry.type:'image/jpeg';
       cover=await blobToData(new Blob([bytes],{type:mime}));
     }
+    // Uma contracapa é uma imagem própria da edição, nunca a última página
+    // de texto. Só usamos arquivos com identificação inequívoca no EPUB.
+    const backEntry=images.find(([id,item])=>
+      backMarker.test(id+' '+item.path) && item.path!==coverEntry?.path &&
+      /^image\/(?:jpeg|png|webp)$/i.test(item.type))?.[1];
+    let back='';
+    if(backEntry){
+      const backFile=entry(backEntry.path);
+      if(backFile && (!backFile._data?.uncompressedSize || backFile._data.uncompressedSize<=8e6)){
+        const bytes=await backFile.async('uint8array');
+        if(bytes.byteLength<=8e6){
+          back=await blobToData(new Blob([bytes],{type:backEntry.type}));
+        }
+      }
+    }
     const isReadable=item=>item&&(/xhtml|html/.test(item.type)||/\.x?html?$/i.test(item.path))&&entry(item.path);
     let spine=nodes(packageXML,'itemref').filter(item=>item.getAttribute('linear')!=='no')
       .map(item=>manifest.get(item.getAttribute('idref'))).filter(isReadable);
@@ -118,7 +135,7 @@
     return {zip,filenames,spine:spine.map(item=>({...item,path:entry(item.path).name})),title:byLocal(metadata,'title')?.textContent?.trim()||'',
       author:byLocal(metadata,'creator')?.textContent?.trim()||'',
       description:byLocal(metadata,'description')?.textContent?.trim()||'',
-      cover};
+      cover,back};
   }
   // Mantém a ordem original de texto e imagens, inclusive nas páginas de abertura.
   // Todas as imagens são lidas de dentro do próprio EPUB, sem requisições externas.
