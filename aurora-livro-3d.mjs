@@ -1,5 +1,6 @@
 /* Livro físico em WebGL: capa, contracapa, lombada e miolo são faces distintas.
-   A capa original do PDF é aplicada somente à FRENTE; nunca fica espelhada no verso. */
+   Arte original na frente, acabamento de estúdio e movimento com inércia limitada.
+   O visor CSS permanece disponível se o WebGL não conseguir exibir a capa. */
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js';
 
 const stage=document.getElementById('scene');
@@ -13,8 +14,9 @@ function initialize(){
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1,2));
   renderer.setClearColor(0x000000,0);
   renderer.outputColorSpace=THREE.SRGBColorSpace;
-  renderer.toneMapping=THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure=1.46;
+  // Neutral mantém a arte das capas mais próxima das cores originais.
+  renderer.toneMapping=THREE.NeutralToneMapping;
+  renderer.toneMappingExposure=1.08;
   renderer.domElement.className='aurora-webgl';
   renderer.domElement.setAttribute('aria-label','Livro tridimensional: arraste para girar e toque para abrir');
   renderer.domElement.setAttribute('role','button');
@@ -26,23 +28,76 @@ function initialize(){
     // disponível no livro CSS, sem mostrar a capa provisória marrom.
     stage.classList.remove('three-ready');
   });
+  renderer.domElement.addEventListener('webglcontextrestored',()=>{
+    if(currentBook) display(currentBook);
+  });
 
+  const reducedMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  const maxAniso=Math.min(renderer.capabilities.getMaxAnisotropy(),8);
   const scene=new THREE.Scene();
   const camera=new THREE.PerspectiveCamera(36,1,.1,80);
   // Distância constante: rolar a página não pode ampliar ou reduzir o exemplar.
   camera.position.set(0,.08,6.4);
-  scene.add(new THREE.HemisphereLight(0xfff4df,0x665144,2.7));
-  const key=new THREE.DirectionalLight(0xfff0d9,3.0);
+  // Reflexos amplos de softboxes, criados uma vez e reutilizados em todos os livros.
+  // Em aparelhos com pouca memória, a iluminação convencional continua suficiente.
+  function buildEnvironment(){
+    const pmrem=new THREE.PMREMGenerator(renderer);
+    try{
+      const studio=new THREE.Scene();
+      studio.add(new THREE.Mesh(new THREE.BoxGeometry(10,10,10),
+        new THREE.MeshBasicMaterial({color:0x66584c,side:THREE.BackSide})));
+      function softbox(width,height,color,x,y,z){
+        const panel=new THREE.Mesh(new THREE.PlaneGeometry(width,height),
+          new THREE.MeshBasicMaterial({color,side:THREE.DoubleSide,toneMapped:false}));
+        panel.position.set(x,y,z);
+        panel.lookAt(0,0,0);
+        studio.add(panel);
+      }
+      softbox(4,3,0xffe8c7,-3.5,3.8,4);
+      softbox(3,4,0xbfd9df,4,1,-3.5);
+      softbox(5,5,0xfff8e8,0,4.9,0);
+      const environment=pmrem.fromScene(studio,.06).texture;
+      studio.traverse(item=>{item.geometry?.dispose();item.material?.dispose();});
+      return environment;
+    } finally {pmrem.dispose();}
+  }
+  try{
+    if(navigator.deviceMemory === undefined || navigator.deviceMemory>=3){
+      scene.environment=buildEnvironment();
+      scene.environmentIntensity=.5;
+    }
+  }catch(error){console.warn('Reflexos de estúdio indisponíveis; usando luzes padrão:',error);}
+  scene.add(new THREE.HemisphereLight(0xfff4df,0x665144,1.65));
+  const key=new THREE.DirectionalLight(0xfff0d9,2.35);
   key.position.set(-3.5,5,6);
   scene.add(key);
-  const rim=new THREE.DirectionalLight(0xb8d8d1,1.5);
+  const rim=new THREE.DirectionalLight(0xb8d8d1,1.15);
   rim.position.set(4,1.6,-3);
   scene.add(rim);
   const group=new THREE.Group();
   scene.add(group);
 
+  // Sombra difusa atrás da base, separada do miolo para não escurecer as páginas.
+  function makeContactShadow(){
+    const canvas=document.createElement('canvas');
+    canvas.width=canvas.height=256;
+    const ctx=canvas.getContext('2d');
+    const shade=ctx.createRadialGradient(128,128,5,128,128,126);
+    shade.addColorStop(0,'rgba(45,30,21,.35)');
+    shade.addColorStop(.55,'rgba(45,30,21,.13)');
+    shade.addColorStop(1,'rgba(45,30,21,0)');
+    ctx.fillStyle=shade;
+    ctx.fillRect(0,0,256,256);
+    const texture=new THREE.CanvasTexture(canvas);
+    texture.colorSpace=THREE.SRGBColorSpace;
+    return new THREE.Mesh(new THREE.PlaneGeometry(1,1),
+      new THREE.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false,toneMapped:false}));
+  }
+  const shadowMesh=makeContactShadow();
+  scene.add(shadowMesh);
+
   let currentBook=null,frontHinge=null,down=null,rotation={x:-.09,y:.28},opening=false,modelGeneration=0;
-  let scheduled=false,requestId=0;
+  let scheduled=false,requestId=0,inertiaId=0,velocityY=0,lastMoveTime=0;
   const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
   const render=()=>renderer.render(scene,camera);
   const queueRender=()=>{
@@ -63,13 +118,14 @@ function initialize(){
   function canvasTexture(canvas){
     const texture=new THREE.CanvasTexture(canvas);
     texture.colorSpace=THREE.SRGBColorSpace;
-    texture.anisotropy=Math.min(renderer.capabilities.getMaxAnisotropy(),8);
+    texture.anisotropy=maxAniso;
     return texture;
   }
   function neutralCoverCanvas(back=false){
     const canvas=document.createElement('canvas');
-    canvas.width=512;canvas.height=720;
+    canvas.width=1024;canvas.height=1440;
     const ctx=canvas.getContext('2d');
+    ctx.scale(2,2);
     const fade=ctx.createLinearGradient(0,0,512,720);
     fade.addColorStop(0,back?'#402a1f':'#62432d');
     fade.addColorStop(.65,back?'#251911':'#443126');
@@ -109,8 +165,9 @@ function initialize(){
   }
   function spineCanvas(name){
     const canvas=document.createElement('canvas');
-    canvas.width=256;canvas.height=960;
+    canvas.width=512;canvas.height=1920;
     const ctx=canvas.getContext('2d');
+    ctx.scale(2,2);
     const gradient=ctx.createLinearGradient(0,0,256,0);
     gradient.addColorStop(0,'#160c0a');gradient.addColorStop(.23,'#5c3426');
     gradient.addColorStop(.55,'#875334');gradient.addColorStop(.83,'#40251a');
@@ -138,15 +195,30 @@ function initialize(){
   const pageMaterial=new THREE.MeshStandardMaterial({map:edgeTexture,roughness:.88,metalness:0});
   const topPageMaterial=new THREE.MeshStandardMaterial({map:topTexture,roughness:.92,metalness:0});
   const parchment=new THREE.MeshStandardMaterial({color:0xf3e4c8,roughness:1});
+  // A imagem WebGL precisa autorizar CORS. Nunca tentar textura remota sem CORS:
+  // o navegador bloquearia o upload para a GPU e deixaria a capa em branco.
+  function loadImage(url,onload,onerror){
+    const img=new Image();
+    img.decoding='async';
+    try{
+      const parsed=new URL(url,location.href);
+      if(!['data:','blob:'].includes(parsed.protocol) && parsed.origin!==location.origin)
+        img.crossOrigin='anonymous';
+    }catch{}
+    img.onload=()=>onload(img);
+    img.onerror=onerror;
+    img.src=url;
+  }
   function paintPhoto(texture,url,token,spine=false){
     if(!url)return;
-    const img=new Image();
-    img.onload=()=>{
+    loadImage(url,img=>{
       if(token!==modelGeneration)return;
       const canvas=document.createElement('canvas');
-      canvas.width=spine?320:768;
-      canvas.height=spine?1200:1080;
+      canvas.width=spine?512:1024;
+      canvas.height=spine?1920:1440;
       const ctx=canvas.getContext('2d',{alpha:false});
+      ctx.imageSmoothingEnabled=true;
+      ctx.imageSmoothingQuality='high';
       ctx.fillStyle='#302016';
       ctx.fillRect(0,0,canvas.width,canvas.height);
       // Preenche a face correspondente. Fotos já recortadas da edição preservam a arte.
@@ -154,25 +226,19 @@ function initialize(){
       texture.image=canvas;
       texture.needsUpdate=true;
       queueRender();
-    };
-    img.onerror=()=>{
+    },()=>{
       console.warn('Não foi possível carregar a foto desta face do exemplar.');
-      if(!spine && url===currentBook?.cover)
-        window.dispatchEvent(new CustomEvent('aurora:cover-error',{detail:{id:currentBook.id}}));
-    };
-    img.src=url;
+    });
   }
   function loadOriginalFront(material,url,token,bookId,onImage){
     if(typeof url!=='string'||!url.trim())return;
-    const img=new Image();
-    img.decoding='async';
-    img.onload=()=>{
+    loadImage(url,img=>{
       if(token!==modelGeneration || !img.naturalWidth || !img.naturalHeight)return;
       // A fotografia original é a própria textura WebGL. Não recriamos uma capa
       // marrom nem imprimimos o nome do livro sobre a imagem do PDF.
       const realTexture=new THREE.Texture(img);
       realTexture.colorSpace=THREE.SRGBColorSpace;
-      realTexture.anisotropy=Math.min(renderer.capabilities.getMaxAnisotropy(),8);
+      realTexture.anisotropy=maxAniso;
       realTexture.needsUpdate=true;
       const provisional=material.map;
       material.map=realTexture;
@@ -191,15 +257,14 @@ function initialize(){
         realTexture.dispose();
         console.warn('A capa original continuará no livro 3D compatível:',error);
       }
-    };
-    img.onerror=()=>{
+    },()=>{
       if(token!==modelGeneration)return;
       console.warn('A imagem original do PDF não pôde ser decodificada pelo 3D.');
       window.dispatchEvent(new CustomEvent('aurora:cover-error',{detail:{id:bookId}}));
-    };
-    img.src=url;
+    });
   }
   function clearModel(){
+    const disposed=new Set();
     while(group.children.length) {
       const child=group.children[0];
       group.remove(child);
@@ -208,7 +273,8 @@ function initialize(){
         if(object.material){
           const materials=Array.isArray(object.material)?object.material:[object.material];
           materials.forEach(mat=>{
-            if([parchment,pageMaterial,topPageMaterial].includes(mat)) return;
+            if([parchment,pageMaterial,topPageMaterial].includes(mat)||disposed.has(mat)) return;
+            disposed.add(mat);
             if(mat.map && ![edgeTexture,topTexture].includes(mat.map)) mat.map.dispose();
             mat.dispose();
           });
@@ -221,6 +287,8 @@ function initialize(){
     const token=++modelGeneration;
     const height=3.13,width=height*clamp(Number(book.ratio)||.72,.59,.84);
     const thickness=clamp(.25+(Number(book.total||180)/1000),.34,.72);
+    shadowMesh.position.set(0,-height/2-.22,-thickness/2-.35);
+    shadowMesh.scale.set(width*1.35,.52,1);
     const paper=new THREE.Mesh(new THREE.BoxGeometry(width-.12,height-.11,thickness-.075),[
       pageMaterial,pageMaterial,topPageMaterial,topPageMaterial,parchment,parchment
     ]);
@@ -230,7 +298,7 @@ function initialize(){
     const coverBoard=new THREE.MeshStandardMaterial({color:0x433c36,roughness:.8,metalness:0});
     const trimBoard=new THREE.MeshStandardMaterial({color:0x665449,roughness:.7,metalness:0});
     const coverSurface=canvasTexture(neutralCoverCanvas());
-    const frontMaterial=new THREE.MeshPhysicalMaterial({map:coverSurface,roughness:.56,metalness:0,clearcoat:.28,clearcoatRoughness:.34});
+    const frontMaterial=new THREE.MeshPhysicalMaterial({map:coverSurface,roughness:.5,metalness:0,clearcoat:.32,clearcoatRoughness:.3});
     const faceSides=[coverBoard,coverBoard,trimBoard,coverBoard,frontMaterial,coverBoard];
     frontHinge=new THREE.Group();
     frontHinge.position.set(-width/2,0,thickness/2+.028);
@@ -240,7 +308,7 @@ function initialize(){
     group.add(frontHinge);
 
     const backSurface=canvasTexture(neutralCoverCanvas(true));
-    const backMaterial=new THREE.MeshPhysicalMaterial({map:backSurface,roughness:.71,metalness:0,clearcoat:.18});
+    const backMaterial=new THREE.MeshPhysicalMaterial({map:backSurface,roughness:.67,metalness:0,clearcoat:.22});
     const backMesh=new THREE.Mesh(new THREE.BoxGeometry(width,height,.055),[
       coverBoard,coverBoard,trimBoard,coverBoard,coverBoard,backMaterial
     ]);
@@ -248,7 +316,7 @@ function initialize(){
     group.add(backMesh);
 
     const spineTexture=spineCanvas(book.name);
-    const spineMaterial=new THREE.MeshPhysicalMaterial({map:spineTexture,roughness:.65,metalness:.02,clearcoat:.24});
+    const spineMaterial=new THREE.MeshPhysicalMaterial({map:spineTexture,roughness:.6,metalness:.02,clearcoat:.28});
     const spineMesh=new THREE.Mesh(new THREE.BoxGeometry(.14,height-.02,thickness+.09),[
       coverBoard,spineMaterial,trimBoard,trimBoard,coverBoard,coverBoard
     ]);
@@ -269,7 +337,13 @@ function initialize(){
     group.rotation.set(rotation.x,rotation.y,0);
     queueRender();
   }
+  function stopMotion(){
+    cancelAnimationFrame(requestId);
+    cancelAnimationFrame(inertiaId);
+    velocityY=0;
+  }
   function display(book){
+    stopMotion();
     currentBook=book;
     opening=false;
     rotation={x:-.09,y:.28};
@@ -279,24 +353,29 @@ function initialize(){
   }
   function setPose(x,y){
     if(!currentBook||opening)return;
+    cancelAnimationFrame(inertiaId);
+    velocityY=0;
     rotation.x=clamp(Number(x)||0,-.85,.85);
     rotation.y=Number(y)||0;
     group.rotation.set(rotation.x,rotation.y,0);
     queueRender();
   }
   function reset(){
+    stopMotion();
     opening=false;
     if(frontHinge) frontHinge.rotation.y=0;
     queueRender();
   }
   function playOpen(){
     if(opening || !frontHinge) return;
+    cancelAnimationFrame(inertiaId);
+    velocityY=0;
     opening=true;
     const start=performance.now();
-    const duration=420;
+    const duration=reducedMotion?1:670;
     function frame(now){
       const progress=clamp((now-start)/duration,0,1);
-      const eased=1-Math.pow(1-progress,3);
+      const eased=progress<.5?4*progress**3:1-(-2*progress+2)**3/2;
       frontHinge.rotation.y=-2.5*eased;
       render();
       if(progress<1) requestId=requestAnimationFrame(frame);
@@ -304,10 +383,30 @@ function initialize(){
     }
     requestId=requestAnimationFrame(frame);
   }
+  // Guarda velocidade em radianos/milissegundo, independente da taxa de quadros.
+  // O limite evita o giro descontrolado após um arraste rápido no celular.
+  function startInertia(){
+    cancelAnimationFrame(inertiaId);
+    let previous=performance.now();
+    function frame(now){
+      if(opening||down)return;
+      const elapsed=clamp(now-previous,1,40);
+      previous=now;
+      rotation.y+=velocityY*elapsed;
+      velocityY*=Math.pow(.87,elapsed/16.67);
+      group.rotation.set(rotation.x,rotation.y,0);
+      queueRender();
+      if(Math.abs(velocityY)>.00012) inertiaId=requestAnimationFrame(frame);
+    }
+    inertiaId=requestAnimationFrame(frame);
+  }
   let pointerStart=null;
   const canvas=renderer.domElement;
   canvas.addEventListener('pointerdown',event=>{
     if(!currentBook || opening) return;
+    cancelAnimationFrame(inertiaId);
+    velocityY=0;
+    lastMoveTime=performance.now();
     down={x:event.clientX,y:event.clientY,rx:rotation.x,ry:rotation.y,id:event.pointerId};
     pointerStart={x:event.clientX,y:event.clientY};
     canvas.setPointerCapture(event.pointerId);
@@ -316,8 +415,14 @@ function initialize(){
     if(!down || event.pointerId!==down.id || opening) return;
     const deltaX=event.clientX-down.x,deltaY=event.clientY-down.y;
     if(Math.abs(deltaX)+Math.abs(deltaY)<3) return;
+    const previous=rotation.y;
     rotation.y=down.ry+deltaX*.012;
     rotation.x=clamp(down.rx+deltaY*.005,-.85,.85);
+    const now=performance.now();
+    const elapsed=clamp(now-lastMoveTime,8,80);
+    const instantaneous=clamp((rotation.y-previous)/elapsed,-.008,.008);
+    velocityY=clamp(velocityY*.45+instantaneous*.55,-.008,.008);
+    lastMoveTime=now;
     group.rotation.set(rotation.x,rotation.y,0);
     queueRender();
   });
@@ -325,9 +430,12 @@ function initialize(){
     if(!down || event.pointerId!==down.id) return;
     const distance=pointerStart?Math.hypot(event.clientX-pointerStart.x,event.clientY-pointerStart.y):100;
     down=null;pointerStart=null;
-    if(distance<12) playOpen();
+    if(distance<12){velocityY=0;playOpen();return;}
+    if(!reducedMotion && performance.now()-lastMoveTime<80 && Math.abs(velocityY)>.0006)
+      startInertia();
+    else velocityY=0;
   });
-  canvas.addEventListener('pointercancel',()=>{down=null;pointerStart=null;});
+  canvas.addEventListener('pointercancel',()=>{down=null;pointerStart=null;velocityY=0;});
   canvas.addEventListener('keydown',event=>{
     if(event.key==='Enter'||event.key===' '){event.preventDefault();playOpen();}
     if(event.key==='ArrowLeft'||event.key==='ArrowRight'){
