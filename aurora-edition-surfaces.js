@@ -89,8 +89,10 @@
     const edge=base.map(value=>Math.round(value*.64));
     let back=null,spine=null;
     if(!book.back){
-      back=document.createElement('canvas');back.width=512;back.height=720;
+      back=document.createElement('canvas');back.width=1024;back.height=1440;
       const ctx=back.getContext('2d',{alpha:false});
+      ctx.scale(2,2);
+      ctx.imageSmoothingQuality='high';
       // Contracapa ilustrativa inspirada nas cores da edição, sem inventar ISBN.
       // Uma contracapa verdadeira do arquivo sempre tem prioridade sobre ela.
       ctx.fillStyle=`rgb(${base.join(',')})`;
@@ -139,8 +141,10 @@
       ctx.fillText('Contracapa ilustrativa • edição digital',52,666);
     }
     if(!book.spine){
-      spine=document.createElement('canvas');spine.width=256;spine.height=960;
+      spine=document.createElement('canvas');spine.width=512;spine.height=1920;
       const ctx=spine.getContext('2d',{alpha:false});
+      ctx.scale(2,2);
+      ctx.imageSmoothingQuality='high';
       ctx.drawImage(img,0,0,Math.max(1,img.naturalWidth*.13),img.naturalHeight,0,0,256,960);
       const shade=ctx.createLinearGradient(0,0,256,0);
       shade.addColorStop(0,'#000b');shade.addColorStop(.23,'#0006');
@@ -165,7 +169,7 @@
     bookNode.querySelector('.volume-cover')?.style.setProperty('border-color',surfaces.accent);
     spineNode?.style.setProperty('border-color',surfaces.accent);
     backNode?.style.setProperty('border-color',surfaces.accent);
-    if(surfaces.back && backNode)backNode.style.backgroundImage='url('+JSON.stringify(surfaces.back.toDataURL('image/jpeg',.85))+')';
+    if(surfaces.back && backNode)backNode.style.backgroundImage='url('+JSON.stringify(surfaces.back.toDataURL('image/jpeg',.88))+')';
     if(surfaces.spine && spineNode)spineNode.style.backgroundImage='url('+JSON.stringify(surfaces.spine.toDataURL('image/jpeg',.9))+')';
   }
   const cover=document.getElementById('cover3d');
