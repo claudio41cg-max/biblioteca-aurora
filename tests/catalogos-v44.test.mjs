@@ -28,7 +28,7 @@ assert.match(css,/#library \.section-title::after\{display:none\}/);
 assert.match(html,/id="auroraCatalogOverlay"[^>]*role="dialog"[^>]*aria-modal="true"/);
 assert.match(html,/aurora-catalogos\.js\?v=1/);
 assert.match(html,/aurora-catalogos\.css\?v=1/);
-assert.match(sw,/aurora-v46/);
+assert.match(sw,/aurora-v47/);
 assert.match(sw,/aurora-catalogos\.js\?v=1/);
 
 console.log('V44: catálogos de todas as categorias, capas originais, mais capas e retorno ao 3D.');
