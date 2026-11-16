@@ -14,7 +14,7 @@ function initialize(){
   renderer.setClearColor(0x000000,0);
   renderer.outputColorSpace=THREE.SRGBColorSpace;
   renderer.toneMapping=THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure=1.35;
+  renderer.toneMappingExposure=1.46;
   renderer.domElement.className='aurora-webgl';
   renderer.domElement.setAttribute('aria-label','Livro tridimensional: arraste para girar e toque para abrir');
   renderer.domElement.setAttribute('role','button');
@@ -31,8 +31,8 @@ function initialize(){
   const camera=new THREE.PerspectiveCamera(36,1,.1,80);
   // Distância constante: rolar a página não pode ampliar ou reduzir o exemplar.
   camera.position.set(0,.08,6.4);
-  scene.add(new THREE.HemisphereLight(0xffedce,0x281d16,2.5));
-  const key=new THREE.DirectionalLight(0xffebc9,3.1);
+  scene.add(new THREE.HemisphereLight(0xfff4df,0x665144,2.7));
+  const key=new THREE.DirectionalLight(0xfff0d9,3.0);
   key.position.set(-3.5,5,6);
   scene.add(key);
   const rim=new THREE.DirectionalLight(0xb8d8d1,1.5);
@@ -83,20 +83,23 @@ function initialize(){
     if(back){ctx.fillStyle='#c8a97d33';ctx.fillRect(30,25,452,1);}
     return canvas;
   }
-  function edgeCanvas(){
+  function edgeCanvas(orientation='vertical'){
     const canvas=document.createElement('canvas');
     canvas.width=256;canvas.height=512;
     const ctx=canvas.getContext('2d');
-    ctx.fillStyle='#f1dfc1';ctx.fillRect(0,0,256,512);
-    for(let y=0;y<512;y+=3){
-      ctx.fillStyle=y%9===0?'#ae9877':'#d7c3a4';
-      ctx.fillRect(0,y,256,1);
+    ctx.fillStyle='#f6ebd3';ctx.fillRect(0,0,256,512);
+    // O corte lateral do livro tem FILETES DE PÉ, paralelos à altura.
+    // As faces superior e inferior usam textura independente.
+    for(let i=0;i<(orientation==='vertical'?256:512);i+=2){
+      ctx.fillStyle=i%10===0?'#b8a381':i%6===0?'#d9c8ac':'#e9dcc5';
+      if(orientation==='vertical')ctx.fillRect(i,0,1,512);
+      else ctx.fillRect(0,i,256,1);
     }
     const gradient=ctx.createLinearGradient(0,0,256,0);
-    gradient.addColorStop(0,'#987c57a8');
+    gradient.addColorStop(0,'#b7a08077');
     gradient.addColorStop(.18,'#ffffff00');
-    gradient.addColorStop(.84,'#fff5d030');
-    gradient.addColorStop(1,'#8c6f4d7f');
+    gradient.addColorStop(.76,'#fff7e940');
+    gradient.addColorStop(1,'#ad977766');
     ctx.fillStyle=gradient;ctx.fillRect(0,0,256,512);
     return canvasTexture(canvas);
   }
@@ -126,8 +129,10 @@ function initialize(){
     if(surfaces.spine){spineTexture.image=surfaces.spine;spineTexture.needsUpdate=true;}
     queueRender();
   }
-  const edgeTexture=edgeCanvas();
-  const pageMaterial=new THREE.MeshStandardMaterial({map:edgeTexture,roughness:1,metalness:0});
+  const edgeTexture=edgeCanvas('vertical');
+  const topTexture=edgeCanvas('horizontal');
+  const pageMaterial=new THREE.MeshStandardMaterial({map:edgeTexture,roughness:.94,metalness:0});
+  const topPageMaterial=new THREE.MeshStandardMaterial({map:topTexture,roughness:.96,metalness:0});
   const parchment=new THREE.MeshStandardMaterial({color:0xf3e4c8,roughness:1});
   function paintPhoto(texture,url,token,spine=false){
     if(!url)return;
@@ -199,8 +204,8 @@ function initialize(){
         if(object.material){
           const materials=Array.isArray(object.material)?object.material:[object.material];
           materials.forEach(mat=>{
-            if([parchment,pageMaterial].includes(mat)) return;
-            if(mat.map && mat.map!==edgeTexture) mat.map.dispose();
+            if([parchment,pageMaterial,topPageMaterial].includes(mat)) return;
+            if(mat.map && ![edgeTexture,topTexture].includes(mat.map)) mat.map.dispose();
             mat.dispose();
           });
         }
@@ -213,7 +218,7 @@ function initialize(){
     const height=3.13,width=height*clamp(Number(book.ratio)||.72,.59,.84);
     const thickness=clamp(.25+(Number(book.total||180)/1000),.34,.72);
     const paper=new THREE.Mesh(new THREE.BoxGeometry(width-.12,height-.11,thickness-.075),[
-      pageMaterial,pageMaterial,pageMaterial,pageMaterial,parchment,parchment
+      pageMaterial,pageMaterial,topPageMaterial,topPageMaterial,parchment,parchment
     ]);
     paper.position.x=.04;
     group.add(paper);
