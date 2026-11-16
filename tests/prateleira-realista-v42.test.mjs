@@ -6,8 +6,8 @@ const html=read('index.html');
 const js=read('aurora-estante.js');
 const css=read('aurora-estante-realista.css');
 
-assert.match(html,/aurora-estante-realista\.css\?v=1/);
-assert.match(html,/aurora-estante\.js\?v=13/);
+assert.match(html,/aurora-estante-realista\.css\?v=2/);
+assert.match(html,/aurora-estante\.js\?v=14/);
 assert.match(js,/category\.id==='romance'\)section\.classList\.toggle\('shelf-premium',realisticPreview\)/);
 assert.match(js,/category\.id==='romance'\)\{/);
 assert.match(js,/shelf-preview-toggle/);
@@ -26,6 +26,6 @@ assert.match(css,/\.shelf-book-cover img/);
 assert.match(css,/prefers-reduced-motion/);
 assert.doesNotMatch(css,/#category-(?:adulto|ficcao|brasileiros)\.shelf-premium/,
   'O protótipo não deve mudar as outras prateleiras');
-assert.match(read('sw.js'),/aurora-v42/);
+assert.match(read('sw.js'),/aurora-v43/);
 
 console.log('V42: primeira prateleira realista, alternância reversível e livros 3D preservados.');
