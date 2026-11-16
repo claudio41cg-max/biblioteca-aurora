@@ -18,9 +18,9 @@ assert.match(webgl,/topPageMaterial,topPageMaterial/);
 assert.match(css,/drop-shadow\(12px 19px 13px/);
 assert.match(shelf,/--premium-yaw/);
 assert.match(shelfJs,/--premium-lean/);
-assert.match(html,/aurora-livro-3d\.mjs\?v=6/);
-assert.match(html,/aurora-edition-surfaces\.js\?v=3/);
-assert.match(sw,/aurora-v45/);
+assert.match(html,/aurora-livro-3d\.mjs\?v=7/);
+assert.match(html,/aurora-edition-surfaces\.js\?v=4/);
+assert.match(sw,/aurora-v46/);
 
 // Testa também a geração real do verso, sem depender de um PDF no aparelho.
 const calls=[];
@@ -28,7 +28,7 @@ const ctx={
   fillRect(...args){calls.push(['rect',...args]);},
   drawImage(){},strokeRect(){},beginPath(){},moveTo(){},lineTo(){},stroke(){},
   fillText(value){calls.push(['text',value]);},strokeText(){},save(){},restore(){},
-  translate(){},rotate(){},
+  translate(){},rotate(){},scale(){},
   measureText(value){return {width:value.length*13};},
   getImageData(){
     const data=new Uint8ClampedArray(48*48*4);
