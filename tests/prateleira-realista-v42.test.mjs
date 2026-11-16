@@ -22,6 +22,6 @@ assert.match(css,/\.shelf-book-cover img/);
 assert.match(css,/prefers-reduced-motion/);
 assert.doesNotMatch(css,/#category-(?:adulto|ficcao|brasileiros)\.shelf-premium/,
   'O protótipo não deve mudar as outras prateleiras');
-assert.match(read('sw.js'),/aurora-v45/);
+assert.match(read('sw.js'),/aurora-v46/);
 
 console.log('V44: primeira prateleira realista preservada, catálogo substitui comparação e 3D permanece.');
