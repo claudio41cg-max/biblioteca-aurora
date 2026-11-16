@@ -1,5 +1,13 @@
 # Biblioteca Aurora
 
+## Atualização v43 — acabamento de livro físico e iluminação delicada
+
+- No visor 3D de todos os livros, o corte lateral das páginas ganhou filetes **verticais**, como folhas vistas de pé. O topo e a base usam outra orientação de textura para continuar naturais.
+- Quando a edição não contém contracapa, ela passa a ter uma versão ilustrativa com título, autor, texto da edição quando disponível e um **código de barras apenas decorativo**, sem ISBN inventado. Contracapas originais têm prioridade.
+- A sala do livro tem fundo creme ligeiramente mais luminoso e sombras mais suaves, inclusive no modo CSS de compatibilidade.
+- A primeira prateleira experimental ficou mais iluminada, com sombras menos carregadas e inclinações individuais discretas. O botão para comparar com o visual original continua funcionando.
+- Mantidos: capa original, capa real do verso quando houver, livro 3D giratório, abertura, todos os leitores e arquivos importados.
+
 ## Atualização v42 — comparação de uma prateleira mais realista
 
 - Apenas **Romances**, a primeira prateleira, recebeu um visual experimental com iluminação de madeira, sombreamento mais profundo, volumes com alturas e espessuras distintas, detalhes finos nas lombadas e capas reais preservadas.
