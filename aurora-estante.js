@@ -61,6 +61,9 @@
     button.style.setProperty('--cover-width',Math.round(bookHeight*format)+'px');
     button.style.setProperty('--premium-height',((seed%25)-5)+'px');
     button.style.setProperty('--premium-width',((seed%11)-3)+'px');
+    // Inclinação individual leve: volumes apoiados, não uma fila de réguas.
+    button.style.setProperty('--premium-yaw',(-(seed%8)-3)+'deg');
+    button.style.setProperty('--premium-lean',(((seed>>3)%7)-3)*.42+'deg');
     button.style.setProperty('--tilt',((seed%5)-2)*.35+'deg');
     button.style.setProperty('--spine-pos',((seed%8)/7*100)+'%');
     if(realPDF && item.spine){
