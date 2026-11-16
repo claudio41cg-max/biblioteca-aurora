@@ -12,17 +12,17 @@
 #category-romance .section-title:after{order:1}
 #category-romance .section-title .count{order:3}
 
-/* Uma madeira com mais relevo, iluminação concentrada e sombra de apoio. */
+/* Madeira mais iluminada: livros em foco, sem a faixa de sombra pesada. */
 #category-romance.shelf-premium .cabinet{
   padding-top:36px;min-height:266px;
-  box-shadow:inset 0 0 0 2px #c18b533f,inset 0 22px 33px #080302a6,
-    inset 16px 0 28px #1006047a,inset -14px 0 30px #1006047a,
-    0 18px 28px #0009,0 2px 3px #0006;
+  box-shadow:inset 0 0 0 2px #ddb67d54,inset 0 13px 22px #1a0c085c,
+    inset 11px 0 18px #32180942,inset -11px 0 19px #32180942,
+    0 12px 19px #0006,0 2px 3px #0004;
 }
 #category-romance.shelf-premium .cabinet:before{
-  background:radial-gradient(ellipse at 28% 10%,#e6b77b35 0%,transparent 58%),
-    linear-gradient(90deg,#0009,transparent 9%,transparent 89%,#0008),
-    linear-gradient(180deg,#0008,#0000 32%,#0003 77%,#000a);
+  background:radial-gradient(ellipse at 43% 22%,#f6d4a44a 0%,transparent 66%),
+    linear-gradient(90deg,#0004,transparent 10%,transparent 90%,#0004),
+    linear-gradient(180deg,#0005,#0000 28%,#0001 80%,#0007);
 }
 #category-romance.shelf-premium .cabinet:after{
   content:'ACERVO AURORA';pointer-events:none;position:absolute;z-index:2;
@@ -43,19 +43,19 @@
   height:calc(var(--book-height,166px) + var(--premium-height,0px));
   border-left:3px solid #21130d;border-right:2px solid #c59a6c;
   border-radius:3px 5px 4px 2px;
-  transform:translateZ(1px) rotateY(-7deg) rotateZ(var(--tilt,0deg));
+  transform:translateZ(1px) rotateY(var(--premium-yaw,-7deg)) rotateZ(calc(var(--tilt,0deg) + var(--premium-lean,0deg)));
   filter:none;
-  box-shadow:inset 4px 0 6px #0b0604c4,inset 1px 0 1px #fff2c533,
-    inset -4px 0 5px #edd1a442,3px 4px 4px #0009,
-    6px 10px 11px #000b;
+  box-shadow:inset 3px 0 5px #0b060490,inset 1px 0 1px #fff2c54d,
+    inset -3px 0 5px #edd1a45c,3px 3px 4px #0007,
+    5px 8px 8px #0008;
 }
 #category-romance.shelf-premium .book-spine::after{
-  background:linear-gradient(90deg,#060403af 0%,#170b0850 13%,transparent 38%,
-    #fff5c319 62%,#0a040381 92%,#000b 100%);
+  background:linear-gradient(90deg,#06040390 0%,#170b0838 13%,transparent 38%,
+    #fff5c32a 62%,#0a040365 92%,#0008 100%);
 }
 #category-romance.shelf-premium .book-spine::before{
   height:12px;bottom:-8px;left:-7px;right:-8px;
-  background:#080301e0;filter:blur(5px);
+  background:#080301a8;filter:blur(5px);
 }
 #category-romance.shelf-premium .book-spine .spine-title{
   font-family:'Palatino Linotype','Book Antiqua',Georgia,serif;
@@ -72,16 +72,16 @@
 #category-romance.shelf-premium .book-spine[data-source="demo"] .spine-title::after{bottom:13px}
 #category-romance.shelf-premium .book-spine[data-has-real-cover="true"]{
   border-right:2px solid #3d281b;
-  box-shadow:inset 4px 0 7px #090604c9,inset -2px 0 3px #fff2d34a,
-    4px 7px 8px #000c,7px 13px 14px #0009;
+  box-shadow:inset 3px 0 6px #090604a8,inset -2px 0 3px #fff2d34a,
+    4px 6px 7px #0008,6px 11px 12px #0007;
 }
 #category-romance.shelf-premium .shelf-book-cover img{
   filter:contrast(1.045) saturate(1.05);
 }
 #category-romance.shelf-premium .shelf-lip{
   height:26px;border-top:3px solid #e7b982;
-  box-shadow:inset 0 2px 2px #fff5e37a,inset 0 -9px 7px #130804a8,
-    0 11px 13px #000d,0 3px 2px #160902;
+  box-shadow:inset 0 2px 2px #fff5e38c,inset 0 -8px 7px #1308048c,
+    0 8px 10px #0009,0 3px 2px #160902;
 }
 
 /* Não alterar o gesto de pegar o livro, os controles de organizar ou o 3D. */
