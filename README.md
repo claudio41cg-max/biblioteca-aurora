@@ -1,5 +1,13 @@
 # Biblioteca Aurora
 
+## Atualização v44 — catálogos por prateleira
+
+- Ao lado do título de **cada** categoria há a ação **Catálogos**, substituindo a linha decorativa e o botão antigo **Ver original** na primeira prateleira.
+- O catálogo abre na própria Aurora, exibe as capas em uma galeria de três colunas no celular e oferece **Mais capas** quando há muitos livros.
+- As capas mostradas são as **mesmas dos arquivos importados** da prateleira, sem copiar livros nem ocupar espaço adicional com outros arquivos. Para livros sem capa, aparece a capa identificada como ilustrativa, nunca como original.
+- O catálogo lê diretamente as lombadas da categoria, incluindo PDFs, EPUBs, TXT, áudios e livros on-line; quando algum livro entra, sai ou muda de prateleira, a galeria acompanha a mudança.
+- Tocar numa capa equivale a pegar o mesmo livro na estante: preservados o voo até o visor 3D, a rotação, a descrição, a leitura e o progresso.
+
 ## Atualização v43 — acabamento de livro físico e iluminação delicada
 
 - No visor 3D de todos os livros, o corte lateral das páginas ganhou filetes **verticais**, como folhas vistas de pé. O topo e a base usam outra orientação de textura para continuar naturais.
