@@ -18,9 +18,9 @@ assert.match(webgl,/topPageMaterial,topPageMaterial/);
 assert.match(css,/drop-shadow\(12px 19px 13px/);
 assert.match(shelf,/--premium-yaw/);
 assert.match(shelfJs,/--premium-lean/);
-assert.match(html,/aurora-livro-3d\.mjs\?v=5/);
-assert.match(html,/aurora-edition-surfaces\.js\?v=2/);
-assert.match(sw,/aurora-v44/);
+assert.match(html,/aurora-livro-3d\.mjs\?v=6/);
+assert.match(html,/aurora-edition-surfaces\.js\?v=3/);
+assert.match(sw,/aurora-v45/);
 
 // Testa também a geração real do verso, sem depender de um PDF no aparelho.
 const calls=[];
