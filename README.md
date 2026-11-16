@@ -1,5 +1,13 @@
 # Biblioteca Aurora
 
+## Atualização v45 — corte natural das folhas e contracapas EPUB
+
+- O livro físico 3D mostra microfiletes **verticais** no corte das páginas, com fibras, pequenos riscos, manchas discretas perto da encadernação e luz nas bordas. As superfícies de cima e de baixo continuam com orientação própria. O mesmo acabamento funciona no WebGL e no visor CSS de compatibilidade.
+- Contracapas originais de PDF continuam sendo recuperadas somente quando a própria edição as oferece. Agora EPUBs também procuram imagens expressamente identificadas como `backcover`, `contracapa` ou equivalente, sem confundir uma página do texto com a contracapa.
+- Os novos EPUBs guardam a imagem original do verso no mesmo registro do livro. EPUBs antigos procuram essa imagem ao serem abertos pela primeira vez, sem duplicar o arquivo no telefone.
+- Quando não há contracapa identificável, permanece a **contracapa ilustrativa**, marcada como tal; não é apresentada como arte original.
+- Preservados os livros, capas, catalogação por categoria, rotação 3D, toque para abrir, leitura e progresso.
+
 ## Atualização v44 — catálogos por prateleira
 
 - Ao lado do título de **cada** categoria há a ação **Catálogos**, substituindo a linha decorativa e o botão antigo **Ver original** na primeira prateleira.
