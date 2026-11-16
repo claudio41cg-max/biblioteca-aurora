@@ -205,7 +205,8 @@
     cssBook.querySelector('.volume-spine').style.backgroundImage=book.spine?'url('+JSON.stringify(book.spine)+')':'';
     // A textura usada no primeiro quadro é a mesma que seguirá no modelo WebGL.
     window.__auroraSelectedBook={id:book.id,name:book.name||book.title,
-      cover:book.cover,back:book.back,spine:book.spine,ratio,total:book.total};
+      title:displayTitle,author:book.author,description:book.description,
+      format:book.format,cover:book.cover,back:book.back,spine:book.spine,ratio,total:book.total};
     cover.alt=(book.coverSource==='generated'?'Capa ilustrativa de ':'Capa da edição ')+displayTitle;
     cover.src=book.cover;
     window.dispatchEvent(new CustomEvent('aurora:book-selected',{detail:window.__auroraSelectedBook}));
