@@ -5,7 +5,7 @@ import vm from 'node:vm';
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const main=read('index.html'),explore=read('explorar-livros.html'),reader=read('ler-online.html');
 assert.match(main,/href="\.\/explorar-livros.html"/);
-assert.match(main,/aurora-online-estante\.js\?v=3/);
+assert.match(main,/aurora-online-estante\.js\?v=4/);
 assert.match(main,/id="book3d"/);
 assert.match(main,/id="openbook"/);
 assert.match(explore,/id="tabBooks"/);
