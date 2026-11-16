@@ -23,7 +23,7 @@
     if(format==='epub'){
       const epub=await formats.openEpub(data);
       details={name:window.AuroraTitles?.display(epub.title||formats.cleanName(file.name))||epub.title||formats.cleanName(file.name),author:epub.author,
-        description:epub.description,cover:epub.cover,total:epub.spine.length,
+        description:epub.description,cover:epub.cover,back:epub.back,total:epub.spine.length,
         coverSource:epub.cover?'original':'generated'};
     }else{
       details=await formats.audioMetadata(data,file.name);
@@ -34,7 +34,7 @@
     const cover=details.cover||(format==='epub'?formats.createEpubCover(details.name,details.author):'');
     const item={id:crypto.randomUUID(),name:details.name,author:details.author||'',
       description:details.description||'',format,mime:file.type|| (format==='audio'?'audio/mpeg':'application/epub+zip'),
-      data,cover,coverSource:details.coverSource||'original',back:'',spine:'',total:details.total,ratio:.72,category:category.value,
+      data,cover,coverSource:details.coverSource||'original',back:details.back||'',backChecked:format==='epub',spine:'',total:details.total,ratio:.72,category:category.value,
       status:'quero-ler',created:Date.now(),page:0};
     report('Guardando na estante do seu aparelho…');
     await formats.saveRecord('books',item);
