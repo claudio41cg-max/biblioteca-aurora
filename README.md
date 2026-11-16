@@ -1,5 +1,14 @@
 # Biblioteca Aurora
 
+## Atualização v47 — lombadas mais nítidas na estante
+
+- Livros importados sem fotografia da lombada recebem uma textura própria desenhada em canvas, em alta resolução, baseada nas cores da capa. Acabamentos variam entre filetes, faixas, losangos e estrelas.
+- Títulos são impressos na textura para reduzir borrões e serrilhados. A acessibilidade mantém o nome completo no botão do livro.
+- Capas e fotos originais de lombada não são substituídas. Se a imagem remota não permitir leitura de pixels, usamos uma cor de tecido determinada pelo título, sem deformar a capa.
+- Desenho preparado em pequenos grupos e com cache limitado para preservar o desempenho do celular.
+- O modo offline guarda a página principal antes da ativação, tolera falhas de arquivos secundários e permite recuperar a biblioteca do cache após seis segundos sem resposta da rede.
+- A versão anterior pode ser restaurada do ramo `backup-aurora-v46-antes-lombadas-20261116`.
+
 ## Atualização v46 — acabamento de estúdio no livro 3D
 
 - O visor físico usa mapeamento de tons neutro para reproduzir as cores das capas com mais fidelidade, iluminação suave com reflexos largos e sombra difusa discreta. Aparelhos com pouca memória mantêm a iluminação convencional.
