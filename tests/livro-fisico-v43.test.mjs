@@ -20,7 +20,7 @@ assert.match(shelf,/--premium-yaw/);
 assert.match(shelfJs,/--premium-lean/);
 assert.match(html,/aurora-livro-3d\.mjs\?v=5/);
 assert.match(html,/aurora-edition-surfaces\.js\?v=2/);
-assert.match(sw,/aurora-v43/);
+assert.match(sw,/aurora-v44/);
 
 // Testa também a geração real do verso, sem depender de um PDF no aparelho.
 const calls=[];
