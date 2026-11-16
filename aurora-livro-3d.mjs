@@ -84,6 +84,10 @@ function initialize(){
     return canvas;
   }
   function edgeCanvas(orientation='vertical'){
+    // O recorte fotográfico das fibras é compartilhado com a versão CSS.
+    // Assim o mesmo livro mantém os filetes verticais mesmo sem WebGL.
+    const detailed=window.AuroraEditionSurfaces?.paperEdgeCanvas?.(orientation);
+    if(detailed)return canvasTexture(detailed);
     const canvas=document.createElement('canvas');
     canvas.width=256;canvas.height=512;
     const ctx=canvas.getContext('2d');
@@ -131,8 +135,8 @@ function initialize(){
   }
   const edgeTexture=edgeCanvas('vertical');
   const topTexture=edgeCanvas('horizontal');
-  const pageMaterial=new THREE.MeshStandardMaterial({map:edgeTexture,roughness:.94,metalness:0});
-  const topPageMaterial=new THREE.MeshStandardMaterial({map:topTexture,roughness:.96,metalness:0});
+  const pageMaterial=new THREE.MeshStandardMaterial({map:edgeTexture,roughness:.88,metalness:0});
+  const topPageMaterial=new THREE.MeshStandardMaterial({map:topTexture,roughness:.92,metalness:0});
   const parchment=new THREE.MeshStandardMaterial({color:0xf3e4c8,roughness:1});
   function paintPhoto(texture,url,token,spine=false){
     if(!url)return;
