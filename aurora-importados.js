@@ -34,20 +34,44 @@
     if(!stored)return;
     let cover=stored.cover||'';
     let coverSource=stored.coverSource||'original';
+    let backRecovered=false;
     if(!cover&&stored.data){
       try{
         const epub=await formats.openEpub(stored.data);
         cover=epub.cover;
+        book.back=epub.back||'';
+        book.backChecked=true;
+        stored.back=book.back;
+        stored.backChecked=true;
+        backRecovered=true;
       }catch(error){console.warn('Capa embutida no EPUB indisponível:',error);}
       coverSource=cover?'original':'generated';
     }
     if(!cover){cover=formats.createEpubCover(book.name,book.author);coverSource='generated';}
     book.cover=cover;
     book.coverSource=coverSource;
-    if(stored.cover!==cover||stored.coverSource!==coverSource){
+    if(stored.cover!==cover||stored.coverSource!==coverSource||backRecovered){
       stored.cover=cover;stored.coverSource=coverSource;
       await formats.saveRecord('books',stored).catch(error=>console.warn('Capa temporária não salva:',error));
     }
+  }
+  // Recupera a contracapa real de EPUBs que foram importados antes deste ajuste.
+  // Roda só no primeiro toque no exemplar para não reabrir todos os arquivos da estante.
+  async function recoverEpubBack(book){
+    if(book.back||book.backChecked||book.format!=='epub')return;
+    const formats=window.AuroraFormats;
+    if(!formats)return;
+    const stored=await formats.readRecord('books',book.id);
+    if(!stored)return;
+    if(stored.back){book.back=stored.back;}
+    else if(stored.data){
+      const epub=await formats.openEpub(stored.data);
+      book.back=epub.back||'';
+    }
+    book.backChecked=true;
+    stored.back=book.back||'';
+    stored.backChecked=true;
+    await formats.saveRecord('books',stored);
   }
   // O livro físico segue no MESMO visor WebGL até o centro da tela.
   async function takeBookFromShelf(button,book){
@@ -62,6 +86,10 @@
         button.disabled=false;
         button.removeAttribute('aria-busy');
       }
+    }
+    if(book.format==='epub'&&!book.back&&!book.backChecked){
+      try{await recoverEpubBack(book);}
+      catch(error){console.warn('Contracapa embutida no EPUB indisponível:',error);}
     }
     if(window.AuroraShelfViewer?.open)window.AuroraShelfViewer.open(button,book);
     else location.href='./'+readerPath(book)+'?livro='+encodeURIComponent(book.id);
@@ -89,6 +117,7 @@
         cover:book.cover||'',
         coverSource:book.coverSource||'original',
         back:book.back||'',
+        backChecked:book.backChecked===true,
         spine:book.spine||'',
         spineAspect:book.spineAspect||0,
         ratio:book.ratio||.72,
