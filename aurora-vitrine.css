@@ -1,7 +1,7 @@
 /* Vitrine do exemplar: capa original e descrição aberta no fundo creme. */
 .showcase{
   padding:env(safe-area-inset-top) 16px calc(24px + env(safe-area-inset-bottom));
-  background:radial-gradient(ellipse at 47% 28%,#fbf1df 0%,#f2e4cf 45%,#e8d5b9 77%,#dcc4a3 100%);
+  background:radial-gradient(ellipse at 47% 28%,#fff8ec 0%,#f6ebda 47%,#eadcc9 82%,#e1ceb6 100%);
   color:#4a3326;color-scheme:light;scrollbar-color:#b59e84 transparent;
 }
 .showhead{
@@ -71,7 +71,7 @@
   height:auto;
   width:min(65vw,326px);
   aspect-ratio:var(--book-ratio,.72);
-  filter:drop-shadow(22px 25px 18px #000a);
+  filter:drop-shadow(12px 19px 13px #533d3060);
 }
 .volume-cover img{object-fit:fill}
 .showresume{
