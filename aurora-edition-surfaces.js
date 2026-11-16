@@ -23,13 +23,52 @@
     if(!book.back){
       back=document.createElement('canvas');back.width=512;back.height=720;
       const ctx=back.getContext('2d',{alpha:false});
-      // Recorte inferior da capa original, sem espelhar o título na contracapa.
-      const fromY=Math.round(img.naturalHeight*.43);
-      ctx.drawImage(img,0,fromY,img.naturalWidth,img.naturalHeight-fromY,0,0,512,720);
-      const tint=ctx.createLinearGradient(0,0,512,720);
-      tint.addColorStop(0,'#120e14a3');tint.addColorStop(.45,'#0f0b101f');tint.addColorStop(1,'#130c0d9c');
-      ctx.fillStyle=tint;ctx.fillRect(0,0,512,720);
-      ctx.strokeStyle='rgba(255,244,220,.25)';ctx.lineWidth=2;ctx.strokeRect(23,27,466,666);
+      // Contracapa ilustrativa inspirada nas cores da edição, sem inventar ISBN.
+      // Uma contracapa verdadeira do arquivo sempre tem prioridade sobre ela.
+      ctx.fillStyle=`rgb(${base.join(',')})`;
+      ctx.fillRect(0,0,512,720);
+      ctx.globalAlpha=.22;
+      ctx.drawImage(img,0,0,512,720);
+      ctx.globalAlpha=1;
+      ctx.fillStyle='rgba(23,18,25,.78)';ctx.fillRect(0,0,512,720);
+      ctx.strokeStyle='rgba(255,239,204,.46)';ctx.lineWidth=2;
+      ctx.strokeRect(25,27,462,664);
+      ctx.fillStyle='#f6e7cf';ctx.textBaseline='top';
+      const title=String(book.title||book.name||'Livro').replace(/[-_]+/g,' ');
+      const known=window.AuroraBookInfo?.find(title);
+      const author=String(known?.author||book.author||'').trim();
+      const story=String(known?.description||book.description||'').replace(/\s+/g,' ').trim();
+      const wrap=(text,maxWidth,maxLines,lineHeight,startX,startY)=>{
+        let line='',count=0;
+        for(const word of String(text).split(/\s+/)){
+          const next=line?line+' '+word:word;
+          if(ctx.measureText(next).width<=maxWidth){line=next;continue;}
+          if(line){ctx.fillText(line,startX,startY+count*lineHeight);count++;}
+          if(count>=maxLines)return startY+count*lineHeight;
+          line=word;
+        }
+        if(line&&count<maxLines){ctx.fillText(line,startX,startY+count*lineHeight);count++;}
+        return startY+count*lineHeight;
+      };
+      ctx.font='bold 31px Georgia,serif';
+      let y=wrap(title,408,3,42,52,70)+12;
+      if(author){ctx.font='italic 23px Georgia,serif';y=wrap(author,400,2,30,52,y)+19;}
+      ctx.strokeStyle='rgba(250,224,177,.64)';ctx.beginPath();ctx.moveTo(52,y);ctx.lineTo(458,y);ctx.stroke();
+      ctx.font='24px Georgia,serif';
+      wrap(story||'Um exemplar da Biblioteca Aurora. Abra este livro para descobrir a história e aproveitar sua leitura.',408,7,37,52,y+25);
+      // Código de barras apenas decorativo, sem simular um ISBN registrado.
+      ctx.fillStyle='#fffaf0';ctx.fillRect(287,555,174,91);
+      const code=Array.from(title).reduce((seed,char)=>(Math.imul(seed,33)+char.charCodeAt(0))>>>0,5381);
+      for(let x=300;x<450;){
+        const width=1+((code+(x*17))%4);
+        const gap=1+(((code^(x*7))>>>0)%3);
+        ctx.fillStyle='#261d21';ctx.fillRect(x,568,width,50);
+        x+=width+gap;
+      }
+      ctx.fillStyle='#544c4c';ctx.font='12px sans-serif';
+      ctx.fillText('BIBLIOTECA AURORA',300,624);
+      ctx.fillStyle='#e6d3b7';ctx.font='14px Georgia,serif';
+      ctx.fillText('Contracapa ilustrativa • edição digital',52,666);
     }
     if(!book.spine){
       spine=document.createElement('canvas');spine.width=256;spine.height=960;
