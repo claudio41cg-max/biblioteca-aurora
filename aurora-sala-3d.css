@@ -9,7 +9,7 @@ body.aurora-showcase-open{overflow:hidden}
 }
 .aurora-showcase::before{
   content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:0;
-  background:radial-gradient(ellipse at 47% 28%,#fbf1df 0%,#f2e4cf 45%,#e8d5b9 77%,#dcc4a3 100%);
+  background:radial-gradient(ellipse at 47% 28%,#fff8ec 0%,#f6ebda 47%,#eadcc9 82%,#e1ceb6 100%);
   transition:opacity .9s ease;
 }
 .aurora-showcase.arriving::before,.aurora-showcase.settled::before{opacity:1}
@@ -61,7 +61,7 @@ body.aurora-showcase-open{overflow:hidden}
   --half-depth:27px;--depth:54px;position:relative;
   width:min(65vw,326px);height:auto;aspect-ratio:var(--book-ratio,.72);
   transform-style:preserve-3d;transform:rotateX(-5deg) rotateY(-22deg);
-  filter:drop-shadow(20px 24px 16px #000a);cursor:grab;touch-action:none;
+  filter:drop-shadow(12px 19px 13px #533d3060);cursor:grab;touch-action:none;
 }
 .aurora-css-book>div{position:absolute;backface-visibility:visible}
 .aurora-css-book .volume-cover{
@@ -84,8 +84,8 @@ body.aurora-showcase-open{overflow:hidden}
 .aurora-css-book .volume-edge{
   right:0;top:6px;bottom:6px;width:var(--depth);transform-origin:right center;
   transform:translateZ(calc(0px - var(--half-depth))) rotateY(90deg);
-  background:repeating-linear-gradient(90deg,#d7c09e,#fcf0d6 2px,#bca585 3px);
-  box-shadow:inset 0 0 9px #0004;
+  background:repeating-linear-gradient(90deg,#efe0c3 0px,#f9efdb 1px,#d0bd9d 2px,#f2e6cf 3px);
+  box-shadow:inset 0 0 6px #6b503c44;
 }
 .aurora-css-book .volume-spine{
   left:0;top:0;bottom:0;width:var(--depth);transform-origin:left center;
