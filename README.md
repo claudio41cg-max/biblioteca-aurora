@@ -1,5 +1,13 @@
 # Biblioteca Aurora
 
+## Atualização v46 — acabamento de estúdio no livro 3D
+
+- O visor físico usa mapeamento de tons neutro para reproduzir as cores das capas com mais fidelidade, iluminação suave com reflexos largos e sombra difusa discreta. Aparelhos com pouca memória mantêm a iluminação convencional.
+- Contracapas ilustrativas e lombadas geradas recebem texturas em resolução dobrada; fotos originais de frente, verso e lombada continuam tendo prioridade, sem copiar a capa da frente para o verso.
+- O livro gira com inércia curta, limitada e independente da taxa de atualização da tela. A animação de abertura é mais suave e respeita a preferência por movimento reduzido.
+- Mantidas as fibras verticais do corte das páginas, o visor CSS de compatibilidade, os arquivos importados, leitores de PDF/EPUB/TXT, catálogos e progresso.
+- Backup anterior à alteração: ramo `backup-aurora-v45-antes-realismo-3d-20261116` no GitHub. A versão 45 permanece intacta para eventual restauração.
+
 ## Atualização v45 — corte natural das folhas e contracapas EPUB
 
 - O livro físico 3D mostra microfiletes **verticais** no corte das páginas, com fibras, pequenos riscos, manchas discretas perto da encadernação e luz nas bordas. As superfícies de cima e de baixo continuam com orientação própria. O mesmo acabamento funciona no WebGL e no visor CSS de compatibilidade.
