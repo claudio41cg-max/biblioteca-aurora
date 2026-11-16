@@ -23,9 +23,7 @@
   const saved = safeRead('aurora-books',{});
   const txtCategories = safeRead('aurora-txt-categories',{});
   const hiddenTitles = new Set(safeRead('aurora-hidden-books',[]));
-  // Laboratório visual restrito à primeira prateleira: as demais continuam intactas.
-  const shelfPreviewKey='aurora-realistic-shelf-preview-v1';
-  let realisticPreview=(()=>{try{return localStorage.getItem(shelfPreviewKey)!=='original';}catch{return true;}})();
+  // O acabamento realista já aprovado continua na primeira prateleira.
   const texts = Object.assign({},saved);
   const knownCategories = new Map();
   categories.forEach(cat => cat.books.forEach(([title]) => knownCategories.set(normalize(title),cat.id)));
@@ -47,6 +45,7 @@
     button.type = 'button';
     button.dataset.title = normalize(displayTitle);
     button.dataset.rawTitle = item.title;
+    button.dataset.author = item.author || '';
     button.dataset.source = item.source || 'demo';
     if(item.source==='epub')button.dataset.coverSource=item.coverSource||'original';
     button.title = displayTitle + (item.source === 'demo' ? ' • livro demonstrativo' : ' • tocar para pegar');
@@ -122,7 +121,7 @@
       const section=document.createElement('section');
       section.className='category';
       section.id='category-'+category.id;
-      if(category.id==='romance')section.classList.toggle('shelf-premium',realisticPreview);
+      if(category.id==='romance')section.classList.add('shelf-premium');
       const header=document.createElement('div');
       header.className='section-title';
       const title=document.createElement('h2');
@@ -130,26 +129,14 @@
       const count=document.createElement('span');
       count.className='count';
       count.id='count-'+category.id;
-      header.append(title,count);
-      if(category.id==='romance'){
-        const toggle=document.createElement('button');
-        toggle.className='shelf-preview-toggle';
-        toggle.type='button';
-        toggle.setAttribute('aria-label','Comparar visual da prateleira de Romances');
-        toggle.title='Comparar esta prateleira com o visual anterior';
-        const updatePreview=()=>{
-          section.classList.toggle('shelf-premium',realisticPreview);
-          toggle.setAttribute('aria-pressed',String(realisticPreview));
-          toggle.textContent=realisticPreview?'Ver original':'Ver realista';
-        };
-        toggle.addEventListener('click',()=>{
-          realisticPreview=!realisticPreview;
-          try{localStorage.setItem(shelfPreviewKey,realisticPreview?'realista':'original');}catch{}
-          updatePreview();
-        });
-        updatePreview();
-        header.append(toggle);
-      }
+      const catalogButton=document.createElement('button');
+      catalogButton.type='button';
+      catalogButton.className='aurora-catalog-trigger';
+      catalogButton.textContent='Catálogos';
+      catalogButton.dataset.catalogCategory=category.id;
+      catalogButton.setAttribute('aria-label','Abrir catálogo de '+category.name);
+      catalogButton.addEventListener('click',()=>window.AuroraCatalogos?.open(category.id));
+      header.append(title,catalogButton,count);
       const cabinet=document.createElement('div');
       cabinet.className='cabinet cabinet-'+index;
       const row=document.createElement('div');
