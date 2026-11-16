@@ -2,6 +2,74 @@
    Fotos reais de lombada/contracapa, quando existentes, têm prioridade. */
 (() => {
   'use strict';
+  // A mesma textura física atende o livro WebGL e o visor CSS de compatibilidade.
+  // Os microfiletes verticais representam o corte de folhas, não uma lombada.
+  const paperCache=new Map();
+  function paperEdgeCanvas(orientation='vertical'){
+    if(paperCache.has(orientation))return paperCache.get(orientation);
+    const vertical=orientation==='vertical';
+    const canvas=document.createElement('canvas');
+    canvas.width=vertical?256:768;
+    canvas.height=vertical?1024:192;
+    const ctx=canvas.getContext('2d',{alpha:false});
+    const width=canvas.width,height=canvas.height;
+    let seed=vertical?0x41c0a:0x41c0b;
+    const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
+    ctx.fillStyle='#f2e5c9';ctx.fillRect(0,0,width,height);
+    const length=vertical?width:height;
+    for(let n=0;n<length;n++){
+      const variation=random();
+      const warm=Math.round(199+random()*25);
+      const shade=variation<.11?`rgba(106,87,64,${.14+random()*.21})`
+        :variation>.83?`rgba(255,251,236,${.3+random()*.42})`
+        :`rgba(${warm},${warm-15},${warm-37},${.18+random()*.22})`;
+      ctx.fillStyle=shade;
+      if(vertical)ctx.fillRect(n,0,1,height);
+      else ctx.fillRect(0,n,width,1);
+    }
+    // Pequenas interrupções na fibra e marcas sutis, mais visíveis perto da encadernação.
+    for(let i=0;i<(vertical?900:380);i++){
+      const nearBinding=random()<.73;
+      const x=vertical?(nearBinding?random()*width*.17:random()*width):random()*width;
+      const y=vertical?random()*height:(nearBinding?random()*height*.19:random()*height);
+      const size=.5+random()*1.5;
+      ctx.fillStyle=`rgba(${75+Math.round(random()*42)},${69+Math.round(random()*36)},${55+Math.round(random()*28)},${.035+random()*(nearBinding?.24:.095)})`;
+      ctx.fillRect(x,y,vertical?size:2+random()*9,vertical?1+random()*9:size);
+    }
+    for(let i=0;i<90;i++){
+      const x=random()*width,y=random()*height;
+      ctx.strokeStyle=`rgba(112,92,65,${.025+random()*.095})`;
+      ctx.lineWidth=.35+random()*.8;
+      ctx.beginPath();ctx.moveTo(x,y);
+      if(vertical)ctx.lineTo(x+(random()-.5)*2,y+12+random()*78);
+      else ctx.lineTo(x+12+random()*80,y+(random()-.5)*2);
+      ctx.stroke();
+    }
+    const bevel=vertical?ctx.createLinearGradient(0,0,width,0):ctx.createLinearGradient(0,0,0,height);
+    bevel.addColorStop(0,'rgba(95,75,54,.34)');
+    bevel.addColorStop(.055,'rgba(123,94,66,.11)');
+    bevel.addColorStop(.2,'rgba(255,255,240,.12)');
+    bevel.addColorStop(.72,'rgba(255,249,231,.06)');
+    bevel.addColorStop(.94,'rgba(148,123,91,.11)');
+    bevel.addColorStop(1,'rgba(89,67,46,.32)');
+    ctx.fillStyle=bevel;ctx.fillRect(0,0,width,height);
+    paperCache.set(orientation,canvas);
+    return canvas;
+  }
+  function applyPaperEdges(){
+    const book=document.getElementById('book3d');
+    if(!book)return;
+    const side=book.querySelector('.volume-edge');
+    if(side){
+      side.style.backgroundImage='url('+JSON.stringify(paperEdgeCanvas('vertical').toDataURL('image/png'))+')';
+      side.style.backgroundSize='100% 100%';
+    }
+    const top=paperEdgeCanvas('horizontal').toDataURL('image/png');
+    book.querySelectorAll('.volume-top,.volume-bottom').forEach(edge=>{
+      edge.style.backgroundImage='url('+JSON.stringify(top)+')';
+      edge.style.backgroundSize='100% 100%';
+    });
+  }
   function generate(img,book){
     if(!img?.naturalWidth || !img?.naturalHeight)return null;
     const sampler=document.createElement('canvas');
@@ -102,12 +170,13 @@
   }
   const cover=document.getElementById('cover3d');
   function paintSelected(){
+    applyPaperEdges();
     const book=window.__auroraSelectedBook;
     if(!book?.cover || !cover?.naturalWidth || cover.src!==book.cover)return;
     try{applyCSS(book,cover);}catch(error){console.warn('Acabamento do livro indisponível:',error);}
   }
   cover?.addEventListener('load',paintSelected);
   window.addEventListener('aurora:book-selected',paintSelected);
-  window.AuroraEditionSurfaces={generate,applyCSS};
+  window.AuroraEditionSurfaces={generate,applyCSS,paperEdgeCanvas,applyPaperEdges};
   paintSelected();
 })();
