@@ -23,7 +23,7 @@
   const saved = safeRead('aurora-books',{});
   const txtCategories = safeRead('aurora-txt-categories',{});
   const hiddenTitles = new Set(safeRead('aurora-hidden-books',[]));
-  // O acabamento realista já aprovado continua na primeira prateleira.
+  // O mesmo acabamento realista vale para todas as categorias, preservando cada exemplar.
   const texts = Object.assign({},saved);
   const knownCategories = new Map();
   categories.forEach(cat => cat.books.forEach(([title]) => knownCategories.set(normalize(title),cat.id)));
@@ -50,7 +50,8 @@
     if(item.source==='epub')button.dataset.coverSource=item.coverSource||'original';
     button.title = displayTitle + (item.source === 'demo' ? ' • livro demonstrativo' : ' • tocar para pegar');
     button.setAttribute('aria-label', 'Pegar ' + displayTitle);
-    const realPDF=['pdf','epub','audio'].includes(item.source);
+    const realPDF=['pdf','epub','audio'].includes(item.source)||
+      (item.source!=='demo'&&Boolean(item.cover||item.spine));
     const bookHeight=realPDF?160+seed%17:151+seed%24;
     const estimatedWidth=realPDF?Math.max(28,Math.min(62,27+Number(item.total||0)/27)):37+seed%13;
     const naturalWidth=item.spineAspect?Math.max(22,Math.min(68,bookHeight*Number(item.spineAspect))):estimatedWidth;
@@ -121,7 +122,7 @@
       const section=document.createElement('section');
       section.className='category';
       section.id='category-'+category.id;
-      if(category.id==='romance')section.classList.add('shelf-premium');
+      section.classList.add('shelf-premium');
       const header=document.createElement('div');
       header.className='section-title';
       const title=document.createElement('h2');
