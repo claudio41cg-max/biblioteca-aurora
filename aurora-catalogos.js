@@ -10,7 +10,7 @@
   const shelf=window.AuroraShelf;
   const savedGenerated=new Map();
   const PAGE_SIZE=9;
-  const DEFAULT_TURN=16;
+  const DEFAULT_TURN=22;
   const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
   let paperEdgeURL='';
   function paperEdges(){
@@ -73,7 +73,8 @@
     const volume=document.createElement('span');
     volume.className='aurora-catalog-volume';
     volume.style.setProperty('--catalog-turn',DEFAULT_TURN+'deg');
-    const thickness=clamp(parseFloat(button.style.getPropertyValue('--book-width'))/3.6||10,8,15);
+    // Espessura proporcional ao volume, sem alterar a imagem da capa.
+    const thickness=clamp((parseFloat(button.style.getPropertyValue('--book-width'))||46)*.45,18,26);
     volume.style.setProperty('--catalog-depth',thickness+'px');
 
     const front=document.createElement('span');

@@ -223,3 +223,8 @@ Para a unificação da entrada na estante, importação de PDF diretamente da p�
 - Descrições de obras reconhecidas incluem autor, país, ano, sinopse e referência de páginas quando verificada. Outros arquivos informam formato e paginação disponível; quando faltam dados, o EPUB/TXT apresenta um trecho inicial claramente identificado, sem inventar sinopses.
 - A versão 39 renova os arquivos em cache preservando os livros já importados e o progresso de leitura.
 
+
+
+### v54 — Catálogos com livros mais encorpados
+
+Os livros do catálogo agora têm espessura de 18 a 26 pixels, calculada proporcionalmente à largura do exemplar (antes 8 a 15 pixels). O ângulo inicial passou de 16° para 22° para mostrar melhor a lombada. O giro por arraste, a contracapa original ou ilustrativa, as capas originais, a abertura da leitura e as duas colunas em celulares foram preservados. Backup: `backup-aurora-v53-antes-livros-mais-grossos-20261117`.
