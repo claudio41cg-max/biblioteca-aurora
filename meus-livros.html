@@ -70,7 +70,7 @@
   </style>
   <link rel="stylesheet" href="./aurora-edicao.css?v=1">
   <link rel="stylesheet" href="./aurora-vitrine.css?v=8">
-  <link rel="stylesheet" href="./aurora-reader.css?v=6">
+  <link rel="stylesheet" href="./aurora-reader.css?v=7">
 </head>
 <body>
   <header class="tophead"><div class="eyebrow">SEU ACERVO PESSOAL</div><h1>✦ Meus livros • Aurora ✦</h1><p>Adicione seus livros PDF e guarde cada um pela lombada.</p></header>
@@ -690,6 +690,54 @@
       container.replaceChildren(host);
       return host;
     }
+    /* Volume de papel visto atrás de uma única página, sem modificar o PageFlip.
+       A posição acompanha a caixa real da página, inclusive quando há zoom. */
+    function alignReaderVolume(session){
+      if(!session||session.closed||session!==active||!session.physicalVolume)return;
+      const viewport=$('viewport'),host=$('flipbook');
+      if(!host)return;
+      const page=host.getBoundingClientRect();
+      const area=viewport.getBoundingClientRect();
+      if(page.width<10||page.height<10)return;
+      const volume=session.physicalVolume;
+      volume.style.left=(page.left-area.left+viewport.scrollLeft)+'px';
+      volume.style.top=(page.top-area.top+viewport.scrollTop)+'px';
+      volume.style.width=page.width+'px';
+      volume.style.height=page.height+'px';
+    }
+    function queueReaderVolumeAlign(session){
+      if(!session?.physicalVolume)return;
+      requestAnimationFrame(()=>alignReaderVolume(session));
+    }
+    function installReaderVolume(session,book,meta){
+      if(innerWidth>=670||!$('reader').classList.contains('aurora-page-curl-preview'))return;
+      const frame=document.createElement('div');
+      frame.className='aurora-reader-volume';
+      frame.setAttribute('aria-hidden','true');
+      const cover=document.createElement('div');
+      cover.className='aurora-reader-volume__cover';
+      const source=String(book?.cover||meta?.cover||'');
+      if(/^(data:image\/|blob:|https?:\/\/)/i.test(source)){
+        // A borda da capa no fundo herda a imagem original deste exemplar.
+        cover.style.backgroundImage='linear-gradient(90deg,rgba(15,12,10,.27),rgba(15,12,10,.06)),url('+JSON.stringify(source)+')';
+      }
+      const sheets=document.createElement('div');
+      sheets.className='aurora-reader-volume__sheets';
+      const turned=document.createElement('div');
+      turned.className='aurora-reader-volume__turned';
+      frame.append(cover,sheets,turned);
+      $('viewport').append(frame);
+      session.physicalVolume=frame;
+      $('flipbook').addEventListener('transitionend',()=>queueReaderVolumeAlign(session));
+      queueReaderVolumeAlign(session);
+      requestAnimationFrame(()=>queueReaderVolumeAlign(session));
+    }
+    $('viewport').addEventListener('scroll',()=>{
+      if(active?.physicalVolume)queueReaderVolumeAlign(active);
+    },{passive:true});
+    window.addEventListener('resize',()=>{
+      if(active?.physicalVolume)queueReaderVolumeAlign(active);
+    });
     function applyReaderZoom(session,ratio){
       if(!session)return;
       session.zoom=clamp(Math.round(ratio*10)/10,1,2);
@@ -710,6 +758,8 @@
       if(session.textMode&&session.zoom>1)$('status').textContent='Texto ampliado dentro da folha. Arraste o canto para folhear.';
       else if(session.zoom>1)$('status').textContent='Folha ampliada e fixa no centro. Deslize para os lados para folhear.';
       else $('status').textContent='Arraste o canto para virar a folha. Seu progresso é salvo automaticamente.';
+      queueReaderVolumeAlign(session);
+      if(session.physicalVolume)setTimeout(()=>queueReaderVolumeAlign(session),210);
     }
     async function openReader(id) {
       if (!window.pdfjsLib || !window.St?.PageFlip) {
@@ -758,7 +808,10 @@
         const vp = firstPage.getViewport({scale:1});
         const ratio = vp.width/vp.height;
         const mobile = innerWidth < 670;
-        const availableWidth = mobile ? innerWidth-2 : Math.min(540,(innerWidth-60)/2);
+        // Deixa só alguns pixels laterais para o miolo físico do exemplar-piloto.
+      // A folha atual permanece quase na largura inteira da tela.
+      const physicalSample=mobile&&$('reader').classList.contains('aurora-page-curl-preview');
+      const availableWidth = mobile ? innerWidth-(physicalSample?24:2) : Math.min(540,(innerWidth-60)/2);
         const availableHeight = Math.max(270,$('viewport').clientHeight-45);
         const width = Math.max(150,Math.floor(Math.min(availableWidth,availableHeight*ratio)));
         const height = Math.max(200,Math.floor(width/ratio));
@@ -778,10 +831,16 @@
         });
         session.flip.loadFromHTML(session.pages);
         host.classList.add('ready');
+        installReaderVolume(session,book,meta);
         session.flip.on('changeState',event=>{
           if(event.data==='flipping'){
             window.AuroraPageSound?.play();
             session.turnSoundStarted=true;
+            // Adianta a pintura das folhas que entram na dobra, evitando
+            // a página em branco enquanto o folheio original termina.
+            const current=session.flip.getCurrentPageIndex();
+            for(let number=Math.max(1,current-1);number<=Math.min(session.total,current+7);number++)
+              void paintPage(session,number);
           }
         });
         session.flip.on('flip',() => {
@@ -790,6 +849,7 @@
           stopPdfSpeech();
           if(session.page!==before&&!session.turnSoundStarted)window.AuroraPageSound?.play();
           session.turnSoundStarted=false;
+          queueReaderVolumeAlign(session);
         });
         $('scrub').max = String(session.total);
         $('pageNumber').max = String(session.total);

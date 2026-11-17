@@ -167,50 +167,92 @@
 .reader-page-sound-choice{display:flex;align-items:center;gap:9px;margin:5px 0 15px;color:#f1dfc5;font:13px Georgia,serif}
 .reader-page-sound-choice input{width:18px;height:18px;accent-color:#cfa56e}
 
-/* Protótipo em Razão e Sensibilidade: uma única folha de leitura inteira,
-   com apenas a beiradinha curva da folha anterior. Não muda o PageFlip. */
+/* Razão e Sensibilidade, segundo ensaio: a folha de leitura permanece inteira.
+   O miolo, a contracapa e a dobra são apenas acabamento visual. */
 .reader.aurora-page-curl-preview{
-  --aurora-curl-dark:#9c8566;
-  --aurora-curl-mid:#e7d9bd;
-  --aurora-curl-light:#fffbf0;
-  --aurora-curl-paper:#f4e7cd;
-  --aurora-curl-shadow:rgba(57,39,22,.47);
-  --aurora-curl-fibre:rgba(113,89,61,.10);
+  --aurora-sheet:#fff;
+  --aurora-sheet-light:#fff;
+  --aurora-sheet-shade:#f0f0ec;
+  --aurora-sheet-deep:#b3b0a8;
+  --aurora-fold-shadow:rgba(37,32,25,.35);
+  --aurora-cut-line:rgba(106,100,88,.22);
+  --aurora-binding:#655448;
 }
 .reader.aurora-page-curl-preview[data-reader-theme="sepia"]{
-  --aurora-curl-dark:#a1855c;
-  --aurora-curl-mid:#deca9f;
-  --aurora-curl-light:#f6e8c9;
-  --aurora-curl-paper:#e9d5ac;
-  --aurora-curl-shadow:rgba(70,47,24,.47);
-  --aurora-curl-fibre:rgba(121,89,50,.12);
+  --aurora-sheet:#f8edda;
+  --aurora-sheet-light:#fff4df;
+  --aurora-sheet-shade:#e8d8bd;
+  --aurora-sheet-deep:#afa082;
+  --aurora-fold-shadow:rgba(68,46,26,.40);
+  --aurora-cut-line:rgba(134,107,70,.24);
+  --aurora-binding:#685340;
 }
 .reader.aurora-page-curl-preview[data-reader-theme="night"]{
-  --aurora-curl-dark:#0a1413;
-  --aurora-curl-mid:#293c38;
-  --aurora-curl-light:#50645d;
-  --aurora-curl-paper:#2e403b;
-  --aurora-curl-shadow:rgba(0,0,0,.75);
-  --aurora-curl-fibre:rgba(169,187,175,.08);
+  --aurora-sheet:#232c29;
+  --aurora-sheet-light:#34413b;
+  --aurora-sheet-shade:#192421;
+  --aurora-sheet-deep:#101a18;
+  --aurora-fold-shadow:rgba(0,0,0,.67);
+  --aurora-cut-line:rgba(169,185,175,.12);
+  --aurora-binding:#18221f;
 }
-/* O S24 FE lê em retrato: a margem curvada ocupa só o cantinho esquerdo.
-   A página, seu texto e o gesto para virá-la conservam o tamanho e o motor. */
-@media (max-width:669px){
+@media(max-width:669px){
+  .reader.aurora-page-curl-preview .viewport{isolation:isolate}
+  .reader.aurora-page-curl-preview .flipbook.ready{
+    position:relative;z-index:2;
+  }
+  /* Camadas colocadas atrás da folha, sem capturar toques nem o gesto de folhear. */
+  .reader.aurora-page-curl-preview .aurora-reader-volume{
+    position:absolute;z-index:1;pointer-events:none;overflow:visible;
+  }
+  .reader.aurora-page-curl-preview .aurora-reader-volume__cover{
+    position:absolute;inset:6px -13px -9px -14px;
+    border:3px solid var(--aurora-binding);
+    border-radius:3px 5px 7px 4px;
+    background-color:var(--aurora-binding);
+    background-position:center;background-size:cover;background-repeat:no-repeat;
+    box-shadow:0 9px 18px rgba(0,0,0,.43),inset 0 1px 4px rgba(255,255,255,.14);
+  }
+  .reader.aurora-page-curl-preview .aurora-reader-volume__sheets{
+    position:absolute;inset:3px -9px -4px -8px;
+    border:1px solid var(--aurora-sheet-deep);
+    border-radius:2px 6px 6px 3px;
+    background:
+      linear-gradient(90deg,transparent 0%,rgba(255,255,255,.14) 65%,var(--aurora-sheet-shade) 100%),
+      repeating-linear-gradient(0deg,
+        var(--aurora-sheet-light) 0 1px,
+        var(--aurora-cut-line) 2px,
+        var(--aurora-sheet) 3px 5px);
+    box-shadow:3px 3px 6px -3px var(--aurora-fold-shadow);
+  }
+  .reader.aurora-page-curl-preview .aurora-reader-volume__turned{
+    position:absolute;left:-15px;top:7px;bottom:5px;width:24px;
+    border-radius:5px 55% 35% 4px / 4px 17% 20% 4px;
+    background:linear-gradient(90deg,
+      var(--aurora-sheet-deep) 0%,
+      var(--aurora-sheet-shade) 17%,
+      var(--aurora-sheet) 48%,
+      var(--aurora-sheet-light) 75%,
+      var(--aurora-sheet) 100%);
+    box-shadow:-3px 2px 8px var(--aurora-fold-shadow);
+    transform-origin:right center;
+    transform:perspective(130px) rotateY(19deg);
+  }
+  /* A curvatura entra sobre apenas os primeiros 30-40px da folha.
+     Sem listras: a iluminação suave vem da mesma cor do papel selecionado. */
   .reader.aurora-page-curl-preview .page:not(.loading)::before{
     content:"";position:absolute;z-index:5;pointer-events:none;
-    left:0;top:5px;bottom:4px;width:clamp(13px,4.6vw,21px);
-    border-radius:0 56% 42% 0 / 0 13% 18% 0;
-    background:
-      repeating-linear-gradient(0deg,transparent 0 13px,var(--aurora-curl-fibre) 14px,transparent 15px 26px),
-      linear-gradient(90deg,
-        var(--aurora-curl-dark) 0%,
-        var(--aurora-curl-mid) 10%,
-        var(--aurora-curl-light) 36%,
-        var(--aurora-curl-paper) 62%,
-        var(--aurora-curl-mid) 82%,
-        transparent 100%);
-    box-shadow:3px 0 7px -3px var(--aurora-curl-shadow),inset -1px 0 1px var(--aurora-curl-fibre);
+    left:0;top:2px;bottom:2px;width:clamp(29px,9.5vw,42px);
+    border-radius:0 72% 39% 0 / 0 18% 21% 0;
+    background:linear-gradient(90deg,
+      var(--aurora-sheet-deep) 0%,
+      var(--aurora-sheet-shade) 7%,
+      var(--aurora-sheet-light) 23%,
+      var(--aurora-sheet) 50%,
+      var(--aurora-sheet) 68%,
+      transparent 100%);
+    box-shadow:3px 0 11px -5px var(--aurora-fold-shadow);
     transform-origin:left center;
-    transform:perspective(170px) rotateY(-16deg) translateX(-1px);
+    transform:perspective(190px) rotateY(-11deg) translateX(-1px);
   }
 }

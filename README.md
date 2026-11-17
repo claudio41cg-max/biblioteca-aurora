@@ -238,3 +238,8 @@ Apenas na edição **Razão e Sensibilidade**, o livro WebGL exibe ao abrir uma 
 ### v56 — Folha com curva física no leitor PDF (teste isolado)
 
 Somente o PDF **Razão e Sensibilidade** exibe, no celular, uma faixa estreita e curvada junto à borda esquerda de cada página, sugerindo o verso da folha já virada. A página atual continua ocupando praticamente toda a tela: não se cria um segundo painel nem um livro dividido ao meio. A textura e as sombras do filete seguem os modos **Claro, Sépia e Escuro**. Nenhuma alteração no StPageFlip, na velocidade de virada (900 ms), no progresso salvo, nos marcadores, no áudio ou nas configurações. Os demais livros mantêm o visual anterior. Backup de segurança: `backup-aurora-v55-antes-folha-curvada-20261117`. Após Cláudio validar no aparelho, o acabamento pode ser ajustado ou estendido às demais obras.
+
+
+### v57 — Profundidade da folha, ensaio em Razão e Sensibilidade
+
+A prova v56 foi refinada no leitor PDF **somente de Razão e Sensibilidade**: a dobra esquerda ficou maior, com a mesma cor do papel e sem as falsas listras; o sombreado é gradual. Um miolo fino mostra o corte das folhas à direita, e a borda da capa original aparece discretamente por baixo. A versão móvel reserva somente uma pequena margem para esse volume, sem dividir a folha de leitura em duas. A geometria do acabamento acompanha zoom, rolagem e orientação; o movimento do StPageFlip permanece com 900 ms e os mesmos comandos. Ao iniciar uma virada, as páginas vizinhas são solicitadas antecipadamente para reduzir a possibilidade de folha sem conteúdo ao final. Os temas claro, sépia e escuro, marcadores, progresso e demais livros foram preservados. Backup: `backup-aurora-v56-antes-curvatura-profunda-20261117`.
