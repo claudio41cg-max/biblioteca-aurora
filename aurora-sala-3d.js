@@ -78,8 +78,8 @@
     :book.format==='epub'
     ?'./ler-epub.html?livro='+encodeURIComponent(book.id)+'&v=8'
     :book.format==='audio'?'./ouvir-livro.html?livro='+encodeURIComponent(book.id)+'&v=1'
-    :'./meus-livros.html?livro='+encodeURIComponent(book.id)+'&open=1&v=30';
-  const editionURL=book=>['epub','txt','audio','online'].includes(book.format)?readerURL(book):'./meus-livros.html?livro='+encodeURIComponent(book.id)+'&v=30';
+    :'./meus-livros.html?livro='+encodeURIComponent(book.id)+'&open=1&v=31';
+  const editionURL=book=>['epub','txt','audio','online'].includes(book.format)?readerURL(book):'./meus-livros.html?livro='+encodeURIComponent(book.id)+'&v=31';
   let fallbackPose={x:-.09,y:.28};
 
   function setPose(x,y){

@@ -717,14 +717,16 @@
       container.replaceChildren(host);
       return host;
     }
-    // Apenas no piloto PDF: o StPageFlip desloca a ponta da folha em até
-    // 10% da altura ao folhear. Isso levanta os cantos e cria os cortes
-    // triangulares visíveis acima e abaixo do livro. Comprimimos somente
-    // o percurso VERTICAL da ponta. O eixo horizontal, as páginas, a
-    // curvatura do motor, o gesto de arrastar e os 900 ms são preservados.
+    // Apenas no piloto PDF: o folheio padrão começa puxando a ponta da folha
+    // para dentro em 10% da altura. Mesmo comprimindo esse deslocamento na
+    // v63, a folha continuava terminando 20–40px antes do topo e do pé.
+    // Mantemos a ponta a menos de um pixel da borda durante TODO o gesto,
+    // inclusive no meio da animação. Um pequeno afastamento evita a
+    // geometria degenerada (interseções paralelas) do StPageFlip.
+    // O eixo horizontal, as sombras do motor e os 900 ms são preservados.
     function softenPageCornerLift(point,height,corner){
-      const edge=corner==='bottom'?height:0;
-      return {x:point.x,y:Math.max(0,Math.min(height,edge+(point.y-edge)*.42))};
+      const inset=Math.min(.85,Math.max(.5,height*.001));
+      return {x:point.x,y:corner==='bottom'?height-inset:inset};
     }
     function installFullHeightTurn(session){
       if(innerWidth>=670||!$('reader').classList.contains('aurora-page-curl-preview'))return;

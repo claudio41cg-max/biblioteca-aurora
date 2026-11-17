@@ -1,5 +1,12 @@
 # Biblioteca Aurora
 
+## Atualização v64 — dobra do PDF sem encurtar as pontas
+
+- Em **Razão e Sensibilidade**, a v63 ainda deixava a página dobrada com um retângulo mais curto que o livro. O defeito vinha do deslocamento **vertical residual** do StPageFlip durante cada quadro da virada; a tela parada já estava correta.
+- A ponta superior/inferior agora percorre a animação a menos de um pixel da borda da folha, tanto por botão quanto por arraste. A coordenada horizontal e os 900 ms não mudaram. Um afastamento mínimo protege os cálculos geométricos do motor.
+- A aparência estática, a proporção original do PDF, os três temas, os controles, o progresso, o livro 3D e os outros arquivos continuam intactos. Testar a virada no S24 FE antes de estender o efeito.
+- Backup para retorno: `backup-aurora-v63-antes-corrigir-altura-folheio-20261117`.
+
 ## Atualização v63 — bordas da folha na virada do PDF
 
 - Em **Razão e Sensibilidade**, o recorte superior/inferior observado durante a dobra vinha da trajetória vertical de dez por cento da altura usada pelo próprio StPageFlip, e não do tamanho da imagem do PDF. O trajeto vertical da ponta agora é suavizado para aproximar a folha das bordas do volume enquanto ela gira.

@@ -1,5 +1,6 @@
-const CACHE = 'aurora-v63';
+const CACHE = 'aurora-v64';
 const CORE = [
+  './index.html?v=64', './meus-livros.html?v=31', './aurora-sala-3d.js?v=26',
   './', './index.html', './index.html?v=22', './index.html?v=35', './index.html?v=36', './index.html?v=37', './index.html?v=38', './index.html?v=39', './index.html?v=40', './index.html?v=41', './index.html?v=42', './index.html?v=43', './index.html?v=44', './index.html?v=45', './index.html?v=47', './index.html?v=48', './index.html?v=49', './index.html?v=50', './index.html?v=51', './index.html?v=52', './index.html?v=53', './index.html?v=54', './index.html?v=55', './index.html?v=56', './index.html?v=57', './index.html?v=58', './index.html?v=59', './index.html?v=60', './index.html?v=61', './index.html?v=62', './index.html?v=63', './index.html?v=46', './meus-livros.html?v=22', './meus-livros.html?v=23', './meus-livros.html?v=24', './meus-livros.html?v=25', './meus-livros.html?v=26', './meus-livros.html?v=27', './meus-livros.html?v=28', './meus-livros.html?v=29', './meus-livros.html?v=30', './meus-livros.html?v=20', './meus-livros.html?v=21',
   './explorar-livros.html', './ler-online.html', './minha-biblioteca-privada.html', './aurora-notion-privado.js?v=2', './aurora-online.css?v=6', './aurora-online.css?v=7',
   './aurora-online.js?v=5', './aurora-online-estante.js?v=3', './aurora-leitura-online.js?v=5', './aurora-leitura-online.js?v=6',
@@ -54,7 +55,7 @@ self.addEventListener('fetch', event => {
     // O endereço raiz pode permanecer no cache do GitHub Pages após um deploy.
     // A entrada versionada abre a edição atual também nos PWAs já instalados.
     const isAppRoot = new URL(request.url).pathname === new URL(self.registration.scope).pathname;
-    const resource = isAppRoot ? new Request(new URL('./index.html?v=63',self.registration.scope)) : request;
+    const resource = isAppRoot ? new Request(new URL('./index.html?v=64',self.registration.scope)) : request;
     event.respondWith(fetchWithTimeout(resource,NAVIGATION_TIMEOUT_MS).then(response => {
       if (response.ok) {
         const copy = response.clone();

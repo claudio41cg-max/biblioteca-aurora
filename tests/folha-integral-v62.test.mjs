@@ -36,6 +36,6 @@ assert.match(html,/flippingTime:900,usePortrait:mobile,mobileScrollSupport:false
 assert.match(html,/session\.flip\.loadFromHTML\(session\.pages\)/);
 assert.match(html,/\.flip\.flipNext\('bottom'\)/);
 assert.match(html,/persistProgress\(session\)/);
-assert.match(sw,/aurora-v63/);
+assert.match(sw,/aurora-v64/);
 
 console.log('V62: superfície sépia contínua, corte discreto e folheio original preservados.');
