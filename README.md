@@ -1,5 +1,12 @@
 # Biblioteca Aurora
 
+## Atualização v62 — folha e livro físico sem molduras desiguais
+
+- No piloto **Razão e Sensibilidade**, corrigida a diferença de cor que deixava o PDF branco parecendo menor que a folha sépia: o fundo do papel é uniforme do início ao fim, sem deformar o texto ou as ilustrações originais.
+- A capa e o miolo 3D continuam visíveis ao fundo, com menos sobra nas bordas superior e inferior. As fibras do corte lateral, a curvatura esquerda e a perspectiva permanecem.
+- A correção acompanha a folha durante o movimento original do StPageFlip e preserva seus 900 ms, o modo claro/noturno, os marcadores e o progresso. Outros livros não foram alterados.
+- Backup para restaurar a versão anterior: `backup-aurora-v61-antes-ajuste-folha-serpia-20261117`.
+
 ## Atualização v61 — superfície da folha com altura integral
 
 - No livro piloto **Razão e Sensibilidade**, cada página do PDF agora é desenhada numa folha digital com a mesma proporção da página física do StPageFlip. PDFs com páginas de formatos diferentes deixam de gerar faixas visíveis em cima ou embaixo quando a folha gira.

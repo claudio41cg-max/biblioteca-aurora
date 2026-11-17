@@ -70,7 +70,7 @@
   </style>
   <link rel="stylesheet" href="./aurora-edicao.css?v=1">
   <link rel="stylesheet" href="./aurora-vitrine.css?v=8">
-  <link rel="stylesheet" href="./aurora-reader.css?v=11">
+  <link rel="stylesheet" href="./aurora-reader.css?v=12">
 </head>
 <body>
   <header class="tophead"><div class="eyebrow">SEU ACERVO PESSOAL</div><h1>✦ Meus livros • Aurora ✦</h1><p>Adicione seus livros PDF e guarde cada um pela lombada.</p></header>
@@ -628,10 +628,11 @@
             const offsetX=(canvas.width-viewport.width)/2;
             const offsetY=(canvas.height-viewport.height)/2;
             const ctx=canvas.getContext('2d',{alpha:false});
-            ctx.fillStyle='#fff';
-            ctx.fillRect(0,0,canvas.width,canvas.height);
             await page.render({
               canvasContext:ctx,viewport,
+              // O PDF.js deve pintar TODO o papel, inclusive o espaço
+              // que sobra quando a proporção de uma página varia.
+              background:'#ffffff',
               transform:[1,0,0,1,offsetX,offsetY]
             }).promise;
           }else{

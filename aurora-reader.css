@@ -207,7 +207,7 @@
     position:absolute;z-index:1;pointer-events:none;overflow:visible;
   }
   .reader.aurora-page-curl-preview .aurora-reader-volume__cover{
-    position:absolute;inset:6px -13px -9px -14px;
+    position:absolute;inset:4px -13px -5px -14px;
     border:3px solid var(--aurora-binding);
     border-radius:3px 5px 7px 4px;
     background-color:var(--aurora-binding);
@@ -215,7 +215,7 @@
     box-shadow:0 9px 18px rgba(0,0,0,.43),inset 0 1px 4px rgba(255,255,255,.14);
   }
   .reader.aurora-page-curl-preview .aurora-reader-volume__sheets{
-    position:absolute;inset:3px -9px -4px -8px;
+    position:absolute;inset:1px -9px -2px -8px;
     border:1px solid var(--aurora-sheet-deep);
     border-radius:2px 6px 6px 3px;
     /* Corpo opaco do miolo. Os filetes vêm da textura real do livro 3D
@@ -226,7 +226,7 @@
   /* O corte lateral usa as fibras reais do canvas de acabamento do livro 3D.
      A textura é exibida quase na resolução original, com relevo e capa ao fundo. */
   .reader.aurora-page-curl-preview .aurora-reader-volume__cut{
-    position:absolute;top:5px;right:-12px;bottom:-3px;width:13px;
+    position:absolute;top:1px;right:-12px;bottom:-1px;width:13px;
     border-radius:0 5px 5px 0;overflow:hidden;
     background-color:var(--aurora-sheet-shade);
     background-position:center;background-size:100% 100%;background-repeat:no-repeat;
@@ -248,7 +248,7 @@
     filter:grayscale(1) invert(.83) brightness(.36);
   }
   .reader.aurora-page-curl-preview .aurora-reader-volume__foot{
-    position:absolute;left:3px;right:-7px;bottom:-5px;height:6px;
+    position:absolute;left:3px;right:-7px;bottom:-3px;height:5px;
     border-radius:0 0 4px 4px;
     background-color:var(--aurora-sheet-shade);
     background-position:center;background-size:100% 100%;background-repeat:no-repeat;
@@ -259,7 +259,7 @@
      Quase toda a folha fica sob o motor StPageFlip (z-index:2).
      Só a faixa externa aparece: a área do PDF nunca recebe uma camada por cima. */
   .reader.aurora-page-curl-preview .aurora-reader-volume__turned{
-    position:absolute;left:-32px;top:6px;bottom:7px;width:46px;
+    position:absolute;left:-32px;top:3px;bottom:3px;width:46px;
     border-radius:8px 3px 2px 5px / 7px 3px 2px 6px;
     background:linear-gradient(90deg,
       var(--aurora-sheet-deep) 0%,
@@ -354,18 +354,25 @@
   }
 }
 
-/* v61: a textura da folha tem a proporção exata do PageFlip.
-   O conteúdo PDF é ajustado SEM DEFORMAR no próprio canvas, em vez de
-   deixar um canvas mais baixo com faixas visíveis durante a virada. */
+/* v62: o papel da folha que vira e o miolo 3D devem ter a MESMA cor.
+   Em edições com páginas de proporções diferentes, o PDF é centralizado
+   sem deformação. O branco do PDF era uma placa menor em cima do sépia:
+   a multiplicação mistura o branco original com a cor do papel inteiro,
+   inclusive nos cantos dobrados pela animação do StPageFlip. */
 @media(max-width:669px){
   .reader.aurora-page-curl-preview .page:not(.text-page){
-    background:#fff;
+    background:var(--aurora-sheet);
   }
   .reader.aurora-page-curl-preview .page:not(.text-page) canvas{
     object-fit:fill;
   }
   .reader.aurora-page-curl-preview[data-reader-theme="sepia"] .page:not(.text-page){
-    background:#fffaf3;
+    background:var(--aurora-sheet);
+  }
+  .reader.aurora-page-curl-preview[data-reader-theme="sepia"] .page:not(.text-page) canvas{
+    background:transparent;
+    filter:none;
+    mix-blend-mode:multiply;
   }
   .reader.aurora-page-curl-preview[data-reader-theme="night"] .page:not(.text-page){
     background:#1f2422;
