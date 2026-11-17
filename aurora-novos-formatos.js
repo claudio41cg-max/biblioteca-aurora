@@ -30,6 +30,10 @@
       details.name=window.AuroraTitles?.display(details.title||formats.cleanName(file.name))||details.title||formats.cleanName(file.name);
       details.total=Math.max(130,Math.floor(data.byteLength/50000));
     }
+    if(!details.cover&&format==='epub'){
+      const catalog=await formats.catalogCover?.(details.name,details.author);
+      if(catalog?.cover){details.cover=catalog.cover;details.coverSource=catalog.coverSource;}
+    }
     if(!details.cover&&selectedAudioCover)details.cover=await formats.blobToData(selectedAudioCover);
     const cover=details.cover||(format==='epub'?formats.createEpubCover(details.name,details.author):'');
     const item={id:crypto.randomUUID(),name:details.name,author:details.author||'',

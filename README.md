@@ -1,5 +1,14 @@
 # Biblioteca Aurora
 
+## Atualização v52 — capa real de “É assim que acaba”
+
+- A prioridade permanece com a imagem real embutida no EPUB. A extração também reconhece imagens de capa com tipo MIME incompleto e arquivos de capa inequívocos dentro do ZIP mesmo fora do índice.
+- Se o EPUB de **É assim que acaba**, de **Colleen Hoover**, realmente não fornecer uma capa utilizável, o aplicativo pode recuperar a capa tradicional brasileira do ISBN **9788501112514** em alta resolução, com alternativa na Open Library. A imagem é armazenada localmente para o livro 3D, a lombada e o catálogo funcionarem offline.
+- A recuperação é aplicada a livros recém-importados e aos já guardados neste aparelho que ainda tinham capa ilustrativa; livros com capa original permanecem intocados.
+- Se a capa online não puder ser obtida, a ilustração anterior é preservada e haverá nova tentativa numa visita posterior apenas para esse título.
+- Foi normalizada a navegação da raiz no service worker, atualizada para a versão 52. O folheio, as estantes, o leitor EPUB/PDF e os dados de leitura continuam preservados.
+- Backup de retorno: `backup-aurora-v51-antes-capa-hoover-20261117`.
+
 ## Atualização v51 — nova estante e Romance hot
 
 - A categoria **Romances picantes** passa a se chamar **Romance hot**, preservando todos os livros já guardados no identificador interno `adulto`.

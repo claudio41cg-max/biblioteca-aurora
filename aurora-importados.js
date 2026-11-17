@@ -57,6 +57,12 @@
           }
         }catch(error){console.warn('Capa embutida neste EPUB indisponível:',error);}
       }
+      // Edição conhecida: se o EPUB realmente não trouxe uma imagem legível,
+      // recuperar a capa publicada e guardá-la no próprio aparelho.
+      if(!cover||coverSource==='generated'){
+        const catalog=await formats.catalogCover?.(book.title||book.name,book.author);
+        if(catalog?.cover){cover=catalog.cover;coverSource=catalog.coverSource;}
+      }
       if(!cover||coverSource==='generated'){
         // Uma capa provisória antiga não deve prender todos os livros ao
         // mesmo verde. Se não houve imagem embutida, atualiza a ilustração.
@@ -65,12 +71,12 @@
       }
       book.cover=cover;
       book.coverSource=coverSource;
-      book.coverCheckedVersion=50;
+      book.coverCheckedVersion=coverSource==='generated'&&formats.catalogCoverURL?.(book.title||book.name,book.author)?51:52;
       const changed=stored.cover!==cover||stored.coverSource!==coverSource||
-        stored.coverCheckedVersion!==50||backRecovered;
+        stored.coverCheckedVersion!==book.coverCheckedVersion||backRecovered;
       if(changed){
         stored.cover=cover;stored.coverSource=coverSource;
-        stored.coverCheckedVersion=50;
+        stored.coverCheckedVersion=book.coverCheckedVersion;
         await formats.saveRecord('books',stored).catch(error=>console.warn('Capa recuperada não salva:',error));
       }
       return coverSource==='original';
@@ -99,7 +105,7 @@
   // O livro físico segue no MESMO visor WebGL até o centro da tela.
   async function takeBookFromShelf(button,book){
     if(button.disabled)return;
-    if(book.format==='epub'&&(!book.cover||book.coverSource==='generated')&&book.coverCheckedVersion!==50){
+    if(book.format==='epub'&&(!book.cover||book.coverSource==='generated')&&book.coverCheckedVersion!==52){
       button.disabled=true;
       button.setAttribute('aria-busy','true');
       try{
@@ -174,7 +180,7 @@
           bookmarked:book.bookmarked
         });
         button.dataset.bookId=book.id;
-        if(book.format==='epub'&&(!book.cover||book.coverSource==='generated')&&book.coverCheckedVersion!==50){
+        if(book.format==='epub'&&(!book.cover||book.coverSource==='generated')&&book.coverCheckedVersion!==52){
           recoverQueue.push({button,book});
         }
         button.title=book.title+(book.coverSource==='generated'?' • capa ilustrativa; tocar para abrir em 3D':' • tocar para ver a edição em 3D');

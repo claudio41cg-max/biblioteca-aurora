@@ -76,6 +76,42 @@
     return canvas.toDataURL('image/png');
   }
   const createEpubCover=(title,author)=>createDigitalCover(title,author,'epub');
+  // Capa brasileira de edição identificada por título/autora. Nunca substitui
+  // uma capa que já foi extraída do próprio exemplar.
+  const CATALOG_COVERS=[{
+    title:/^e assim que acaba(?:\b|$)/,
+    author:/colleen hoover/,
+    urls:[
+      'https://m.media-amazon.com/images/I/91r5G8RxqfL.jpg',
+      'https://covers.openlibrary.org/b/isbn/9788501112514-L.jpg?default=false'
+    ]
+  }];
+  const simplify=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+  function catalogCoverEdition(title,author){
+    const name=simplify(title),writer=simplify(author);
+    return CATALOG_COVERS.find(item=>item.title.test(name)&&(!writer||item.author.test(writer)));
+  }
+  const catalogCoverURL=(title,author)=>catalogCoverEdition(title,author)?.urls[0]||'';
+  async function catalogCover(title,author){
+    const edition=catalogCoverEdition(title,author);
+    if(!edition)return null;
+    // Usa a capa de maior definição disponível; o servidor público da Open
+    // Library é a alternativa quando a primeira fonte falha ou bloqueia CORS.
+    for(const url of edition.urls){
+      try{
+        const response=await fetch(url,{mode:'cors',credentials:'omit'});
+        if(!response.ok)throw new Error('HTTP '+response.status);
+        const blob=await response.blob();
+        if(!blob.type.startsWith('image/')||blob.size<10000||blob.size>4*1024*1024)
+          throw new Error('A imagem não tem um formato ou tamanho válido');
+        // Salva a arte no IndexedDB para lombada e WebGL funcionarem offline.
+        return {cover:await blobToData(blob),coverSource:'catalog'};
+      }catch(error){
+        console.warn('Fonte de capa indisponível, tentando alternativa:',error);
+      }
+    }
+    return null;
+  }
   async function openEpub(data){
     if(!window.JSZip)throw new Error('O módulo EPUB ainda não carregou. Abra o aplicativo novamente.');
     const zip=await JSZip.loadAsync(data);
@@ -95,7 +131,8 @@
       properties:item.getAttribute('properties')||''
     }]));
     const metaCover=nodes(packageXML,'meta').find(item=>item.getAttribute('name')==='cover')?.getAttribute('content');
-    const images=[...manifest.entries()].filter(([,item])=>item.type.startsWith('image/')&&entry(item.path));
+    const images=[...manifest.entries()].filter(([,item])=>
+      (item.type.startsWith('image/')||/\.(?:jpe?g|png|webp|svg)$/i.test(item.path))&&entry(item.path));
     const backMarker=/(?:back[\s_-]?cover|rear[\s_-]?cover|contracapa|contra[\s_-]?capa|capa[\s_-]?(?:verso|traseira)|cover[\s_-]?back)/i;
     let coverEntry=images.find(([id,item])=>item.properties.split(/\s+/).includes('cover-image')||id===metaCover)?.[1];
     if(!coverEntry)coverEntry=images.find(([id,item])=>!backMarker.test(id+' '+item.path)&&
@@ -141,6 +178,15 @@
           if(found){coverEntry=found[1];break;}
         }catch(error){console.warn('Página de capa EPUB não reconhecida:',error);}
       }
+    }
+    // Alguns EPUBs não registram a fotografia da capa no manifest, embora ela
+    // exista no ZIP. Só aceita nomes inequívocos, sem confundir contracapa.
+    if(!coverEntry){
+      const direct=Object.keys(zip.files).filter(path=>!zip.files[path].dir &&
+        /\.(?:jpe?g|png|webp)$/i.test(path) &&
+        /(?:^|[\/_.-])(?:cover|capa|front)(?:[\/_.-]|$)/i.test(path) &&
+        !backMarker.test(path)).sort((a,b)=>a.length-b.length)[0];
+      if(direct)coverEntry={path:direct,type:/\.png$/i.test(direct)?'image/png':/\.webp$/i.test(direct)?'image/webp':'image/jpeg'};
     }
     let cover='';
     if(coverEntry&&entry(coverEntry.path)){
@@ -301,5 +347,5 @@
     const tx=db.transaction(store,'readwrite');tx.objectStore(store).put(item);
     tx.oncomplete=()=>{db.close();resolve();};tx.onerror=()=>{db.close();reject(tx.error);};
   }));}
-  window.AuroraFormats={openEpub,epubChapter,epubChapterContent,audioMetadata,database,readRecord,saveRecord,cleanName,blobToData,createEpubCover,createDigitalCover};
+  window.AuroraFormats={openEpub,epubChapter,epubChapterContent,audioMetadata,database,readRecord,saveRecord,cleanName,blobToData,createEpubCover,createDigitalCover,catalogCover,catalogCoverURL};
 })();

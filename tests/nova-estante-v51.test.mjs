@@ -17,6 +17,6 @@ assert.match(catalog,/shelf\.categories\.find\(item=>item\.id===current\)/);
 assert.match(css,/\.category\.shelf-premium \.book-spine/);
 assert.match(html,/aurora-estante\.js\?v=18/);
 assert.match(html,/aurora-sala-3d\.js\?v=17/);
-assert.match(worker,/aurora-v51/);
+assert.match(worker,/aurora-v52/);
 assert.match(worker,/index\.html\?v=51/);
 console.log('V51: nova estante vazia, importação, 3D, catálogos e nome Romance hot confirmados.');
