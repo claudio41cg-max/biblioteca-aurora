@@ -717,27 +717,23 @@
       container.replaceChildren(host);
       return host;
     }
-    // Apenas no piloto PDF: o folheio padrão começa puxando a ponta da folha
-    // para dentro em 10% da altura. Mesmo comprimindo esse deslocamento na
-    // v63, a folha continuava terminando 20–40px antes do topo e do pé.
-    // Mantemos a ponta a menos de um pixel da borda durante TODO o gesto,
-    // inclusive no meio da animação. Um pequeno afastamento evita a
-    // geometria degenerada (interseções paralelas) do StPageFlip.
-    // O eixo horizontal, as sombras do motor e os 900 ms são preservados.
-    function softenPageCornerLift(point,height,corner){
-      const inset=Math.min(.85,Math.max(.5,height*.001));
-      return {x:point.x,y:corner==='bottom'?height-inset:inset};
-    }
+    // Apenas em Razão e Sensibilidade, a geometria de dobra original do
+    // StPageFlip é preservada. Aumentamos 3% somente a folha em movimento,
+    // centrada na altura, sem mudar as páginas paradas nem o tempo de 900 ms.
     function installFullHeightTurn(session){
       if(innerWidth>=670||!$('reader').classList.contains('aurora-page-curl-preview'))return;
       const controller=session.flip?.getFlipController?.();
       if(!controller||typeof controller.do!=='function')return;
       const drawOriginal=controller.do;
       controller.do=function(point){
-        const calc=controller.getCalculation?.();
-        const height=session.flip?.getBoundsRect?.()?.height;
-        if(!calc||!(height>0)||!Number.isFinite(point?.y))return drawOriginal.call(this,point);
-        return drawOriginal.call(this,softenPageCornerLift(point,height,calc.getCorner()));
+        const result=drawOriginal.call(this,point);
+        const state=controller.getState?.();
+        if(state!=='flipping'&&state!=='user_fold')return result;
+        const movingPage=controller.flippingPage?.getElement?.();
+        if(!movingPage)return result;
+        movingPage.style.transformOrigin='0 50%';
+        movingPage.style.transform+=' scaleY(1.03)';
+        return result;
       };
     }
     /* Volume de papel visto atrás de uma única página, sem modificar o PageFlip.
