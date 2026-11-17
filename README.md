@@ -1,5 +1,14 @@
 # Biblioteca Aurora
 
+## Atualização v48 — acabamento realista em todas as estantes
+
+- O acabamento antes exclusivo de **Romances** agora acompanha todas as categorias: madeira iluminada, reflexos sutis, sombras reduzidas e volumes apoiados com perspectivas naturais.
+- Cada livro conserva altura, largura, espessura, inclinação e capa próprias, calculadas a partir de seus dados e identificador. Não há uma capa genérica aplicada sobre edições importadas.
+- As lombadas reais prevalecem sobre as geradas. As lombadas ilustrativas de alta resolução (v47) continuam funcionando em qualquer prateleira, com título legível.
+- Livros on-line e outros formatos que já trazem capa ou lombada também mostram sua face física original na estante, sem alterar o leitor correspondente.
+- Categorias, catálogos, organização, toque para retirar o livro, livro WebGL 3D, folheio e progresso permanecem intactos.
+- Backup de retorno: ramo `backup-aurora-v47-antes-estantes-unificadas-20261116`.
+
 ## Atualização v47 — lombadas mais nítidas na estante
 
 - Livros importados sem fotografia da lombada recebem uma textura própria desenhada em canvas, em alta resolução, baseada nas cores da capa. Acabamentos variam entre filetes, faixas, losangos e estrelas.
