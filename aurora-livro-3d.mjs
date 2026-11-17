@@ -180,6 +180,80 @@ function initialize(){
     ctx.font='bold 43px Georgia';ctx.fillText(String(name).slice(0,33),0,13,725);
     return canvasTexture(canvas);
   }
+  // Ensaio visual de UMA edição: somente "Razão e Sensibilidade".
+  // Interior da CAPA fina à esquerda e folha de rosto sobre o miolo à direita.
+  // Nenhuma mudança no relógio, evento ou movimento da animação de abertura.
+  function hasReasonOpening(book){
+    const candidate=String(book.title||book.name||'')+' '+String(book.name||'');
+    const normalized=candidate.normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^a-z0-9]+/gi,' ').toLowerCase();
+    return /\brazao e sensibilidade\b/.test(normalized);
+  }
+  function reasonOpeningCanvas(which){
+    const canvas=document.createElement('canvas');
+    canvas.width=1024;canvas.height=1440;
+    const ctx=canvas.getContext('2d',{alpha:false});
+    ctx.scale(2,2);
+    const W=512,H=720;
+    const paper=ctx.createLinearGradient(0,0,W,H);
+    paper.addColorStop(0,which==='inside'?'#e9dbc1':'#fff8e9');
+    paper.addColorStop(.42,which==='inside'?'#f4e8d2':'#fcf3e2');
+    paper.addColorStop(1,which==='inside'?'#e8d8bd':'#eadcc5');
+    ctx.fillStyle=paper;ctx.fillRect(0,0,W,H);
+    // Fibras quase invisíveis, sobre papel opaco, sem parecer outra capa ilustrada.
+    let seed=which==='inside'?41:1811;
+    const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
+    for(let i=0;i<2600;i++){
+      ctx.fillStyle=random()>.52?'rgba(255,255,255,.10)':'rgba(123,94,64,.028)';
+      ctx.fillRect(random()*W,random()*H,.35+random()*.9,.7+random()*2.5);
+    }
+    const edge=ctx.createLinearGradient(0,0,W,0);
+    edge.addColorStop(0,'rgba(75,47,25,.24)');
+    edge.addColorStop(.045,'rgba(115,83,52,.09)');
+    edge.addColorStop(.16,'rgba(255,255,255,.06)');
+    edge.addColorStop(.86,'rgba(255,255,255,.02)');
+    edge.addColorStop(1,'rgba(77,50,28,.16)');
+    ctx.fillStyle=edge;ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle=which==='inside'?'rgba(134,94,54,.29)':'rgba(142,109,70,.34)';
+    ctx.lineWidth=1.2;
+    ctx.strokeRect(29,30,W-58,H-60);
+    ctx.strokeStyle='rgba(255,255,248,.33)';
+    ctx.lineWidth=.65;ctx.strokeRect(34,35,W-68,H-70);
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    if(which==='inside'){
+      // Guarda interna da própria capa: pouco texto e sem uma "segunda capa".
+      ctx.fillStyle='#8c6d4b';
+      ctx.font='18px Georgia,serif';ctx.fillText('✧',W/2,236);
+      ctx.font='italic 25px Georgia,serif';
+      ctx.fillText('Ex-líbris',W/2,286);
+      ctx.fillStyle='#59452e';
+      ctx.font='27px Georgia,serif';
+      ctx.fillText('Biblioteca Aurora',W/2,328);
+      ctx.strokeStyle='rgba(134,97,59,.36)';
+      ctx.beginPath();ctx.moveTo(176,356);ctx.lineTo(336,356);ctx.stroke();
+      ctx.fillStyle='#89765d';ctx.font='italic 17px Georgia,serif';
+      ctx.fillText('Histórias para guardar.',W/2,390);
+      ctx.fillText('Mundos para descobrir.',W/2,415);
+    }else{
+      // Primeira folha de rosto, ligada visualmente ao papel do bloco.
+      ctx.fillStyle='#8d7350';ctx.font='16px Georgia,serif';
+      ctx.fillText('BIBLIOTECA AURORA',W/2,119);
+      ctx.font='italic 23px Georgia,serif';ctx.fillText('Jane Austen',W/2,239);
+      ctx.fillStyle='#4a3325';ctx.font='49px Georgia,serif';
+      ctx.fillText('Razão e',W/2,318);
+      ctx.fillText('Sensibilidade',W/2,378);
+      ctx.strokeStyle='#ab865c';ctx.lineWidth=1.6;
+      ctx.beginPath();ctx.moveTo(145,422);ctx.lineTo(229,422);
+      ctx.moveTo(283,422);ctx.lineTo(367,422);ctx.stroke();
+      ctx.fillStyle='#9b7850';ctx.font='25px Georgia,serif';ctx.fillText('❦',W/2,424);
+      ctx.fillStyle='#745b43';ctx.font='italic 21px Georgia,serif';
+      ctx.fillText('Entre a prudência e o coração,',W/2,490);
+      ctx.fillText('duas maneiras de sentir.',W/2,520);
+      ctx.fillStyle='#9f8b70';ctx.font='14px Georgia,serif';
+      ctx.fillText('UMA HISTÓRIA DE JANE AUSTEN',W/2,620);
+    }
+    return canvas;
+  }
   // Usa exatamente as mesmas superfícies da versão CSS de compatibilidade.
   function matchEditionSurfaces(img,book,backTexture,spineTexture,boardMaterial,trimMaterial){
     const surfaces=window.AuroraEditionSurfaces?.generate(img,book);
@@ -289,8 +363,12 @@ function initialize(){
     const thickness=clamp(.25+(Number(book.total||180)/1000),.34,.72);
     shadowMesh.position.set(0,-height/2-.22,-thickness/2-.35);
     shadowMesh.scale.set(width*1.35,.52,1);
+    const previewOpening=hasReasonOpening(book);
+    const titleLeaf=previewOpening?new THREE.MeshStandardMaterial({
+      map:canvasTexture(reasonOpeningCanvas('title')),roughness:.94,metalness:0
+    }):parchment;
     const paper=new THREE.Mesh(new THREE.BoxGeometry(width-.12,height-.11,thickness-.075),[
-      pageMaterial,pageMaterial,topPageMaterial,topPageMaterial,parchment,parchment
+      pageMaterial,pageMaterial,topPageMaterial,topPageMaterial,titleLeaf,parchment
     ]);
     paper.position.x=.04;
     group.add(paper);
@@ -299,7 +377,10 @@ function initialize(){
     const trimBoard=new THREE.MeshStandardMaterial({color:0x665449,roughness:.7,metalness:0});
     const coverSurface=canvasTexture(neutralCoverCanvas());
     const frontMaterial=new THREE.MeshPhysicalMaterial({map:coverSurface,roughness:.5,metalness:0,clearcoat:.32,clearcoatRoughness:.3});
-    const faceSides=[coverBoard,coverBoard,trimBoard,coverBoard,frontMaterial,coverBoard];
+    const innerCover=previewOpening?new THREE.MeshStandardMaterial({
+      map:canvasTexture(reasonOpeningCanvas('inside')),roughness:.86,metalness:0
+    }):coverBoard;
+    const faceSides=[coverBoard,coverBoard,trimBoard,coverBoard,frontMaterial,innerCover];
     frontHinge=new THREE.Group();
     frontHinge.position.set(-width/2,0,thickness/2+.028);
     const frontMesh=new THREE.Mesh(new THREE.BoxGeometry(width,height,.052),faceSides);

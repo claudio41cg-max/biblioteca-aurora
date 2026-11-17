@@ -228,3 +228,8 @@ Para a unificação da entrada na estante, importação de PDF diretamente da p�
 ### v54 — Catálogos com livros mais encorpados
 
 Os livros do catálogo agora têm espessura de 18 a 26 pixels, calculada proporcionalmente à largura do exemplar (antes 8 a 15 pixels). O ângulo inicial passou de 16° para 22° para mostrar melhor a lombada. O giro por arraste, a contracapa original ou ilustrativa, as capas originais, a abertura da leitura e as duas colunas em celulares foram preservados. Backup: `backup-aurora-v53-antes-livros-mais-grossos-20261117`.
+
+
+### v55 — Ensaio de abertura interna de Razão e Sensibilidade
+
+Apenas na edição **Razão e Sensibilidade**, o livro WebGL exibe ao abrir uma guarda interna fina com ex-líbris da Biblioteca Aurora no verso da capa esquerda e uma folha de rosto creme com título, autora e ornamento no bloco direito. As texturas de alta resolução são criadas por Canvas 2D e aplicadas às faces internas do modelo. Outros livros permanecem com a abertura anterior. Não houve alteração em `playOpen`, na duração original de 670 ms, na emissão de `aurora:open-book`, no folheio ou no leitor. Backup: `backup-aurora-v54-antes-abertura-razao-20261117`.
