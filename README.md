@@ -233,3 +233,8 @@ Os livros do catálogo agora têm espessura de 18 a 26 pixels, calculada proporc
 ### v55 — Ensaio de abertura interna de Razão e Sensibilidade
 
 Apenas na edição **Razão e Sensibilidade**, o livro WebGL exibe ao abrir uma guarda interna fina com ex-líbris da Biblioteca Aurora no verso da capa esquerda e uma folha de rosto creme com título, autora e ornamento no bloco direito. As texturas de alta resolução são criadas por Canvas 2D e aplicadas às faces internas do modelo. Outros livros permanecem com a abertura anterior. Não houve alteração em `playOpen`, na duração original de 670 ms, na emissão de `aurora:open-book`, no folheio ou no leitor. Backup: `backup-aurora-v54-antes-abertura-razao-20261117`.
+
+
+### v56 — Folha com curva física no leitor PDF (teste isolado)
+
+Somente o PDF **Razão e Sensibilidade** exibe, no celular, uma faixa estreita e curvada junto à borda esquerda de cada página, sugerindo o verso da folha já virada. A página atual continua ocupando praticamente toda a tela: não se cria um segundo painel nem um livro dividido ao meio. A textura e as sombras do filete seguem os modos **Claro, Sépia e Escuro**. Nenhuma alteração no StPageFlip, na velocidade de virada (900 ms), no progresso salvo, nos marcadores, no áudio ou nas configurações. Os demais livros mantêm o visual anterior. Backup de segurança: `backup-aurora-v55-antes-folha-curvada-20261117`. Após Cláudio validar no aparelho, o acabamento pode ser ajustado ou estendido às demais obras.

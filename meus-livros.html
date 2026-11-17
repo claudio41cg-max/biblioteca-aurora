@@ -70,7 +70,7 @@
   </style>
   <link rel="stylesheet" href="./aurora-edicao.css?v=1">
   <link rel="stylesheet" href="./aurora-vitrine.css?v=8">
-  <link rel="stylesheet" href="./aurora-reader.css?v=5">
+  <link rel="stylesheet" href="./aurora-reader.css?v=6">
 </head>
 <body>
   <header class="tophead"><div class="eyebrow">SEU ACERVO PESSOAL</div><h1>✦ Meus livros • Aurora ✦</h1><p>Adicione seus livros PDF e guarde cada um pela lombada.</p></header>
@@ -719,6 +719,12 @@
       if (active) closeReader();
       const meta = catalog.find(b => b.id === id);
       if (!meta) return;
+      // Apenas Razão e Sensibilidade recebe esta prova visual.
+      // Os demais exemplares mantêm a leitura anterior, sem alterações.
+      const visualTitle=String(meta.name||'').normalize('NFD')
+        .replace(/[\u0300-\u036f]/g,'').replace(/[-_]+/g,' ').toLowerCase();
+      $('reader').classList.toggle('aurora-page-curl-preview',
+        visualTitle.includes('razao e sensibilidade'));
       $('book3d').classList.add('opening');
       const token = ++generation;
       const session = {id,total:0,page:0,bookmark:null,pages:[],rendering:new Set(),pdf:null,flip:null,closed:false,zoom:1,textMode:false};
@@ -810,6 +816,7 @@
       freshFlipbook();
       $('reader').classList.remove('active');
       $('reader').classList.remove('zoomed');
+      $('reader').classList.remove('aurora-page-curl-preview');
       setReaderPrefsOpen(false);
       stopPdfSpeech();
       $('book3d').classList.remove('opening');

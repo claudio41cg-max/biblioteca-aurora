@@ -166,3 +166,51 @@
 .reader .viewport{padding-bottom:8px}
 .reader-page-sound-choice{display:flex;align-items:center;gap:9px;margin:5px 0 15px;color:#f1dfc5;font:13px Georgia,serif}
 .reader-page-sound-choice input{width:18px;height:18px;accent-color:#cfa56e}
+
+/* Protótipo em Razão e Sensibilidade: uma única folha de leitura inteira,
+   com apenas a beiradinha curva da folha anterior. Não muda o PageFlip. */
+.reader.aurora-page-curl-preview{
+  --aurora-curl-dark:#9c8566;
+  --aurora-curl-mid:#e7d9bd;
+  --aurora-curl-light:#fffbf0;
+  --aurora-curl-paper:#f4e7cd;
+  --aurora-curl-shadow:rgba(57,39,22,.47);
+  --aurora-curl-fibre:rgba(113,89,61,.10);
+}
+.reader.aurora-page-curl-preview[data-reader-theme="sepia"]{
+  --aurora-curl-dark:#a1855c;
+  --aurora-curl-mid:#deca9f;
+  --aurora-curl-light:#f6e8c9;
+  --aurora-curl-paper:#e9d5ac;
+  --aurora-curl-shadow:rgba(70,47,24,.47);
+  --aurora-curl-fibre:rgba(121,89,50,.12);
+}
+.reader.aurora-page-curl-preview[data-reader-theme="night"]{
+  --aurora-curl-dark:#0a1413;
+  --aurora-curl-mid:#293c38;
+  --aurora-curl-light:#50645d;
+  --aurora-curl-paper:#2e403b;
+  --aurora-curl-shadow:rgba(0,0,0,.75);
+  --aurora-curl-fibre:rgba(169,187,175,.08);
+}
+/* O S24 FE lê em retrato: a margem curvada ocupa só o cantinho esquerdo.
+   A página, seu texto e o gesto para virá-la conservam o tamanho e o motor. */
+@media (max-width:669px){
+  .reader.aurora-page-curl-preview .page:not(.loading)::before{
+    content:"";position:absolute;z-index:5;pointer-events:none;
+    left:0;top:5px;bottom:4px;width:clamp(13px,4.6vw,21px);
+    border-radius:0 56% 42% 0 / 0 13% 18% 0;
+    background:
+      repeating-linear-gradient(0deg,transparent 0 13px,var(--aurora-curl-fibre) 14px,transparent 15px 26px),
+      linear-gradient(90deg,
+        var(--aurora-curl-dark) 0%,
+        var(--aurora-curl-mid) 10%,
+        var(--aurora-curl-light) 36%,
+        var(--aurora-curl-paper) 62%,
+        var(--aurora-curl-mid) 82%,
+        transparent 100%);
+    box-shadow:3px 0 7px -3px var(--aurora-curl-shadow),inset -1px 0 1px var(--aurora-curl-fibre);
+    transform-origin:left center;
+    transform:perspective(170px) rotateY(-16deg) translateX(-1px);
+  }
+}
