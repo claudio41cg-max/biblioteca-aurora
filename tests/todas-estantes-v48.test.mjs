@@ -27,7 +27,7 @@ assert.match(js,/item\.source!=='demo'&&Boolean\(item\.cover\|\|item\.spine\)/,
   'outros formatos com capa não devem perder a representação física');
 assert.match(lombadas,/dataset\.realSpine==='true'/);
 assert.match(html,/aurora-estante-realista\.css\?v=4/);
-assert.match(html,/aurora-estante\.js\?v=16/);
-assert.match(serviceWorker,/aurora-v49/);
-assert.match(serviceWorker,/index\.html\?v=49/);
+assert.match(html,/aurora-estante\.js\?v=17/);
+assert.match(serviceWorker,/aurora-v50/);
+assert.match(serviceWorker,/index\.html\?v=50/);
 console.log('V48: acabamento para todas as categorias, dimensões e arte reais preservadas.');

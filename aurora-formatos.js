@@ -116,6 +116,32 @@
         }
       }
     }
+    // Algumas conversões guardam a capa somente no primeiro XHTML, sem
+    // marcar cover-image no OPF. Reconhece a página visual quase sem texto,
+    // conferindo que a imagem realmente existe no ZIP.
+    if(!coverEntry){
+      const refs=nodes(packageXML,'itemref').slice(0,3);
+      for(let index=0;index<refs.length;index++){
+        const idref=refs[index].getAttribute('idref')||'';
+        const page=manifest.get(idref);
+        if(!page||!/xhtml|html/.test(page.type)||!entry(page.path))continue;
+        try{
+          const doc=xml(await entry(page.path).async('text'));
+          const body=byLocal(doc,'body')||doc.documentElement;
+          const visibleText=String(body?.textContent||'').replace(/\s+/g,' ').trim();
+          const illustrations=Array.from(body?.getElementsByTagName('*')||[])
+            .filter(el=>['img','image'].includes(el.localName));
+          const marked=/(?:^|[\/_.-])(cover|capa|front|titlepage)(?:[\/_.-]|$)/i.test(idref+' '+page.path);
+          if(illustrations.length!==1||(!marked&&(index!==0||visibleText.length>45)))continue;
+          const img=illustrations[0];
+          const source=img.getAttribute('src')||img.getAttribute('href')||
+            img.getAttribute('xlink:href')||'';
+          const path=source&&sibling(page.path,source);
+          const found=images.find(([,item])=>item.path.toLowerCase()===path.toLowerCase());
+          if(found){coverEntry=found[1];break;}
+        }catch(error){console.warn('Página de capa EPUB não reconhecida:',error);}
+      }
+    }
     let cover='';
     if(coverEntry&&entry(coverEntry.path)){
       const bytes=await entry(coverEntry.path).async('uint8array');

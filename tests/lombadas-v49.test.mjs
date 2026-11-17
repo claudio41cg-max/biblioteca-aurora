@@ -16,11 +16,11 @@ assert.doesNotMatch(spine,/tries<14/);
 assert.match(spine,/art\.type==='photo'/);
 assert.match(spine,/dataset\.realSpine==='true'/);
 assert.match(imported,/recoverQueue/);
-assert.match(imported,/coverCheckedVersion!==49/);
+assert.match(imported,/coverCheckedVersion!==50/);
 assert.match(imported,/if\(epub\.cover\)\{cover=epub\.cover;coverSource='original';\}/);
 assert.match(covers,/const palettes=\[/);
-assert.match(html,/aurora-lombadas\.js\?v=2/);
-assert.match(worker,/aurora-v49/);
+assert.match(html,/aurora-lombadas\.js\?v=3/);
+assert.match(worker,/aurora-v50/);
 
 let image;
 const ctx={

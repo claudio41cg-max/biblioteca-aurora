@@ -7,10 +7,10 @@ const script=read('aurora-lombadas.js'),html=read('index.html'),worker=read('sw.
 const shelf=read('aurora-estante.js');
 assert.match(shelf,/dataset\.realSpine='true'/);
 assert.match(shelf,/dataset\.coverDerived='true'/);
-assert.match(html,/aurora-lombadas\.js\?v=2/);
-assert.match(worker,/aurora-v49/);
+assert.match(html,/aurora-lombadas\.js\?v=3/);
+assert.match(worker,/aurora-v50/);
 assert.match(worker,/index\.html\?v=47/);
-assert.match(worker,/aurora-lombadas\.js\?v=2/);
+assert.match(worker,/aurora-lombadas\.js\?v=3/);
 assert.match(worker,/Promise\.allSettled/);
 assert.match(worker,/NAVIGATION_TIMEOUT_MS/);
 assert.match(script,/devicePixelRatio/);

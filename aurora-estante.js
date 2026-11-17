@@ -47,7 +47,7 @@
     button.dataset.rawTitle = item.title;
     button.dataset.author = item.author || '';
     button.dataset.source = item.source || 'demo';
-    if(item.source==='epub')button.dataset.coverSource=item.coverSource||'original';
+    if(item.cover&&item.source!=='demo')button.dataset.coverSource=item.coverSource||'original';
     button.title = displayTitle + (item.source === 'demo' ? ' • livro demonstrativo' : ' • tocar para pegar');
     button.setAttribute('aria-label', 'Pegar ' + displayTitle);
     const realPDF=['pdf','epub','audio'].includes(item.source)||

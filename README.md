@@ -1,5 +1,15 @@
 # Biblioteca Aurora
 
+## Atualização v50 — lombadas com detalhes reais das capas em todas as estantes
+
+- As estantes compartilham o mesmo acabamento premium, independentemente da categoria. Cada volume conserva largura, altura, inclinação e capa próprias.
+- Quando a edição tem capa, a lombada ilustrada preserva as cores **e incorpora uma faixa suavizada da arte da capa original**, acrescentando detalhes específicos sem esticar toda a fotografia nem sacrificar a leitura do título.
+- Lombadas reais fornecidas pelo exemplar nunca são substituídas. Capas provisórias permanecem identificadas como ilustrativas e não imitam uma edição específica.
+- O leitor de EPUB agora reconhece também uma capa incorporada na primeira página XHTML sem sinalização de capa no índice do arquivo. O aplicativo tenta recuperar automaticamente as capas antigas em segundo plano uma vez na versão 50.
+- Não são realizadas pesquisas externas pelos títulos da biblioteca. Livros sem imagem de capa no arquivo permanecem com a ilustração individual até receberem uma fotografia verdadeira.
+- Visor 3D WebGL, folheio, leitura, progresso e catálogos continuam inalterados.
+- Backup de retorno: `backup-aurora-v49-antes-unificacao-visual-20261116`.
+
 ## Atualização v49 — cores autênticas nas lombadas e capas recuperadas
 
 - A lombada gerada agora examina **toda a capa original**, dando peso às cores da ilustração, mesmo quando as margens são pretas ou brancas. Não troca mais o matiz por cinza/preto/creme para tentar forçar contraste de texto.

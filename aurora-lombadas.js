@@ -1,4 +1,4 @@
-/* Biblioteca Aurora • lombadas fiéis às capas v49.
+/* Biblioteca Aurora • lombadas com arte das capas v50.
    Só substitui a lombada improvisada a partir da capa. Lombadas reais, capas,
    leitor, catálogo e navegação permanecem inalterados. */
 (() => {
@@ -86,6 +86,18 @@
     if(cache.size>=LIMIT)cache.delete(cache.keys().next().value);
     cache.set(key,value);return value;
   }
+  // Amostra uma pequena faixa da própria ilustração, sem esticar a capa toda.
+  // O miolo da arte fornece textura individual, além das cores predominantes.
+  function coverDetail(image){
+    const canvas=document.createElement('canvas');
+    canvas.width=56;canvas.height=192;
+    const ctx=canvas.getContext('2d');
+    if(!ctx)return null;
+    const crop=Math.max(1,Math.min(image.naturalWidth,image.naturalHeight*.29));
+    const left=Math.max(0,(image.naturalWidth-crop)*.53);
+    ctx.drawImage(image,left,0,crop,image.naturalHeight,0,0,canvas.width,canvas.height);
+    return canvas;
+  }
   async function getModel(src,title){
   const key=keyFor(src),cached=colorCache.get(key);
   if(cached)return cached;
@@ -94,6 +106,7 @@
     const image=await loadCover(src);
     try{
       model=modelFromProfile(sampleProfile(image));
+      model.artwork=coverDetail(image);
     }catch(error){
       // CORS: a imagem pode ser exibida, mas não amostrada no canvas.
       if(error?.name==='SecurityError')model={origin:'photo'};
@@ -115,7 +128,7 @@
     if(line)lines.push(line);
     return lines;
   }
-  function drawSpine(model,w,h,title,seedText){
+  function drawSpine(model,w,h,title,seedText,illustrative=false){
     const dpr=clamp((window.devicePixelRatio||1)*1.2,2,3);
     const canvas=document.createElement('canvas');
     canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);
@@ -124,6 +137,14 @@
     const grad=ctx.createLinearGradient(0,0,0,h);
     model.rows.forEach((color,i)=>grad.addColorStop(i/47,'rgb('+color.map(Math.round).join(',')+')'));
     ctx.fillStyle=grad;ctx.fillRect(0,0,w,h);
+    // A arte real deixa marcas e mudanças de tonalidade próprias da edição.
+    // No caso de capa ilustrativa, não imprimimos duas vezes o título genérico.
+    if(model.artwork&&!illustrative){
+      ctx.save();
+      ctx.globalAlpha=.36;
+      ctx.drawImage(model.artwork,0,0,w,h);
+      ctx.restore();
+    }
     const rand=rng(hash(seedText));
     // Microfibras de tecido e marcas discretas, sem esticar a capa como imagem.
     for(let x=0;x<w;x+=.75){ctx.fillStyle=rand()<.5?'#ffffff0c':'#0000000b';ctx.fillRect(x,0,.35,h);}
@@ -223,7 +244,7 @@
       const model=await getModel(cover,button.dataset.rawTitle||title);
       art=model.origin==='photo'
         ? {type:'photo',url:cover}
-        : {type:'canvas',url:drawSpine(model,w,h,title,button.dataset.rawTitle||title),origin:model.origin};
+        : {type:'canvas',url:drawSpine(model,w,h,title,button.dataset.rawTitle||title,button.dataset.coverSource==='generated'),origin:model.origin};
       remember(artCache,key,art);
     }
     if(!button.isConnected||button.querySelector('.shelf-book-cover img')?.getAttribute('src')!==cover)return;
@@ -239,7 +260,7 @@
       button.style.backgroundImage='url('+JSON.stringify(art.url)+')';
       button.style.backgroundSize='100% 100%';
       button.style.backgroundPosition='center';
-      button.dataset.spineMode=art.origin==='fallback'?'paleta-sem-imagem':'cores-da-capa';
+      button.dataset.spineMode=art.origin==='fallback'?'paleta-sem-imagem':button.dataset.coverSource==='generated'?'cores-ilustrativas':'arte-da-capa';
       button.dataset.spineCrisp='true';
       if(titleNode){
         titleNode.style.color='transparent';
@@ -290,6 +311,6 @@
     }
     schedule();
   });
-  window.AuroraLombadas={processAll,hash,luminance,contrast,sampleProfile,modelFromProfile};
+  window.AuroraLombadas={processAll,hash,luminance,contrast,sampleProfile,modelFromProfile,coverDetail};
   schedule();
 })();
