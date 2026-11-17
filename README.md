@@ -1,5 +1,13 @@
 # Biblioteca Aurora
 
+## Atualização v59 — livro aberto sem cobrir as letras
+
+- Exemplar piloto: **Razão e Sensibilidade**. A curva artificial que ficava sobre o texto durante o folheio foi removida. A porção esquerda agora é uma folha física atrás da página de leitura, visível apenas na margem.
+- Mais profundidade no canto externo direito, com a contracapa original ao fundo e as fibras dos cortes de páginas na resolução adequada para celulares de alta densidade.
+- Preservados o PDF original, o gesto e os 900 ms da virada de folhas, os ajustes de leitura, marcadores e progresso; os demais livros permanecem iguais.
+- Backup reversível: `backup-aurora-v58-antes-miolo-aberto-sem-sobreposicao-20261117`.
+
+
 ## Atualização v53 — catálogo com livros 3D
 
 - Os cartões de todos os catálogos exibem um volume físico inclinado, com capa original preservada, lombada, corte vertical de folhas e reflexos suaves. No celular, a grade passa a duas colunas para aumentar as capas sem cortes.

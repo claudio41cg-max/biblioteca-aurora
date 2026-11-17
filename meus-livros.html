@@ -70,7 +70,7 @@
   </style>
   <link rel="stylesheet" href="./aurora-edicao.css?v=1">
   <link rel="stylesheet" href="./aurora-vitrine.css?v=8">
-  <link rel="stylesheet" href="./aurora-reader.css?v=8">
+  <link rel="stylesheet" href="./aurora-reader.css?v=9">
 </head>
 <body>
   <header class="tophead"><div class="eyebrow">SEU ACERVO PESSOAL</div><h1>✦ Meus livros • Aurora ✦</h1><p>Adicione seus livros PDF e guarde cada um pela lombada.</p></header>
@@ -720,9 +720,11 @@
         const source=window.AuroraEditionSurfaces?.paperEdgeCanvas?.(orientation);
         if(!source)return '';
         const side=orientation==='vertical';
-        const left=side?12:0,top=side?0:Math.round(source.height*.36);
-        const width=side?Math.min(72,source.width-left):source.width;
-        const height=side?source.height:Math.min(70,source.height-top);
+        // Corte vertical quase 1:1 com os pixels do S24: as fibras e
+        // marcas sutis do mesmo canvas do 3D não desaparecem ao encolher.
+        const left=side?7:0,top=side?0:Math.round(source.height*.41);
+        const width=side?Math.min(39,source.width-left):source.width;
+        const height=side?source.height:Math.min(28,source.height-top);
         const canvas=document.createElement('canvas');
         canvas.width=width;canvas.height=height;
         const ctx=canvas.getContext('2d',{alpha:false});
@@ -841,10 +843,11 @@
         const vp = firstPage.getViewport({scale:1});
         const ratio = vp.width/vp.height;
         const mobile = innerWidth < 670;
-        // Deixa só alguns pixels laterais para o miolo físico do exemplar-piloto.
-      // A folha atual permanece quase na largura inteira da tela.
+        // Enquadramento do livro aberto: a página direita ocupa quase toda
+      // a largura, deixando a folha esquerda aparecer só na margem externa.
+      // A margem NÃO invade a página nem altera o gesto de folhear.
       const physicalSample=mobile&&$('reader').classList.contains('aurora-page-curl-preview');
-      const availableWidth = mobile ? innerWidth-(physicalSample?34:2) : Math.min(540,(innerWidth-60)/2);
+      const availableWidth = mobile ? innerWidth-(physicalSample?54:2) : Math.min(540,(innerWidth-60)/2);
         const availableHeight = Math.max(270,$('viewport').clientHeight-45);
         const width = Math.max(150,Math.floor(Math.min(availableWidth,availableHeight*ratio)));
         const height = Math.max(200,Math.floor(width/ratio));

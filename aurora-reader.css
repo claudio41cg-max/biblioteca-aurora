@@ -167,8 +167,9 @@
 .reader-page-sound-choice{display:flex;align-items:center;gap:9px;margin:5px 0 15px;color:#f1dfc5;font:13px Georgia,serif}
 .reader-page-sound-choice input{width:18px;height:18px;accent-color:#cfa56e}
 
-/* Razão e Sensibilidade, segundo ensaio: a folha de leitura permanece inteira.
-   O miolo, a contracapa e a dobra são apenas acabamento visual. */
+/* Razão e Sensibilidade: livro aberto visto da direita.
+   A folha da esquerda fica ATRÁS da página de leitura e aparece só na margem:
+   nenhuma dobra ou sombra pode cruzar o texto nem acompanhar a virada. */
 .reader.aurora-page-curl-preview{
   --aurora-sheet:#fff;
   --aurora-sheet-light:#fff;
@@ -222,13 +223,21 @@
     background:linear-gradient(90deg,var(--aurora-sheet-shade),var(--aurora-sheet) 12%,var(--aurora-sheet) 90%,var(--aurora-sheet-shade));
     box-shadow:3px 3px 7px -2px var(--aurora-fold-shadow);
   }
+  /* O corte lateral usa as fibras reais do canvas de acabamento do livro 3D.
+     A textura é exibida quase na resolução original, com relevo e capa ao fundo. */
   .reader.aurora-page-curl-preview .aurora-reader-volume__cut{
-    position:absolute;top:5px;right:-11px;bottom:-2px;width:13px;
-    border-radius:1px 5px 5px 1px;
+    position:absolute;top:5px;right:-12px;bottom:-3px;width:13px;
+    border-radius:0 5px 5px 0;overflow:hidden;
     background-color:var(--aurora-sheet-shade);
     background-position:center;background-size:100% 100%;background-repeat:no-repeat;
-    box-shadow:inset 3px 0 4px -2px var(--aurora-fold-shadow),2px 1px 4px -2px var(--aurora-fold-shadow);
-    filter:grayscale(.80) brightness(1.13);
+    box-shadow:inset 2px 0 3px -1px var(--aurora-fold-shadow),3px 2px 7px -2px var(--aurora-fold-shadow);
+    filter:saturate(.75) contrast(1.08);
+  }
+  .reader.aurora-page-curl-preview .aurora-reader-volume__cut::after{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(90deg,
+      rgba(65,48,32,.30) 0%,rgba(65,48,32,.07) 27%,
+      rgba(255,252,235,.15) 70%,rgba(94,73,51,.18) 100%);
   }
   .reader.aurora-page-curl-preview[data-reader-theme="sepia"] .aurora-reader-volume__cut,
   .reader.aurora-page-curl-preview[data-reader-theme="sepia"] .aurora-reader-volume__foot{
@@ -244,37 +253,30 @@
     background-color:var(--aurora-sheet-shade);
     background-position:center;background-size:100% 100%;background-repeat:no-repeat;
     box-shadow:0 2px 4px -2px var(--aurora-fold-shadow);
-    filter:grayscale(.80) brightness(1.13);
+    filter:saturate(.8) contrast(1.07);
   }
+  /* À esquerda existe o restante de OUTRA FOLHA do mesmo livro aberto.
+     Quase toda a folha fica sob o motor StPageFlip (z-index:2).
+     Só a faixa externa aparece: a área do PDF nunca recebe uma camada por cima. */
   .reader.aurora-page-curl-preview .aurora-reader-volume__turned{
-    position:absolute;left:-19px;top:6px;bottom:5px;width:29px;
-    border-radius:5px 55% 35% 4px / 4px 17% 20% 4px;
+    position:absolute;left:-32px;top:6px;bottom:7px;width:46px;
+    border-radius:8px 3px 2px 5px / 7px 3px 2px 6px;
     background:linear-gradient(90deg,
       var(--aurora-sheet-deep) 0%,
-      var(--aurora-sheet-shade) 17%,
-      var(--aurora-sheet) 48%,
-      var(--aurora-sheet-light) 75%,
-      var(--aurora-sheet) 100%);
-    box-shadow:-5px 3px 12px var(--aurora-fold-shadow),inset 5px 0 11px -7px var(--aurora-fold-shadow);
+      var(--aurora-sheet-shade) 7%,
+      var(--aurora-sheet) 23%,
+      var(--aurora-sheet-light) 57%,
+      var(--aurora-sheet) 80%,
+      var(--aurora-sheet-shade) 100%);
+    box-shadow:-6px 6px 14px -5px var(--aurora-fold-shadow),
+      inset 5px 0 8px -7px var(--aurora-fold-shadow);
     transform-origin:right center;
-    transform:perspective(150px) rotateY(23deg);
+    transform:perspective(340px) rotateY(8deg);
   }
-  /* Curva contínua com o mesmo tom da folha: luz de encadernação e sombra
-     gradual. Os 40px finais do efeito são transparentes para preservar texto. */
-  .reader.aurora-page-curl-preview .page:not(.loading)::before{
-    content:"";position:absolute;z-index:5;pointer-events:none;
-    left:0;top:1px;bottom:1px;width:clamp(45px,15vw,58px);
-    border-radius:0 73% 42% 0 / 0 18% 20% 0;
-    background:
-      radial-gradient(ellipse 38px 65% at 0 50%,var(--aurora-fold-shadow) 0%,transparent 88%),
-      linear-gradient(90deg,
-        var(--aurora-sheet-shade) 0%,
-        var(--aurora-sheet-light) 15%,
-        var(--aurora-sheet) 38%,
-        var(--aurora-sheet) 63%,
-        transparent 86%);
-    box-shadow:7px 0 19px -12px var(--aurora-fold-shadow);
-    transform-origin:left center;
-    transform:perspective(205px) rotateY(-15deg) translateX(-1px);
+  .reader.aurora-page-curl-preview .aurora-reader-volume__turned::after{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    border-radius:inherit;
+    background:linear-gradient(90deg,transparent 43%,var(--aurora-fold-shadow) 100%);
+    opacity:.22;
   }
 }
