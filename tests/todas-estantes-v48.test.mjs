@@ -28,6 +28,6 @@ assert.match(js,/item\.source!=='demo'&&Boolean\(item\.cover\|\|item\.spine\)/,
 assert.match(lombadas,/dataset\.realSpine==='true'/);
 assert.match(html,/aurora-estante-realista\.css\?v=4/);
 assert.match(html,/aurora-estante\.js\?v=16/);
-assert.match(serviceWorker,/aurora-v48/);
-assert.match(serviceWorker,/index\.html\?v=48/);
+assert.match(serviceWorker,/aurora-v49/);
+assert.match(serviceWorker,/index\.html\?v=49/);
 console.log('V48: acabamento para todas as categorias, dimensões e arte reais preservadas.');

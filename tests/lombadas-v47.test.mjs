@@ -7,10 +7,10 @@ const script=read('aurora-lombadas.js'),html=read('index.html'),worker=read('sw.
 const shelf=read('aurora-estante.js');
 assert.match(shelf,/dataset\.realSpine='true'/);
 assert.match(shelf,/dataset\.coverDerived='true'/);
-assert.match(html,/aurora-lombadas\.js\?v=1/);
-assert.match(worker,/aurora-v48/);
+assert.match(html,/aurora-lombadas\.js\?v=2/);
+assert.match(worker,/aurora-v49/);
 assert.match(worker,/index\.html\?v=47/);
-assert.match(worker,/aurora-lombadas\.js\?v=1/);
+assert.match(worker,/aurora-lombadas\.js\?v=2/);
 assert.match(worker,/Promise\.allSettled/);
 assert.match(worker,/NAVIGATION_TIMEOUT_MS/);
 assert.match(script,/devicePixelRatio/);
@@ -37,7 +37,7 @@ const library={
 };
 const ctx={
   createLinearGradient(){return {addColorStop(){}};},
-  drawImage(){},getImageData(){return {data:new Uint8ClampedArray(8*144*4).fill(125)};},
+  drawImage(){},getImageData(){return {data:new Uint8ClampedArray(32*144*4).fill(125)};},
   fillRect(){},scale(){},beginPath(){},moveTo(){},lineTo(){},closePath(){},fill(){},
   translate(){},rotate(){},save(){},restore(){},measureText(t){return {width:String(t).length*7};},fillText(){}
 };
@@ -66,4 +66,4 @@ assert.equal(imported.style.backgroundSize,'100% 100%');
 assert.equal(title.style.color,'transparent','não duplica o título desenhado no canvas');
 assert.equal(original.style.backgroundImage,undefined,'lombada original não pode ser substituída');
 assert.notEqual(realTitle.style.color,'transparent','não esconde título de lombada original');
-console.log('V47: lombadas nítidas; arte original, leitores e cache preservados.');
+console.log('V47/V49: lombadas nítidas; arte original, leitores e cache preservados.');

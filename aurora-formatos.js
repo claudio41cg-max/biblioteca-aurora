@@ -27,8 +27,21 @@
     const canvas=document.createElement('canvas');
     canvas.width=600;canvas.height=840;
     const ctx=canvas.getContext('2d');
+    // Apenas para arquivos realmente sem capa. Cada exemplar ganha identidade
+    // cromática própria, mas continua marcado como 'capa ilustrativa'.
+    const palettes=[
+      ['#743a47','#4d2738','#261923'],['#27677a','#244457','#152c3b'],
+      ['#79603d','#544329','#30271f'],['#65577e','#443957','#272333'],
+      ['#8a4a32','#5a3227','#2f211c'],['#3e7063','#2c4e49','#182f2e'],
+      ['#53658a','#394867','#222c40'],['#815260','#543642','#33212b'],
+      ['#577055','#354b3e','#1d3029'],['#80714d','#53452e','#30271c'],
+      ['#426d7d','#2b4859','#1c2b3b'],['#714f7d','#503a64','#30253b']
+    ];
+    const key=String(title||'')+'|'+String(author||'');
+    const seed=Array.from(key).reduce((hash,ch)=>(Math.imul(hash,31)+ch.charCodeAt(0))>>>0,17);
+    const colors=palettes[seed%palettes.length];
     const shade=ctx.createLinearGradient(0,0,600,840);
-    shade.addColorStop(0,'#17392f');shade.addColorStop(.48,'#1f3029');shade.addColorStop(1,'#101c1b');
+    shade.addColorStop(0,colors[0]);shade.addColorStop(.48,colors[1]);shade.addColorStop(1,colors[2]);
     ctx.fillStyle=shade;ctx.fillRect(0,0,600,840);
     ctx.strokeStyle='#caa66c';ctx.lineWidth=4;ctx.strokeRect(32,32,536,776);
     ctx.strokeStyle='#caa66c66';ctx.lineWidth=1.5;ctx.strokeRect(44,44,512,752);

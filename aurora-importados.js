@@ -13,47 +13,70 @@
   const readerPath=book=>book.format==='epub'?'ler-epub.html':book.format==='audio'?'ouvir-livro.html':'meus-livros.html';
   function showRecoveredEpubCover(button,book){
     if(!book.cover)return;
-    button.style.backgroundImage='url('+JSON.stringify(book.cover)+')';
-    button.dataset.coverDerived='true';
+    if(!book.spine){
+      button.style.backgroundImage='url('+JSON.stringify(book.cover)+')';
+      button.dataset.coverDerived='true';
+      delete button.dataset.lombada;
+      delete button.dataset.spineCrisp;
+    }
     button.dataset.coverSource=book.coverSource||'original';
-    if(!button.querySelector('.shelf-book-cover')){
+    let image=button.querySelector('.shelf-book-cover img');
+    if(!image){
       const face=document.createElement('span');face.className='shelf-book-cover';
       face.setAttribute('aria-hidden','true');
-      const img=document.createElement('img');img.src=book.cover;img.alt='';
-      face.append(img);
+      image=document.createElement('img');image.alt='';image.loading='lazy';
+      face.append(image);
       const pages=document.createElement('span');pages.className='shelf-book-pages';
       pages.setAttribute('aria-hidden','true');
       button.prepend(face,pages);
     }
+    if(image.getAttribute('src')!==book.cover)image.src=book.cover;
     button.dataset.hasRealCover='true';
   }
+  // Reexamina o arquivo original uma vez nesta versão, mesmo quando há uma
+  // capa ilustrativa antiga. A arte embutida tem prioridade absoluta.
+  const coverTasks=new Map();
   async function recoverMissingEpubCover(book){
-    const formats=window.AuroraFormats;
-    if(!formats)return;
-    const stored=await formats.readRecord('books',book.id);
-    if(!stored)return;
-    let cover=stored.cover||'';
-    let coverSource=stored.coverSource||'original';
-    let backRecovered=false;
-    if(!cover&&stored.data){
-      try{
-        const epub=await formats.openEpub(stored.data);
-        cover=epub.cover;
-        book.back=epub.back||'';
-        book.backChecked=true;
-        stored.back=book.back;
-        stored.backChecked=true;
-        backRecovered=true;
-      }catch(error){console.warn('Capa embutida no EPUB indisponível:',error);}
-      coverSource=cover?'original':'generated';
-    }
-    if(!cover){cover=formats.createEpubCover(book.name,book.author);coverSource='generated';}
-    book.cover=cover;
-    book.coverSource=coverSource;
-    if(stored.cover!==cover||stored.coverSource!==coverSource||backRecovered){
-      stored.cover=cover;stored.coverSource=coverSource;
-      await formats.saveRecord('books',stored).catch(error=>console.warn('Capa temporária não salva:',error));
-    }
+    if(coverTasks.has(book.id))return coverTasks.get(book.id);
+    const task=(async()=>{
+      const formats=window.AuroraFormats;
+      if(!formats)return false;
+      const stored=await formats.readRecord('books',book.id);
+      if(!stored)return false;
+      let cover=stored.cover||'';
+      let coverSource=stored.coverSource||'original';
+      let backRecovered=false;
+      if((coverSource==='generated'||!cover)&&stored.data){
+        try{
+          const epub=await formats.openEpub(stored.data);
+          if(epub.cover){cover=epub.cover;coverSource='original';}
+          if(epub.back&&!stored.back){
+            book.back=epub.back;book.backChecked=true;
+            stored.back=epub.back;stored.backChecked=true;
+            backRecovered=true;
+          }
+        }catch(error){console.warn('Capa embutida neste EPUB indisponível:',error);}
+      }
+      if(!cover||coverSource==='generated'){
+        // Uma capa provisória antiga não deve prender todos os livros ao
+        // mesmo verde. Se não houve imagem embutida, atualiza a ilustração.
+        cover=formats.createEpubCover(book.title||book.name,book.author);
+        coverSource='generated';
+      }
+      book.cover=cover;
+      book.coverSource=coverSource;
+      book.coverCheckedVersion=49;
+      const changed=stored.cover!==cover||stored.coverSource!==coverSource||
+        stored.coverCheckedVersion!==49||backRecovered;
+      if(changed){
+        stored.cover=cover;stored.coverSource=coverSource;
+        stored.coverCheckedVersion=49;
+        await formats.saveRecord('books',stored).catch(error=>console.warn('Capa recuperada não salva:',error));
+      }
+      return coverSource==='original';
+    })();
+    coverTasks.set(book.id,task);
+    try{return await task;}finally{coverTasks.delete(book.id);}
   }
   // Recupera a contracapa real de EPUBs que foram importados antes deste ajuste.
   // Roda só no primeiro toque no exemplar para não reabrir todos os arquivos da estante.
@@ -76,7 +99,7 @@
   // O livro físico segue no MESMO visor WebGL até o centro da tela.
   async function takeBookFromShelf(button,book){
     if(button.disabled)return;
-    if(book.format==='epub'&&!book.cover){
+    if(book.format==='epub'&&(!book.cover||book.coverSource==='generated')&&book.coverCheckedVersion!==49){
       button.disabled=true;
       button.setAttribute('aria-busy','true');
       try{
@@ -116,6 +139,7 @@
         description:book.description||'',
         cover:book.cover||'',
         coverSource:book.coverSource||'original',
+        coverCheckedVersion:book.coverCheckedVersion||0,
         back:book.back||'',
         backChecked:book.backChecked===true,
         spine:book.spine||'',
@@ -128,6 +152,7 @@
         bookmarked:Number.isInteger(lastPages.get(book.id)?.bookmark)
       })).sort((a,b)=>a.created-b.created);
       const usedDemo=new Set();
+      const recoverQueue=[];
       for(const book of imported){
         const row=document.getElementById('shelf-'+book.category);
         if(!row) continue;
@@ -149,6 +174,9 @@
           bookmarked:book.bookmarked
         });
         button.dataset.bookId=book.id;
+        if(book.format==='epub'&&(!book.cover||book.coverSource==='generated')&&book.coverCheckedVersion!==49){
+          recoverQueue.push({button,book});
+        }
         button.title=book.title+(book.coverSource==='generated'?' • capa ilustrativa; tocar para abrir em 3D':' • tocar para ver a edição em 3D');
         button.addEventListener('click',()=>{
           takeBookFromShelf(button,book).catch(error=>{
@@ -170,6 +198,26 @@
           row.append(button);
         }
         shelf.refreshCount(book.category);
+      }
+      // Recuperação gradual na estante: não é necessário abrir cada EPUB.
+      // Trabalha em sequência para não descompactar vários livros ao mesmo tempo.
+      if(recoverQueue.length){
+        const recoverInBackground=async()=>{
+          for(const {button,book} of recoverQueue){
+            try{
+              const original=await recoverMissingEpubCover(book);
+              if(button.isConnected){
+                // Atualiza tanto a capa real recuperada quanto a nova
+                // ilustração individual quando a edição não possui foto.
+                showRecoveredEpubCover(button,book);
+                document.dispatchEvent(new CustomEvent('aurora:book-cover-updated',{detail:{id:book.id,coverSource:book.coverSource,original}}));
+              }
+            }catch(error){console.warn('Capa de EPUB pendente:',error);}
+            await new Promise(resolve=>setTimeout(resolve,60));
+          }
+        };
+        if(typeof requestIdleCallback==='function')requestIdleCallback(()=>recoverInBackground(),{timeout:3000});
+        else setTimeout(recoverInBackground,600);
       }
       document.dispatchEvent(new CustomEvent('aurora:library-data',{detail:{books:imported,progress}}));
     }).catch(error=>console.warn('Não foi possível montar os livros importados:',error));

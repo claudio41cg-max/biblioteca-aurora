@@ -1,5 +1,14 @@
 # Biblioteca Aurora
 
+## Atualização v49 — cores autênticas nas lombadas e capas recuperadas
+
+- A lombada gerada agora examina **toda a capa original**, dando peso às cores da ilustração, mesmo quando as margens são pretas ou brancas. Não troca mais o matiz por cinza/preto/creme para tentar forçar contraste de texto.
+- Quando uma imagem de outro domínio não permite leitura de pixels (CORS), a lombada exibe um fragmento da **própria imagem da capa**, em vez de escolher tecido genérico pelo título.
+- EPUBs antigos com capa ilustrativa ou sem capa passam por uma tentativa de recuperar a arte **embutida no arquivo original**, em segundo plano, sem precisar abrir o livro. A tentativa é marcada no aparelho para evitar reprocessamentos em cada visita.
+- Se o EPUB não contiver imagem de capa, a ilustração é identificada como provisória e passa a usar uma paleta particular por exemplar, sem fingir ser a capa original. Uma edição só ganha capa original se seus arquivos realmente a contiverem ou se for fornecida a imagem.
+- Preservados: capas e lombadas originais, dimensões e ângulos, demais estantes, catálogos, livro 3D, leitores e progresso.
+- Backup anterior à alteração: ramo `backup-aurora-v48-antes-cores-lombadas-20261116`.
+
 ## Atualização v48 — acabamento realista em todas as estantes
 
 - O acabamento antes exclusivo de **Romances** agora acompanha todas as categorias: madeira iluminada, reflexos sutis, sombras reduzidas e volumes apoiados com perspectivas naturais.

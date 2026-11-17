@@ -1,4 +1,4 @@
-/* Biblioteca Aurora • lombadas nítidas v47.
+/* Biblioteca Aurora • lombadas fiéis às capas v49.
    Só substitui a lombada improvisada a partir da capa. Lombadas reais, capas,
    leitor, catálogo e navegação permanecem inalterados. */
 (() => {
@@ -15,53 +15,69 @@
   }
   const contrast=(a,b)=>(Math.max(luminance(a),luminance(b))+.05)/(Math.min(luminance(a),luminance(b))+.05);
   const lightInk=[255,245,220],darkInk=[38,24,16];
+  // A cor da capa é parte da identidade da edição. Não clarear ou escurecer
+  // toda a lombada só para alcançar uma razão de contraste fixa.
   function modelFromProfile(profile){
-    const worst=ink=>Math.min(...profile.map(p=>contrast(p,ink)));
-    const dark=worst(darkInk)>=worst(lightInk),ink=dark?darkInk:lightInk;
-    const away=dark?[255,250,238]:[15,10,8];
-    let rows=profile.map(p=>p.slice());
-    for(let tries=0;tries<14;tries++){
-      if(Math.min(...rows.map(p=>contrast(p,ink)))>=4.5)break;
-      rows=rows.map(p=>mix(p,away,.13));
-    }
-    return {rows,ink:dark?'#261810':'#fff5dc',dark};
+    const light=profile.reduce((sum,row)=>sum+contrast(row,lightInk),0)/profile.length;
+    const dark=profile.reduce((sum,row)=>sum+contrast(row,darkInk),0)/profile.length;
+    const useDark=dark>light;
+    return {rows:profile,ink:useDark?'#261810':'#fff5dc',dark:useDark,origin:'cover'};
   }
   function fallbackProfile(title){
     const color=palette[hash(title)%palette.length];
     return Array.from({length:48},(_,i)=>mix(color,[255,250,230],.08*Math.sin(i/47*Math.PI)));
   }
+  // Faz a amostragem da capa INTEIRA. A faixa esquerda sozinha costuma ser
+  // preta ou branca e faz livros de coleções diferentes parecerem iguais.
   function sampleProfile(image){
-    const c=document.createElement('canvas');
-    c.width=8;c.height=144;
-    const ctx=c.getContext('2d',{willReadFrequently:true});
-    ctx.drawImage(image,0,0,Math.max(1,image.naturalWidth*.12),image.naturalHeight,0,0,8,144);
-    const pixels=ctx.getImageData(0,0,8,144).data,original=[];
+    const canvas=document.createElement('canvas');
+    canvas.width=32;canvas.height=144;
+    const ctx=canvas.getContext('2d',{willReadFrequently:true});
+    if(!ctx)throw new Error('Canvas indisponível');
+    ctx.drawImage(image,0,0,image.naturalWidth,image.naturalHeight,0,0,32,144);
+    const pixels=ctx.getImageData(0,0,32,144).data;
+    const profile=[];
     for(let row=0;row<48;row++){
-      const color=[0,0,0];
-      for(let y=row*3;y<row*3+3;y++)for(let x=0;x<8;x++){
-        const p=(y*8+x)*4;
-        for(let k=0;k<3;k++)color[k]+=pixels[p+k]/24;
+      const sum=[0,0,0];let total=0;
+      for(let y=row*3;y<row*3+3;y++)for(let x=0;x<32;x++){
+        const p=(y*32+x)*4;
+        if(pixels[p+3]<40)continue;
+        const rgb=[pixels[p],pixels[p+1],pixels[p+2]];
+        const max=Math.max(...rgb),min=Math.min(...rgb);
+        const saturation=(max-min)/255;
+        // Dá mais peso ao tom do tecido/ilustração do que às letras brancas.
+        // A região central também conta, mesmo quando a borda é toda preta.
+        const weight=(1+saturation*2)*(max>245 && saturation<.10 ? .35 : 1);
+        for(let k=0;k<3;k++)sum[k]+=rgb[k]*weight;
+        total+=weight;
       }
-      original.push(color);
+      profile.push(total?sum.map(value=>value/total):[225,211,185]);
     }
-    const mean=[0,0,0];
-    for(const color of original)for(let k=0;k<3;k++)mean[k]+=color[k]/original.length;
-    return original.map((color,i)=>{
-      const nearby=[-2,-1,0,1,2].map(delta=>original[clamp(i+delta,0,47)]);
-      const smoothed=[0,1,2].map(k=>nearby.reduce((sum,p)=>sum+p[k],0)/nearby.length);
-      return mix(smoothed,mean,.42);
+    const mean=profile.reduce((sum,color)=>sum.map((value,k)=>value+color[k]/profile.length),[0,0,0]);
+    return profile.map((color,index)=>{
+      const neighbors=[-2,-1,0,1,2].map(offset=>profile[clamp(index+offset,0,47)]);
+      const smooth=[0,1,2].map(k=>neighbors.reduce((sum,row)=>sum+row[k],0)/neighbors.length);
+      return mix(smooth,mean,.17);
     });
   }
+  // Uma imagem externa pode aparecer no <img>, mesmo que o site não permita
+  // ler seus pixels. Nesse caso mostramos a própria foto no CSS como último
+  // recurso visual, sem substituir por uma cor arbitrária de catálogo.
   function loadCover(url){
     return new Promise((resolve,reject)=>{
-      const img=new Image();img.decoding='async';
+      let cross=false;
       try{
         const origin=new URL(url,location.href);
-        if(origin.origin!==location.origin&&!['data:','blob:'].includes(origin.protocol))img.crossOrigin='anonymous';
+        cross=origin.origin!==location.origin&&!['data:','blob:'].includes(origin.protocol);
       }catch{}
-      img.onload=()=>resolve(img);
-      img.onerror=()=>reject(new Error('Capa não acessível para extrair cores'));
-      img.src=url;
+      const attempt=withCors=>{
+        const img=new Image();img.decoding='async';
+        if(withCors)img.crossOrigin='anonymous';
+        img.onload=()=>resolve(img);
+        img.onerror=()=>{if(withCors)attempt(false);else reject(new Error('Capa não acessível'));};
+        img.src=url;
+      };
+      attempt(cross);
     });
   }
   const colorCache=new Map(),artCache=new Map(),LIMIT=45;
@@ -71,13 +87,23 @@
     cache.set(key,value);return value;
   }
   async function getModel(src,title){
-    const key=keyFor(src),cached=colorCache.get(key);
-    if(cached)return cached;
-    let profile;
-    try{profile=sampleProfile(await loadCover(src));}
-    catch{profile=fallbackProfile(title);}
-    return remember(colorCache,key,modelFromProfile(profile));
+  const key=keyFor(src),cached=colorCache.get(key);
+  if(cached)return cached;
+  let model;
+  try{
+    const image=await loadCover(src);
+    try{
+      model=modelFromProfile(sampleProfile(image));
+    }catch(error){
+      // CORS: a imagem pode ser exibida, mas não amostrada no canvas.
+      if(error?.name==='SecurityError')model={origin:'photo'};
+      else throw error;
+    }
+  }catch{
+    model={...modelFromProfile(fallbackProfile(title)),origin:'fallback'};
   }
+  return remember(colorCache,key,model);
+}
   function wrapTitle(ctx,title,maxWidth,maxLines){
     const words=String(title).trim().split(/\s+/).filter(Boolean),lines=[];
     let line='';
@@ -178,43 +204,56 @@
     }
   }
   async function enhance(button){
-    if(button.dataset.lombada)return;
-    const cover=button.querySelector('.shelf-book-cover img')?.getAttribute('src')||'';
-    if(button.dataset.realSpine==='true'||button.dataset.coverDerived!=='true'||!cover){
-      button.dataset.lombada='original';
-      fitLegacyTitle(button);
-      return;
+  if(button.dataset.lombada)return;
+  const cover=button.querySelector('.shelf-book-cover img')?.getAttribute('src')||'';
+  if(button.dataset.realSpine==='true'||button.dataset.coverDerived!=='true'||!cover){
+    button.dataset.lombada='original';
+    fitLegacyTitle(button);
+    return;
+  }
+  const w=button.offsetWidth,h=button.offsetHeight;
+  if(w<=8||h<=40)return;
+  button.dataset.lombada='pending';
+  const titleNode=button.querySelector('.spine-title');
+  const title=titleNode?.textContent?.trim()||button.dataset.rawTitle||'';
+  const key=keyFor(cover)+':'+Math.round(w)+'x'+Math.round(h)+':'+title;
+  try{
+    let art=artCache.get(key);
+    if(!art){
+      const model=await getModel(cover,button.dataset.rawTitle||title);
+      art=model.origin==='photo'
+        ? {type:'photo',url:cover}
+        : {type:'canvas',url:drawSpine(model,w,h,title,button.dataset.rawTitle||title),origin:model.origin};
+      remember(artCache,key,art);
     }
-    const w=button.offsetWidth,h=button.offsetHeight;
-    if(w<=8||h<=40)return;
-    button.dataset.lombada='pending';
-    const titleNode=button.querySelector('.spine-title');
-    const title=titleNode?.textContent?.trim()||button.dataset.rawTitle||'';
-    const key=keyFor(cover)+':'+Math.round(w)+'x'+Math.round(h)+':'+title;
-    try{
-      let art=artCache.get(key);
-      if(!art){
-        const model=await getModel(cover,button.dataset.rawTitle||title);
-        art=remember(artCache,key,drawSpine(model,w,h,title,button.dataset.rawTitle||title));
-      }
-      if(!button.isConnected||button.querySelector('.shelf-book-cover img')?.getAttribute('src')!==cover)return;
-      button.style.backgroundImage='url('+JSON.stringify(art)+')';
+    if(!button.isConnected||button.querySelector('.shelf-book-cover img')?.getAttribute('src')!==cover)return;
+    if(art.type==='photo'){
+      // A imagem original, mesmo sem CORS, continua visível sem esticar 9x.
+      button.style.backgroundImage='linear-gradient(90deg,#180e0a83,#180e0a20 45%,#180e0a78),url('+JSON.stringify(art.url)+')';
+      button.style.backgroundSize='100% 100%,auto 100%';
+      button.style.backgroundPosition='center,center';
+      button.style.backgroundRepeat='no-repeat';
+      button.dataset.spineMode='capa-original-sem-cors';
+      // O texto HTML permanece visível porque não foi impresso em canvas.
+    }else{
+      button.style.backgroundImage='url('+JSON.stringify(art.url)+')';
       button.style.backgroundSize='100% 100%';
       button.style.backgroundPosition='center';
+      button.dataset.spineMode=art.origin==='fallback'?'paleta-sem-imagem':'cores-da-capa';
       button.dataset.spineCrisp='true';
-      button.dataset.lombada='1';
       if(titleNode){
-        // O botão mantém o aria-label original: o livro continua acessível.
         titleNode.style.color='transparent';
         titleNode.style.textShadow='none';
         titleNode.style.background='none';
       }
-    }catch(error){
-      delete button.dataset.lombada;
-      fitLegacyTitle(button);
-      console.warn('Lombada original mantida:',error);
     }
+    button.dataset.lombada='1';
+  }catch(error){
+    delete button.dataset.lombada;
+    fitLegacyTitle(button);
+    console.warn('Lombada mantida no estilo anterior:',error);
   }
+}
   const library=document.getElementById('library');
   if(!library)return;
   let scheduled=false;
@@ -251,6 +290,6 @@
     }
     schedule();
   });
-  window.AuroraLombadas={processAll,hash,luminance,contrast};
+  window.AuroraLombadas={processAll,hash,luminance,contrast,sampleProfile,modelFromProfile};
   schedule();
 })();
