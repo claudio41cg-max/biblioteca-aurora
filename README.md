@@ -1,5 +1,14 @@
 # Biblioteca Aurora
 
+## Atualização v61 — superfície da folha com altura integral
+
+- No livro piloto **Razão e Sensibilidade**, cada página do PDF agora é desenhada numa folha digital com a mesma proporção da página física do StPageFlip. PDFs com páginas de formatos diferentes deixam de gerar faixas visíveis em cima ou embaixo quando a folha gira.
+- O desenho da página mantém suas proporções, centralizado na folha. A tonalidade claro/sépia/escuro é aplicada à superfície completa, inclusive aos cantos e às margens.
+- As faixas de encadernação esquerda e de corte de folhas direita acompanham toda a altura do livro, sem vazios nas pontas.
+- Preservados o livro 3D, a largura original do leitor, a virada de 900 ms, o texto, os marcadores e o progresso de leitura. Os outros livros continuam sem essa alteração piloto.
+- Backup reversível: `backup-aurora-v60-antes-correcao-altura-folheio-20261117`.
+
+
 ## Atualização v60 — página inteira e acabamento 3D só nas margens
 
 - No exemplar piloto **Razão e Sensibilidade**, restaurada a largura original do PDF no celular: antes o acabamento reservava 54 pixels e diminuía as letras e imagens.

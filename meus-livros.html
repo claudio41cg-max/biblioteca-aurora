@@ -70,7 +70,7 @@
   </style>
   <link rel="stylesheet" href="./aurora-edicao.css?v=1">
   <link rel="stylesheet" href="./aurora-vitrine.css?v=8">
-  <link rel="stylesheet" href="./aurora-reader.css?v=10">
+  <link rel="stylesheet" href="./aurora-reader.css?v=11">
 </head>
 <body>
   <header class="tophead"><div class="eyebrow">SEU ACERVO PESSOAL</div><h1>✦ Meus livros • Aurora ✦</h1><p>Adicione seus livros PDF e guarde cada um pela lombada.</p></header>
@@ -610,12 +610,36 @@
         if(textMode){
           content=extractedText(await page.getTextContent());
         }else{
-          const natural = page.getViewport({scale:1});
-          const viewport = page.getViewport({scale:Math.min(2.4,1100/natural.width)});
-          const canvas = document.createElement('canvas');
-          canvas.width = Math.ceil(viewport.width);
-          canvas.height = Math.ceil(viewport.height);
-          await page.render({canvasContext:canvas.getContext('2d',{alpha:false}),viewport}).promise;
+          const natural=page.getViewport({scale:1});
+          const canvas=document.createElement('canvas');
+          const physicalSheet=session.leafRatio>0
+            && $('reader').classList.contains('aurora-page-curl-preview')
+            && innerWidth<670;
+          if(physicalSheet){
+            // Algumas edições têm a capa e as páginas internas em formatos
+            // diferentes. Todas recebem a MESMA superfície física de papel,
+            // mas o desenho original do PDF mantém sua proporção.
+            // Desse modo, até nas viradas e no sépia, o papel chega
+            // integralmente aos quatro limites do PageFlip.
+            canvas.width=Math.max(1,Math.ceil(Math.min(1100,natural.width*2.4)));
+            canvas.height=Math.max(1,Math.round(canvas.width/session.leafRatio));
+            const scale=Math.min(2.4,canvas.width/natural.width,canvas.height/natural.height);
+            const viewport=page.getViewport({scale});
+            const offsetX=(canvas.width-viewport.width)/2;
+            const offsetY=(canvas.height-viewport.height)/2;
+            const ctx=canvas.getContext('2d',{alpha:false});
+            ctx.fillStyle='#fff';
+            ctx.fillRect(0,0,canvas.width,canvas.height);
+            await page.render({
+              canvasContext:ctx,viewport,
+              transform:[1,0,0,1,offsetX,offsetY]
+            }).promise;
+          }else{
+            const viewport=page.getViewport({scale:Math.min(2.4,1100/natural.width)});
+            canvas.width=Math.ceil(viewport.width);
+            canvas.height=Math.ceil(viewport.height);
+            await page.render({canvasContext:canvas.getContext('2d',{alpha:false}),viewport}).promise;
+          }
           content=canvas;
         }
         if (session.closed || session.textMode!==textMode) return;
@@ -879,6 +903,8 @@
         const availableHeight = Math.max(270,$('viewport').clientHeight-45);
         const width = Math.max(150,Math.floor(Math.min(availableWidth,availableHeight*ratio)));
         const height = Math.max(200,Math.floor(width/ratio));
+        // Proporção imutável da folha física, compartilhada pelo PDF inteiro.
+        session.leafRatio=width/height;
         const fragment = document.createDocumentFragment();
         for (let n=1;n<=session.total;n++) {
           const page = document.createElement('div');

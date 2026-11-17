@@ -292,7 +292,7 @@
   /* Porção da página esquerda. A sombra acompanha a curva suave do papel,
      sem criar uma linha reta ou uma segunda capa sobre as palavras. */
   .reader.aurora-page-curl-preview .aurora-reader-finishing__left{
-    position:absolute;top:3px;bottom:4px;left:0;width:21px;
+    position:absolute;top:0;bottom:0;left:0;width:21px;
     border-radius:9px 1px 2px 6px / 11px 2px 3px 9px;
     background:
       radial-gradient(ellipse 15px 72% at 100% 50%,
@@ -306,7 +306,7 @@
       1px 0 4px -3px var(--aurora-fold-shadow);
   }
   .reader.aurora-page-curl-preview .aurora-reader-finishing__gutter{
-    position:absolute;top:3px;bottom:4px;left:20px;width:18px;
+    position:absolute;top:0;bottom:0;left:20px;width:18px;
     background:linear-gradient(90deg,var(--aurora-fold-shadow),transparent);
     opacity:.73;
   }
@@ -321,7 +321,7 @@
     box-shadow:3px 4px 8px -4px var(--aurora-fold-shadow),inset -2px 0 2px #0004;
   }
   .reader.aurora-page-curl-preview .aurora-reader-finishing__cut{
-    position:absolute;z-index:1;top:5px;bottom:5px;right:4px;width:13px;
+    position:absolute;z-index:1;top:0;bottom:0;right:4px;width:13px;
     border-radius:1px 3px 3px 1px;
     background-color:var(--aurora-sheet-shade);
     background-position:center;background-size:100% 100%;background-repeat:no-repeat;
@@ -351,5 +351,23 @@
   .reader.aurora-page-curl-preview[data-reader-theme="night"] .aurora-reader-finishing__cut,
   .reader.aurora-page-curl-preview[data-reader-theme="night"] .aurora-reader-finishing__bottom{
     filter:grayscale(1) invert(.81) brightness(.39) contrast(1.2);
+  }
+}
+
+/* v61: a textura da folha tem a proporção exata do PageFlip.
+   O conteúdo PDF é ajustado SEM DEFORMAR no próprio canvas, em vez de
+   deixar um canvas mais baixo com faixas visíveis durante a virada. */
+@media(max-width:669px){
+  .reader.aurora-page-curl-preview .page:not(.text-page){
+    background:#fff;
+  }
+  .reader.aurora-page-curl-preview .page:not(.text-page) canvas{
+    object-fit:fill;
+  }
+  .reader.aurora-page-curl-preview[data-reader-theme="sepia"] .page:not(.text-page){
+    background:#fffaf3;
+  }
+  .reader.aurora-page-curl-preview[data-reader-theme="night"] .page:not(.text-page){
+    background:#1f2422;
   }
 }
