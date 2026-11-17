@@ -717,6 +717,27 @@
       container.replaceChildren(host);
       return host;
     }
+    // Apenas no piloto PDF: o StPageFlip desloca a ponta da folha em até
+    // 10% da altura ao folhear. Isso levanta os cantos e cria os cortes
+    // triangulares visíveis acima e abaixo do livro. Comprimimos somente
+    // o percurso VERTICAL da ponta. O eixo horizontal, as páginas, a
+    // curvatura do motor, o gesto de arrastar e os 900 ms são preservados.
+    function softenPageCornerLift(point,height,corner){
+      const edge=corner==='bottom'?height:0;
+      return {x:point.x,y:Math.max(0,Math.min(height,edge+(point.y-edge)*.42))};
+    }
+    function installFullHeightTurn(session){
+      if(innerWidth>=670||!$('reader').classList.contains('aurora-page-curl-preview'))return;
+      const controller=session.flip?.getFlipController?.();
+      if(!controller||typeof controller.do!=='function')return;
+      const drawOriginal=controller.do;
+      controller.do=function(point){
+        const calc=controller.getCalculation?.();
+        const height=session.flip?.getBoundsRect?.()?.height;
+        if(!calc||!(height>0)||!Number.isFinite(point?.y))return drawOriginal.call(this,point);
+        return drawOriginal.call(this,softenPageCornerLift(point,height,calc.getCorner()));
+      };
+    }
     /* Volume de papel visto atrás de uma única página, sem modificar o PageFlip.
        A posição acompanha a caixa real da página, inclusive quando há zoom. */
     function alignReaderVolume(session){
@@ -921,6 +942,7 @@
           flippingTime:900,usePortrait:mobile,mobileScrollSupport:false,swipeDistance:20
         });
         session.flip.loadFromHTML(session.pages);
+        installFullHeightTurn(session);
         host.classList.add('ready');
         installReaderVolume(session,book,meta);
         session.flip.on('changeState',event=>{

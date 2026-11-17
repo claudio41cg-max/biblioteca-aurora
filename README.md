@@ -1,5 +1,12 @@
 # Biblioteca Aurora
 
+## Atualização v63 — bordas da folha na virada do PDF
+
+- Em **Razão e Sensibilidade**, o recorte superior/inferior observado durante a dobra vinha da trajetória vertical de dez por cento da altura usada pelo próprio StPageFlip, e não do tamanho da imagem do PDF. O trajeto vertical da ponta agora é suavizado para aproximar a folha das bordas do volume enquanto ela gira.
+- Não alteramos o PDF, nem o movimento horizontal da página, nem o motor StPageFlip e seus 900 ms. Os modos claro, sépia e noturno, as sombras, os marcadores, o progresso e o 3D permanecem.
+- Apenas o piloto PDF no celular utiliza esse ajuste. EPUB, TXT, audiolivros e os outros PDFs não foram modificados.
+- Backup: `backup-aurora-v62-antes-ajuste-dobra-pdf-20261117`.
+
 ## Atualização v62 — folha e livro físico sem molduras desiguais
 
 - No piloto **Razão e Sensibilidade**, corrigida a diferença de cor que deixava o PDF branco parecendo menor que a folha sépia: o fundo do papel é uniforme do início ao fim, sem deformar o texto ou as ilustrações originais.
