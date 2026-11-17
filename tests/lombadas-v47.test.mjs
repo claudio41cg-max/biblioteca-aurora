@@ -8,7 +8,7 @@ const shelf=read('aurora-estante.js');
 assert.match(shelf,/dataset\.realSpine='true'/);
 assert.match(shelf,/dataset\.coverDerived='true'/);
 assert.match(html,/aurora-lombadas\.js\?v=1/);
-assert.match(worker,/aurora-v47/);
+assert.match(worker,/aurora-v48/);
 assert.match(worker,/index\.html\?v=47/);
 assert.match(worker,/aurora-lombadas\.js\?v=1/);
 assert.match(worker,/Promise\.allSettled/);
