@@ -280,3 +280,76 @@
     opacity:.22;
   }
 }
+
+
+/* v60: página em tamanho integral e lombada visível em perspectiva.
+   Estas camadas são IRRELEVANTES ao motor StPageFlip: não entram na
+   animação nem ocupam o centro do PDF. */
+@media(max-width:669px){
+  .reader.aurora-page-curl-preview .aurora-reader-finishing{
+    position:absolute;z-index:3;overflow:visible;pointer-events:none;
+  }
+  /* Porção da página esquerda. A sombra acompanha a curva suave do papel,
+     sem criar uma linha reta ou uma segunda capa sobre as palavras. */
+  .reader.aurora-page-curl-preview .aurora-reader-finishing__left{
+    position:absolute;top:3px;bottom:4px;left:0;width:21px;
+    border-radius:9px 1px 2px 6px / 11px 2px 3px 9px;
+    background:
+      radial-gradient(ellipse 15px 72% at 100% 50%,
+        var(--aurora-fold-shadow) 0%,transparent 91%),
+      linear-gradient(90deg,
+        var(--aurora-sheet-shade) 0%,
+        var(--aurora-sheet-light) 24%,
+        var(--aurora-sheet) 58%,
+        var(--aurora-sheet-shade) 100%);
+    box-shadow:inset -3px 0 8px -4px var(--aurora-fold-shadow),
+      1px 0 4px -3px var(--aurora-fold-shadow);
+  }
+  .reader.aurora-page-curl-preview .aurora-reader-finishing__gutter{
+    position:absolute;top:3px;bottom:4px;left:20px;width:18px;
+    background:linear-gradient(90deg,var(--aurora-fold-shadow),transparent);
+    opacity:.73;
+  }
+  /* Na margem externa direita, o papel apresenta espessura, fibras e
+     uma tira da contracapa do exemplar, como no livro 3D original. */
+  .reader.aurora-page-curl-preview .aurora-reader-finishing__back{
+    position:absolute;z-index:0;top:2px;bottom:2px;right:0;width:16px;
+    border-right:2px solid var(--aurora-binding);
+    border-radius:1px 5px 6px 1px;
+    background-color:var(--aurora-binding);
+    background-position:right center;background-size:auto 100%;background-repeat:no-repeat;
+    box-shadow:3px 4px 8px -4px var(--aurora-fold-shadow),inset -2px 0 2px #0004;
+  }
+  .reader.aurora-page-curl-preview .aurora-reader-finishing__cut{
+    position:absolute;z-index:1;top:5px;bottom:5px;right:4px;width:13px;
+    border-radius:1px 3px 3px 1px;
+    background-color:var(--aurora-sheet-shade);
+    background-position:center;background-size:100% 100%;background-repeat:no-repeat;
+    box-shadow:inset 3px 0 5px -3px var(--aurora-fold-shadow),
+      -3px 0 8px -6px var(--aurora-fold-shadow),
+      2px 2px 4px -3px var(--aurora-fold-shadow);
+    filter:saturate(.85) contrast(1.22);
+  }
+  .reader.aurora-page-curl-preview .aurora-reader-finishing__cut::after{
+    content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+    background:linear-gradient(90deg,
+      rgba(53,39,26,.29),rgba(53,39,26,.05) 36%,
+      rgba(255,250,228,.24) 64%,rgba(49,37,27,.23));
+  }
+  .reader.aurora-page-curl-preview .aurora-reader-finishing__bottom{
+    position:absolute;left:6px;right:17px;bottom:0;height:3px;
+    border-bottom:1px solid var(--aurora-binding);
+    background-color:var(--aurora-sheet-shade);
+    background-size:100% 100%;background-position:center;background-repeat:no-repeat;
+    box-shadow:0 2px 4px -2px var(--aurora-fold-shadow);
+    filter:saturate(.8) contrast(1.15);
+  }
+  .reader.aurora-page-curl-preview[data-reader-theme="sepia"] .aurora-reader-finishing__cut,
+  .reader.aurora-page-curl-preview[data-reader-theme="sepia"] .aurora-reader-finishing__bottom{
+    filter:sepia(.42) saturate(.8) contrast(1.17);
+  }
+  .reader.aurora-page-curl-preview[data-reader-theme="night"] .aurora-reader-finishing__cut,
+  .reader.aurora-page-curl-preview[data-reader-theme="night"] .aurora-reader-finishing__bottom{
+    filter:grayscale(1) invert(.81) brightness(.39) contrast(1.2);
+  }
+}

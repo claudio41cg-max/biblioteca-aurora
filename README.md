@@ -1,5 +1,14 @@
 # Biblioteca Aurora
 
+## Atualização v60 — página inteira e acabamento 3D só nas margens
+
+- No exemplar piloto **Razão e Sensibilidade**, restaurada a largura original do PDF no celular: antes o acabamento reservava 54 pixels e diminuía as letras e imagens.
+- Nova folha esquerda discretamente curva e sombra progressiva no encontro da encadernação, limitada à margem sem escrita.
+- Na borda direita, corte de folhas mais nítido com textura compartilhada do livro 3D, relevo e faixa da capa original no fundo. O acabamento inferior fica restrito aos últimos três pixels.
+- Nenhuma camada toca o texto central ou altera o motor StPageFlip, a duração de 900 ms, o progresso ou os marcadores. As demais obras permanecem como antes.
+- Backup para retorno: `backup-aurora-v59-antes-pagina-integral-curvatura-20261117`.
+
+
 ## Atualização v59 — livro aberto sem cobrir as letras
 
 - Exemplar piloto: **Razão e Sensibilidade**. A curva artificial que ficava sobre o texto durante o folheio foi removida. A porção esquerda agora é uma folha física atrás da página de leitura, visível apenas na margem.
