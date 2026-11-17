@@ -49,6 +49,6 @@ assert.match(pdf3d,/\.book-description\{[\s\S]*?border:0/);
 assert.match(pdfCss,/\.showcase \.showhead button,\.showcase \.showhead \.category-editor select\{[\s\S]*?border:0/);
 assert.match(pdfCss,/\.reader \.reader-prefs-card/);
 assert.match(pdfCss,/\.pdf-page-controls/);
-assert.match(read('sw.js'),/aurora-v47/);
+assert.match(read('sw.js'),/aurora-v48/);
 
 console.log('V41: creme nos dois visores, mesmo Aa e navegação, EPUB sem transparência HTML.');
