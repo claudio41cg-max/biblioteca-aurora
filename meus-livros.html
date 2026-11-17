@@ -70,7 +70,7 @@
   </style>
   <link rel="stylesheet" href="./aurora-edicao.css?v=1">
   <link rel="stylesheet" href="./aurora-vitrine.css?v=8">
-  <link rel="stylesheet" href="./aurora-reader.css?v=7">
+  <link rel="stylesheet" href="./aurora-reader.css?v=8">
 </head>
 <body>
   <header class="tophead"><div class="eyebrow">SEU ACERVO PESSOAL</div><h1>✦ Meus livros • Aurora ✦</h1><p>Adicione seus livros PDF e guarde cada um pela lombada.</p></header>
@@ -177,6 +177,8 @@
   <script src="./aurora-som-folhas.js?v=2"></script>
   <script src="./aurora-sinopses.js?v=2"></script>
   <script src="./aurora-pdf-covers.js?v=1"></script>
+  <!-- Carrega o mesmo Canvas de papel usado pelo livro 3D ANTES do leitor PDF. -->
+  <script src="./aurora-edition-surfaces.js?v=4"></script>
   <script>
   (async () => {
     'use strict';
@@ -709,6 +711,31 @@
       if(!session?.physicalVolume)return;
       requestAnimationFrame(()=>alignReaderVolume(session));
     }
+    // Recorta a mesma textura produzida por AuroraEditionSurfaces.paperEdgeCanvas
+    // e aplicada às faces do livro 3D. Não há listras desenhadas por CSS.
+    const physicalTrimCache=new Map();
+    function readerPaperTrim(orientation){
+      if(physicalTrimCache.has(orientation))return physicalTrimCache.get(orientation);
+      try{
+        const source=window.AuroraEditionSurfaces?.paperEdgeCanvas?.(orientation);
+        if(!source)return '';
+        const side=orientation==='vertical';
+        const left=side?12:0,top=side?0:Math.round(source.height*.36);
+        const width=side?Math.min(72,source.width-left):source.width;
+        const height=side?source.height:Math.min(70,source.height-top);
+        const canvas=document.createElement('canvas');
+        canvas.width=width;canvas.height=height;
+        const ctx=canvas.getContext('2d',{alpha:false});
+        if(!ctx)return '';
+        ctx.drawImage(source,left,top,width,height,0,0,width,height);
+        const image='url('+JSON.stringify(canvas.toDataURL('image/png'))+')';
+        physicalTrimCache.set(orientation,image);
+        return image;
+      }catch(error){
+        console.warn('Textura compartilhada do papel indisponível:',error);
+        return '';
+      }
+    }
     function installReaderVolume(session,book,meta){
       if(innerWidth>=670||!$('reader').classList.contains('aurora-page-curl-preview'))return;
       const frame=document.createElement('div');
@@ -716,16 +743,22 @@
       frame.setAttribute('aria-hidden','true');
       const cover=document.createElement('div');
       cover.className='aurora-reader-volume__cover';
-      const source=String(book?.cover||meta?.cover||'');
+      const source=String(book?.back||meta?.back||book?.cover||meta?.cover||'');
       if(/^(data:image\/|blob:|https?:\/\/)/i.test(source)){
         // A borda da capa no fundo herda a imagem original deste exemplar.
         cover.style.backgroundImage='linear-gradient(90deg,rgba(15,12,10,.27),rgba(15,12,10,.06)),url('+JSON.stringify(source)+')';
       }
       const sheets=document.createElement('div');
       sheets.className='aurora-reader-volume__sheets';
+      const cut=document.createElement('div');
+      cut.className='aurora-reader-volume__cut';
+      cut.style.backgroundImage=readerPaperTrim('vertical');
+      const foot=document.createElement('div');
+      foot.className='aurora-reader-volume__foot';
+      foot.style.backgroundImage=readerPaperTrim('horizontal');
       const turned=document.createElement('div');
       turned.className='aurora-reader-volume__turned';
-      frame.append(cover,sheets,turned);
+      frame.append(cover,sheets,cut,foot,turned);
       $('viewport').append(frame);
       session.physicalVolume=frame;
       $('flipbook').addEventListener('transitionend',()=>queueReaderVolumeAlign(session));
@@ -811,7 +844,7 @@
         // Deixa só alguns pixels laterais para o miolo físico do exemplar-piloto.
       // A folha atual permanece quase na largura inteira da tela.
       const physicalSample=mobile&&$('reader').classList.contains('aurora-page-curl-preview');
-      const availableWidth = mobile ? innerWidth-(physicalSample?24:2) : Math.min(540,(innerWidth-60)/2);
+      const availableWidth = mobile ? innerWidth-(physicalSample?34:2) : Math.min(540,(innerWidth-60)/2);
         const availableHeight = Math.max(270,$('viewport').clientHeight-45);
         const width = Math.max(150,Math.floor(Math.min(availableWidth,availableHeight*ratio)));
         const height = Math.max(200,Math.floor(width/ratio));
@@ -1031,7 +1064,6 @@
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
   })();
   </script>
-  <script src="./aurora-edition-surfaces.js?v=1"></script>
   <script type="module" src="./aurora-livro-3d.mjs?v=4"></script>
 </body>
 </html>

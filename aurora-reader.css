@@ -217,16 +217,37 @@
     position:absolute;inset:3px -9px -4px -8px;
     border:1px solid var(--aurora-sheet-deep);
     border-radius:2px 6px 6px 3px;
-    background:
-      linear-gradient(90deg,transparent 0%,rgba(255,255,255,.14) 65%,var(--aurora-sheet-shade) 100%),
-      repeating-linear-gradient(0deg,
-        var(--aurora-sheet-light) 0 1px,
-        var(--aurora-cut-line) 2px,
-        var(--aurora-sheet) 3px 5px);
-    box-shadow:3px 3px 6px -3px var(--aurora-fold-shadow);
+    /* Corpo opaco do miolo. Os filetes vêm da textura real do livro 3D
+       em duas faces específicas, sem faixas repetidas no corpo inteiro. */
+    background:linear-gradient(90deg,var(--aurora-sheet-shade),var(--aurora-sheet) 12%,var(--aurora-sheet) 90%,var(--aurora-sheet-shade));
+    box-shadow:3px 3px 7px -2px var(--aurora-fold-shadow);
+  }
+  .reader.aurora-page-curl-preview .aurora-reader-volume__cut{
+    position:absolute;top:5px;right:-11px;bottom:-2px;width:13px;
+    border-radius:1px 5px 5px 1px;
+    background-color:var(--aurora-sheet-shade);
+    background-position:center;background-size:100% 100%;background-repeat:no-repeat;
+    box-shadow:inset 3px 0 4px -2px var(--aurora-fold-shadow),2px 1px 4px -2px var(--aurora-fold-shadow);
+    filter:grayscale(.80) brightness(1.13);
+  }
+  .reader.aurora-page-curl-preview[data-reader-theme="sepia"] .aurora-reader-volume__cut,
+  .reader.aurora-page-curl-preview[data-reader-theme="sepia"] .aurora-reader-volume__foot{
+    filter:sepia(.45) saturate(.72) brightness(1.05);
+  }
+  .reader.aurora-page-curl-preview[data-reader-theme="night"] .aurora-reader-volume__cut,
+  .reader.aurora-page-curl-preview[data-reader-theme="night"] .aurora-reader-volume__foot{
+    filter:grayscale(1) invert(.83) brightness(.36);
+  }
+  .reader.aurora-page-curl-preview .aurora-reader-volume__foot{
+    position:absolute;left:3px;right:-7px;bottom:-5px;height:6px;
+    border-radius:0 0 4px 4px;
+    background-color:var(--aurora-sheet-shade);
+    background-position:center;background-size:100% 100%;background-repeat:no-repeat;
+    box-shadow:0 2px 4px -2px var(--aurora-fold-shadow);
+    filter:grayscale(.80) brightness(1.13);
   }
   .reader.aurora-page-curl-preview .aurora-reader-volume__turned{
-    position:absolute;left:-15px;top:7px;bottom:5px;width:24px;
+    position:absolute;left:-19px;top:6px;bottom:5px;width:29px;
     border-radius:5px 55% 35% 4px / 4px 17% 20% 4px;
     background:linear-gradient(90deg,
       var(--aurora-sheet-deep) 0%,
@@ -234,25 +255,26 @@
       var(--aurora-sheet) 48%,
       var(--aurora-sheet-light) 75%,
       var(--aurora-sheet) 100%);
-    box-shadow:-3px 2px 8px var(--aurora-fold-shadow);
+    box-shadow:-5px 3px 12px var(--aurora-fold-shadow),inset 5px 0 11px -7px var(--aurora-fold-shadow);
     transform-origin:right center;
-    transform:perspective(130px) rotateY(19deg);
+    transform:perspective(150px) rotateY(23deg);
   }
-  /* A curvatura entra sobre apenas os primeiros 30-40px da folha.
-     Sem listras: a iluminação suave vem da mesma cor do papel selecionado. */
+  /* Curva contínua com o mesmo tom da folha: luz de encadernação e sombra
+     gradual. Os 40px finais do efeito são transparentes para preservar texto. */
   .reader.aurora-page-curl-preview .page:not(.loading)::before{
     content:"";position:absolute;z-index:5;pointer-events:none;
-    left:0;top:2px;bottom:2px;width:clamp(29px,9.5vw,42px);
-    border-radius:0 72% 39% 0 / 0 18% 21% 0;
-    background:linear-gradient(90deg,
-      var(--aurora-sheet-deep) 0%,
-      var(--aurora-sheet-shade) 7%,
-      var(--aurora-sheet-light) 23%,
-      var(--aurora-sheet) 50%,
-      var(--aurora-sheet) 68%,
-      transparent 100%);
-    box-shadow:3px 0 11px -5px var(--aurora-fold-shadow);
+    left:0;top:1px;bottom:1px;width:clamp(45px,15vw,58px);
+    border-radius:0 73% 42% 0 / 0 18% 20% 0;
+    background:
+      radial-gradient(ellipse 38px 65% at 0 50%,var(--aurora-fold-shadow) 0%,transparent 88%),
+      linear-gradient(90deg,
+        var(--aurora-sheet-shade) 0%,
+        var(--aurora-sheet-light) 15%,
+        var(--aurora-sheet) 38%,
+        var(--aurora-sheet) 63%,
+        transparent 86%);
+    box-shadow:7px 0 19px -12px var(--aurora-fold-shadow);
     transform-origin:left center;
-    transform:perspective(190px) rotateY(-11deg) translateX(-1px);
+    transform:perspective(205px) rotateY(-15deg) translateX(-1px);
   }
 }
