@@ -1,5 +1,14 @@
 # Biblioteca Aurora
 
+## Atualização v53 — catálogo com livros 3D
+
+- Os cartões de todos os catálogos exibem um volume físico inclinado, com capa original preservada, lombada, corte vertical de folhas e reflexos suaves. No celular, a grade passa a duas colunas para aumentar as capas sem cortes.
+- Arraste horizontalmente a capa para girar o volume e ver a contracapa; toque curto para pegar exatamente o mesmo livro 3D que já está na estante. As setas esquerda/direita também giram o volume com o cartão em foco.
+- A contracapa original guardada no EPUB ou PDF tem prioridade. Caso não exista, a Aurora usa a contracapa ilustrativa da mesma rotina do visor 3D, devidamente identificada.
+- As imagens são usadas na resolução disponível, sem esticar ou cortar títulos. A contracapa é preparada apenas quando alguém começa a virar o volume, preservando a fluidez nos celulares.
+- A estante, os arquivos no aparelho, o folheio, o leitor, o progresso, o WebGL e os catálogos por categoria permanecem preservados.
+- Backup: `backup-aurora-v52-antes-catalogo-3d-20261117`.
+
 ## Atualização v52 — capa real de “É assim que acaba”
 
 - A prioridade permanece com a imagem real embutida no EPUB. A extração também reconhece imagens de capa com tipo MIME incompleto e arquivos de capa inequívocos dentro do ZIP mesmo fora do índice.

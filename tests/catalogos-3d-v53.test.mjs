@@ -1,0 +1,29 @@
+import {strict as assert} from 'node:assert';
+import {readFileSync} from 'node:fs';
+const read=name=>readFileSync(new URL('../'+name,import.meta.url),'utf8');
+const js=read('aurora-catalogos.js'),css=read('aurora-catalogos.css');
+const html=read('index.html'),sw=read('sw.js');
+assert.match(js,/const DEFAULT_TURN=16/);
+assert.match(js,/function volumeFor\(button,title,card\)/);
+for(const face of ['aurora-catalog-front','aurora-catalog-back-face','aurora-catalog-spine','aurora-catalog-pages']){
+  assert.match(js,new RegExp(face));
+  assert.match(css,new RegExp('\\.'+face));
+}
+assert.match(css,/transform-style:preserve-3d/);
+assert.match(css,/perspective:1000px/);
+assert.match(css,/rotateY\(var\(--catalog-turn/);
+assert.match(css,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+assert.match(js,/window\.AuroraEditionSurfaces\?\.generate/);
+assert.match(js,/formats\.readRecord\('books',id\)/);
+assert.match(js,/saved\?\.back/);
+assert.match(js,/card\.addEventListener\('pointermove'/);
+assert.match(js,/setTurn\(drag\.angle-dx\*1\.27\)/);
+assert.match(js,/if\(wasTurning\(\)\)\{event\.preventDefault\(\);return;\}/);
+assert.match(js,/button\.click\(\)/);
+assert.match(js,/document\.addEventListener\('aurora:book-cover-updated'/);
+assert.match(html,/Arraste a capa para ver a lombada e a contracapa/);
+assert.match(html,/aurora-catalogos\.css\?v=2/);
+assert.match(html,/aurora-catalogos\.js\?v=2/);
+assert.match(sw,/aurora-v53/);
+assert.match(sw,/new URL\('\.\/index\.html\?v=53',self\.registration\.scope\)/);
+console.log('V53: capas em 3D, contracapa original ou ilustrativa, gesto, acessibilidade e cache.');
