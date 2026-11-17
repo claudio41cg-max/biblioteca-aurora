@@ -19,7 +19,7 @@ assert.match(epub,/const refs=nodes\(packageXML,'itemref'\)\.slice\(0,3\)/);
 assert.match(epub,/if\(illustrations\.length!==1/);
 assert.match(imported,/coverCheckedVersion!==50/);
 assert.match(html,/aurora-lombadas\.js\?v=3/);
-assert.match(worker,/aurora-v50/);
+assert.match(worker,/aurora-v51/);
 
 let artDraws=0;
 const ctx={

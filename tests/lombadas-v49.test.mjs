@@ -20,7 +20,7 @@ assert.match(imported,/coverCheckedVersion!==50/);
 assert.match(imported,/if\(epub\.cover\)\{cover=epub\.cover;coverSource='original';\}/);
 assert.match(covers,/const palettes=\[/);
 assert.match(html,/aurora-lombadas\.js\?v=3/);
-assert.match(worker,/aurora-v50/);
+assert.match(worker,/aurora-v51/);
 
 let image;
 const ctx={

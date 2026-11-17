@@ -1,5 +1,13 @@
 # Biblioteca Aurora
 
+## Atualização v51 — nova estante e Romance hot
+
+- A categoria **Romances picantes** passa a se chamar **Romance hot**, preservando todos os livros já guardados no identificador interno `adulto`.
+- Nova categoria **Filmes inspirado em livros**, inicialmente vazia e com o mesmo acabamento físico das demais. Livros PDF, EPUB, TXT, audiolivros e outros suportados podem ser guardados nela.
+- A nova categoria aparece no menu de importação, no seletor de categoria do livro 3D e no botão Catálogos da prateleira.
+- Foram mantidos o leitor, o folheio, a capa/lombada original, a organização, os catálogos, o progresso e as demais personalizações.
+- Backup de retorno: `backup-aurora-v50-antes-nova-estante-20261117`.
+
 ## Atualização v50 — lombadas com detalhes reais das capas em todas as estantes
 
 - As estantes compartilham o mesmo acabamento premium, independentemente da categoria. Cada volume conserva largura, altura, inclinação e capa próprias.

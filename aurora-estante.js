@@ -6,7 +6,7 @@
     {id:'romance', name:'Romances', books:[
       ['Orgulho e Preconceito','Jane Austen'],['Razão e Sensibilidade','Jane Austen'],
       ['A Moreninha','Joaquim M. de Macedo'],['Senhora','José de Alencar']]},
-    {id:'adulto', name:'Romances picantes', books:[
+    {id:'adulto', name:'Romance hot', books:[
       ['Entre Velas e Segredos','Conto original'],['Noites de Verão','Conto original'],
       ['Desejo e Distância','Conto original'],['Cartas ao Entardecer','Conto original']]},
     {id:'ficcao', name:'Ficção e aventuras', books:[
@@ -14,7 +14,8 @@
       ['Viagem ao Centro da Terra','Jules Verne'],['Frankenstein','Mary Shelley']]},
     {id:'brasileiros', name:'Autores brasileiros', books:[
       ['Dom Casmurro','Machado de Assis'],['Memórias Póstumas','Machado de Assis'],
-      ['O Cortiço','Aluísio Azevedo'],['Iracema','José de Alencar']]}
+      ['O Cortiço','Aluísio Azevedo'],['Iracema','José de Alencar']]},
+    {id:'filmes',name:'Filmes inspirado em livros',books:[]}
   ];
   const demo = 'Este volume é uma amostra visual da Biblioteca Aurora.\n\nA obra integral ainda não foi adicionada. Importe o seu PDF ou TXT para ler o livro completo com a capa original.\n\nOs seus arquivos ficam guardados neste aparelho.\n\nBoa leitura!';
   const safeRead = (key, fallback) => {

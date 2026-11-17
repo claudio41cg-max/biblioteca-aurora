@@ -1,0 +1,22 @@
+import {strict as assert} from 'node:assert';
+import {readFileSync} from 'node:fs';
+const read=name=>readFileSync(new URL('../'+name,import.meta.url),'utf8');
+const shelf=read('aurora-estante.js'),html=read('index.html');
+const showcase=read('aurora-sala-3d.js'),catalog=read('aurora-catalogos.js');
+const worker=read('sw.js'),css=read('aurora-estante-realista.css');
+assert.match(shelf,/\{id:'adulto', name:'Romance hot'/);
+assert.doesNotMatch(shelf,/name:'Romances picantes'/);
+assert.match(shelf,/\{id:'filmes',name:'Filmes inspirado em livros',books:\[\]\}/);
+assert.equal((html.match(/<option value="filmes">Filmes inspirado em livros<\/option>/g)||[]).length,2,
+  'importação e livro 3D devem permitir escolher a nova estante');
+assert.equal((html.match(/<option value="adulto">Romance hot<\/option>/g)||[]).length,2);
+assert.match(showcase,/const categories=\['romance','adulto','ficcao','brasileiros','filmes'\]/);
+assert.match(shelf,/categories\.forEach\(\(category,index\)/);
+assert.match(shelf,/section\.classList\.add\('shelf-premium'\)/);
+assert.match(catalog,/shelf\.categories\.find\(item=>item\.id===current\)/);
+assert.match(css,/\.category\.shelf-premium \.book-spine/);
+assert.match(html,/aurora-estante\.js\?v=18/);
+assert.match(html,/aurora-sala-3d\.js\?v=17/);
+assert.match(worker,/aurora-v51/);
+assert.match(worker,/index\.html\?v=51/);
+console.log('V51: nova estante vazia, importação, 3D, catálogos e nome Romance hot confirmados.');
