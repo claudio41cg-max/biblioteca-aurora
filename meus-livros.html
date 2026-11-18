@@ -717,44 +717,9 @@
       container.replaceChildren(host);
       return host;
     }
-    // Apenas em Razão e Sensibilidade no celular. O StPageFlip recalcula o
-    // estilo da folha depois de do(point); por isso a escala é aplicada após
-    // drawFrame, já com o clip-path e a rotação do quadro atualizados.
-    function installFullHeightTurn(session){
-      if(innerWidth>=670||!$('reader').classList.contains('aurora-page-curl-preview'))return;
-      const controller=session.flip?.getFlipController?.();
-      const render=session.flip?.getRender?.();
-      if(!controller||!render||typeof render.drawFrame!=='function')return;
-
-      const drawFrameOriginal=render.drawFrame;
-      render.drawFrame=function(){
-        const result=drawFrameOriginal.call(this);
-        if(session.closed||session!==active)return result;
-
-        const state=controller.getState?.();
-        if(state!=='flipping'&&state!=='user_fold')return result;
-
-        // O PageFlip desenha duas superfícies com recortes complementares:
-        // a página de baixo e a página que está virando. Expandir somente a
-        // folha superior desalinha as bordas entre elas. Aplica a mesma
-        // expansão temporária às duas; o motor restaura os estilos a cada frame
-        // e a página parada mantém exatamente as dimensões originais.
-        const pageLayers=[controller.bottomPage,controller.flippingPage];
-        for(const layer of pageLayers){
-          const page=layer?.getElement?.();
-          if(!page)continue;
-
-          const transform=page.style.transform||'';
-          const rotationStart=transform.lastIndexOf(' rotate(');
-          if(rotationStart<0)continue;
-
-          page.style.transformOrigin='0 50%';
-          page.style.transform=
-            transform.slice(0,rotationStart)+' scaleY(1.08)'+transform.slice(rotationStart);
-        }
-        return result;
-      };
-    }
+    // O folheio PDF mantém a geometria nativa do StPageFlip, igual aos PDFs
+    // sem acabamento. O volume decorativo é posicionado fora das folhas e
+    // nunca modifica transform, transform-origin ou clip-path do motor.
     /* Volume de papel visto atrás de uma única página, sem modificar o PageFlip.
        A posição acompanha a caixa real da página, inclusive quando há zoom. */
     function alignReaderVolume(session){
@@ -959,7 +924,6 @@
           flippingTime:900,usePortrait:mobile,mobileScrollSupport:false,swipeDistance:20
         });
         session.flip.loadFromHTML(session.pages);
-        installFullHeightTurn(session);
         host.classList.add('ready');
         installReaderVolume(session,book,meta);
         session.flip.on('changeState',event=>{
