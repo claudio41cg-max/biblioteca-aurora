@@ -180,7 +180,9 @@
       }
       ctx.closePath();ctx.fillStyle=metal;ctx.fill();
     };
-    switch(variants[hash(seedText)%variants.length]){
+    // Capas reais: continuidade visual limpa, sem ornamentos de couro antigo.
+    // Ornamentação clássica só para livros sem capa original.
+    if(illustrative)switch(variants[hash(seedText)%variants.length]){
       case 'classico':rule(h*.045);rule(h*.067);rule(h*.933);rule(h*.955);break;
       case 'faixas':rule(h*.05,width*2.5);rule(h*.072);rule(h*.928);rule(h*.95,width*2.5);break;
       case 'losango':rule(h*.05);diamond(h*.09);diamond(h*.91);rule(h*.95);break;
