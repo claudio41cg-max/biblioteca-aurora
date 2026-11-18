@@ -103,7 +103,16 @@
 }/* Nos três títulos do piloto, a lombada renderizada em alta resolução
    ocupa as mesmas dimensões dos outros volumes da prateleira. */
 .category.shelf-premium .book-spine[data-shelf-3d-pilot="true"][data-shelf-preview="ready"]{
+  border:0!important;
+  border-radius:0!important;
+  background-color:#050505!important;
   background-image:none!important;
+  box-shadow:none!important;
+}
+.category.shelf-premium .book-spine[data-shelf-3d-pilot="true"][data-shelf-preview="ready"]::before,
+.category.shelf-premium .book-spine[data-shelf-3d-pilot="true"][data-shelf-preview="ready"]::after{
+  display:none!important;
+  content:none!important;
 }
 .category.shelf-premium .book-spine[data-shelf-3d-pilot="true"] .shelf-3d-preview-image{
   position:absolute;
