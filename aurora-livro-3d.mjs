@@ -537,8 +537,9 @@ function initialize(){
     const previousSize=renderer.getSize(new THREE.Vector2());
     const previousPixelRatio=renderer.getPixelRatio();
     const previousAspect=camera.aspect;
+    const previousCameraPosition=camera.position.clone();
     const previousReady=stage.classList.contains('three-ready');
-    let generationAtStart=0,timeoutId=0,onReady=null,onSelected=null,previewVisibility=null,previewMesh=null,previewMaterials=null;
+    let generationAtStart=0,timeoutId=0,onReady=null,onSelected=null,previewVisibility=null,previewMesh=null,previewMaterials=null,previewShadowVisible=null;
     shelfPreviewInProgress=true;
     try{
       renderer.setPixelRatio(Math.min(3,Math.max(1,devicePixelRatio||1)));
@@ -577,7 +578,10 @@ function initialize(){
         previewMesh.material=Array.isArray(previewMaterials)
           ?previewMaterials.map(()=>spineSurface):spineSurface;
         group.children.forEach(child=>{child.visible=child===previewMesh;});
+        previewShadowVisible=shadowMesh.visible;
+        shadowMesh.visible=false;
         group.rotation.set(0,Math.PI/2,0);
+        camera.position.set(0,0,4.9);
         render();
       }
       const pixelWidth=Math.max(1,renderer.domElement.width);
@@ -605,6 +609,34 @@ function initialize(){
           imageData.data.set(pixels.subarray(sourceStart,sourceStart+rowBytes),y*rowBytes);
         }
         imageContext.putImageData(imageData,0,0);
+        if(options.view==='spine'){
+          // Corta só a área transparente ao redor da lombada. Sem esse recorte,
+          // o fundo escuro do botão parece uma borda preta em volta do livro.
+          let left=pixelWidth,top=pixelHeight,right=-1,bottom=-1;
+          for(let y=0;y<pixelHeight;y++){
+            for(let x=0;x<pixelWidth;x++){
+              if(imageData.data[(y*pixelWidth+x)*4+3]>8){
+                if(x<left)left=x;
+                if(x>right)right=x;
+                if(y<top)top=y;
+                if(y>bottom)bottom=y;
+              }
+            }
+          }
+          if(right>=left&&bottom>=top){
+            const cropWidth=right-left+1,cropHeight=bottom-top+1;
+            const cropped=imageContext.createImageData(cropWidth,cropHeight);
+            for(let y=0;y<cropHeight;y++){
+              const sourceStart=((top+y)*pixelWidth+left)*4;
+              const targetStart=y*cropWidth*4;
+              cropped.data.set(imageData.data.subarray(sourceStart,sourceStart+cropWidth*4),targetStart);
+            }
+            const croppedCanvas=document.createElement('canvas');
+            croppedCanvas.width=cropWidth;croppedCanvas.height=cropHeight;
+            croppedCanvas.getContext('2d',{alpha:true}).putImageData(cropped,0,0);
+            return croppedCanvas.toDataURL('image/webp',.97);
+          }
+        }
         return imageCanvas.toDataURL('image/webp',.97);
       }finally{
         renderer.setRenderTarget(previousTarget);
@@ -624,6 +656,7 @@ function initialize(){
         });
       }
       if(previewMesh?.parent===group&&previewMaterials)previewMesh.material=previewMaterials;
+      if(previewShadowVisible!==null)shadowMesh.visible=previewShadowVisible;
       if(stillOwnsModel){
         clearModel();
         if(!previousReady)stage.classList.remove('three-ready');
@@ -631,6 +664,7 @@ function initialize(){
       renderer.setPixelRatio(previousPixelRatio);
       renderer.setSize(previousSize.x,previousSize.y,false);
       camera.aspect=previousAspect;
+      camera.position.copy(previousCameraPosition);
       camera.updateProjectionMatrix();
       shelfPreviewInProgress=false;
       if(currentBook){resize();render();}
