@@ -141,8 +141,8 @@
       ctx.fillText('Contracapa ilustrativa • edição digital',52,666);
     }
     const normalizedTitle=String(book.title||book.name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-    const keepModelSpine=/\biracema\b/.test(normalizedTitle);
-    if(!book.spine&&!keepModelSpine){
+    const useCoverDerivedSpine=/\biracema\b/.test(normalizedTitle);
+    if(!book.spine||useCoverDerivedSpine){
       spine=document.createElement('canvas');spine.width=512;spine.height=1920;
       const ctx=spine.getContext('2d',{alpha:false});
       ctx.scale(2,2);
@@ -159,7 +159,7 @@
       ctx.save();ctx.translate(128,480);ctx.rotate(-Math.PI/2);
       ctx.font='bold 42px Georgia,serif';ctx.textAlign='center';ctx.textBaseline='middle';
       ctx.lineWidth=12;ctx.strokeStyle='rgba(0,0,0,.85)';
-      const name=String(book.name||'Livro').replace(/[-_]+/g,' ').slice(0,65);
+      const name=String(book.title||book.name||'Livro').replace(/[-_]+/g,' ').slice(0,65);
       ctx.strokeText(name,0,0,815);ctx.fillStyle='#fff8e9';ctx.fillText(name,0,0,815);
       ctx.restore();
     }
