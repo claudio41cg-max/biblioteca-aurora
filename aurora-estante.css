@@ -192,20 +192,3 @@ body:not(.arranging) .book-spine[data-has-real-cover="true"]:focus-visible{
 /* Lombadas importadas: preservar nitidez e identidade da capa no celular. */
 .book-spine[data-cover-derived="true"],.book-spine[data-spine-crisp="true"]{filter:none!important;image-rendering:auto;background-repeat:no-repeat!important;background-size:100% 100%!important;backface-visibility:hidden}
 .book-spine[data-spine-crisp="true"] .spine-title{background:none!important;text-shadow:none!important}
-
-/* Livros mais retos e nítidos na estante; o giro 3D continua no foco/toque. */
-.book-spine{
-  border-radius:1px;
-  filter:none;
-  transform:rotate(0deg);
-}
-.book-spine[data-has-real-cover="true"]{
-  border-radius:1px;
-  transform:rotateY(-2deg);
-}
-.shelf-book-cover{
-  border-radius:1px;
-}
-.shelf-book-pages{
-  border-radius:1px;
-}
