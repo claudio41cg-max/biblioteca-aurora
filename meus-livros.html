@@ -717,22 +717,35 @@
       container.replaceChildren(host);
       return host;
     }
-    // Apenas em Razão e Sensibilidade, a geometria de dobra original do
-    // StPageFlip é preservada. Aumentamos 3% somente a folha em movimento,
-    // centrada na altura, sem mudar as páginas paradas nem o tempo de 900 ms.
+    // Apenas em Razão e Sensibilidade no celular. O StPageFlip recalcula o
+    // estilo da folha depois de do(point); por isso a escala é aplicada após
+    // drawFrame, já com o clip-path e a rotação do quadro atualizados.
     function installFullHeightTurn(session){
       if(innerWidth>=670||!$('reader').classList.contains('aurora-page-curl-preview'))return;
       const controller=session.flip?.getFlipController?.();
-      if(!controller||typeof controller.do!=='function')return;
-      const drawOriginal=controller.do;
-      controller.do=function(point){
-        const result=drawOriginal.call(this,point);
+      const render=session.flip?.getRender?.();
+      if(!controller||!render||typeof render.drawFrame!=='function')return;
+
+      const drawFrameOriginal=render.drawFrame;
+      render.drawFrame=function(){
+        const result=drawFrameOriginal.call(this);
+        if(session.closed||session!==active)return result;
+
         const state=controller.getState?.();
         if(state!=='flipping'&&state!=='user_fold')return result;
+
         const movingPage=controller.flippingPage?.getElement?.();
         if(!movingPage)return result;
+
+        const transform=movingPage.style.transform||'';
+        const rotationStart=transform.lastIndexOf(' rotate(');
+        if(rotationStart<0)return result;
+
+        // Escala no eixo vertical da tela, depois da rotação, com o centro
+        // da folha ancorado. A página parada conserva as dimensões originais.
         movingPage.style.transformOrigin='0 50%';
-        movingPage.style.transform+=' scaleY(1.08)';
+        movingPage.style.transform=
+          transform.slice(0,rotationStart)+' scaleY(1.08)'+transform.slice(rotationStart);
         return result;
       };
     }
