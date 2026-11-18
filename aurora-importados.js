@@ -225,6 +225,8 @@
         if(typeof requestIdleCallback==='function')requestIdleCallback(()=>recoverInBackground(),{timeout:3000});
         else setTimeout(recoverInBackground,600);
       }
+      window.AuroraImportedBooks=imported;
+      window.AuroraImportedProgress=progress;
       document.dispatchEvent(new CustomEvent('aurora:library-data',{detail:{books:imported,progress}}));
     }).catch(error=>console.warn('Não foi possível montar os livros importados:',error));
   };
