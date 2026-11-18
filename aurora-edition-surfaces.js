@@ -140,7 +140,9 @@
       ctx.fillStyle='#e6d3b7';ctx.font='14px Georgia,serif';
       ctx.fillText('Contracapa ilustrativa • edição digital',52,666);
     }
-    if(!book.spine){
+    const normalizedTitle=String(book.title||book.name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+    const keepModelSpine=/\biracema\b/.test(normalizedTitle);
+    if(!book.spine&&!keepModelSpine){
       spine=document.createElement('canvas');spine.width=512;spine.height=1920;
       const ctx=spine.getContext('2d',{alpha:false});
       ctx.scale(2,2);
