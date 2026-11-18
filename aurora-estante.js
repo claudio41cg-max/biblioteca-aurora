@@ -15,7 +15,8 @@
     {id:'brasileiros', name:'Autores brasileiros', books:[
       ['Dom Casmurro','Machado de Assis'],['Memórias Póstumas','Machado de Assis'],
       ['O Cortiço','Aluísio Azevedo'],['Iracema','José de Alencar']]},
-    {id:'filmes',name:'Filmes inspirado em livros',books:[]}
+    {id:'filmes',name:'Filmes inspirado em livros',books:[]},
+    {id:'veterinaria',name:'Medicina Veterinária',books:[]}
   ];
   const demo = 'Este volume é uma amostra visual da Biblioteca Aurora.\n\nA obra integral ainda não foi adicionada. Importe o seu PDF ou TXT para ler o livro completo com a capa original.\n\nOs seus arquivos ficam guardados neste aparelho.\n\nBoa leitura!';
   const safeRead = (key, fallback) => {
