@@ -75,6 +75,13 @@
       await pdf.destroy().catch(()=>{});
     }
   }
+  // Atalho de teste: o arquivo é escolhido pelo usuário e fica somente no aparelho.
+  // O leitor 3D e o folheio existentes não são alterados.
+  const vetPilot=document.getElementById('vetAtlasPilot');
+  vetPilot?.addEventListener('click',()=>{
+    category.value='veterinaria';
+    report('Escolha no celular o PDF do Atlas Colorido de Citologia Clínica de Cães e Gatos.');
+  });
   input.addEventListener('change',async event=>{
     const file=event.target.files?.[0];
     if(!file)return;
@@ -83,7 +90,7 @@
     try{
       const id=await importPDF(file,category.value);
       // O visor 3D é mantido. Ao voltar, o usuário encontra a estante única.
-      location.href='./meus-livros.html?livro='+encodeURIComponent(id)+'&v=19';
+      location.href='./meus-livros.html?v=32&livro='+encodeURIComponent(id);
     }catch(error){
       report('Não foi possível importar o PDF: '+(error.message||String(error)));
     }finally{trigger.disabled=false;input.value='';}
