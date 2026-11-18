@@ -71,5 +71,6 @@
     void renderPilots();
   });
   window.addEventListener('aurora:3d-ready',()=>void renderPilots());
+  window.addEventListener('aurora:book-closed',()=>void renderPilots());
   if(window.Aurora3D?.renderShelfPreview)queueMicrotask(()=>void renderPilots());
 })();
