@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#081d1d">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./aurora-estante.css?v=19">
+  <link rel="stylesheet" href="./aurora-avancado.css?v=4">
+  <link rel="stylesheet" href="./aurora-ambiente.css?v=2">
+  <link rel="stylesheet" href="./aurora-estante-realista.css?v=5">
+  <link rel="stylesheet" href="./aurora-catalogos.css?v=2">
+  <link rel="stylesheet" href="./aurora-sala-3d.css?v=7">
+  <link rel="stylesheet" href="./aurora-online.css?v=6">
+  <title>Biblioteca Aurora • Minha estante</title>
+</head>
+<body>
+  <header class="tophead">
+    <p class="eyebrow">ACERVO PARTICULAR</p>
+    <h1>Biblioteca <em>Aurora</em></h1>
+    <p class="subtitle">Histórias para guardar. Mundos para descobrir.</p>
+    <div class="import-area" id="importArea">
+      <button class="import-trigger" type="button" id="importTrigger" aria-expanded="false" aria-controls="importMenu">
+        <span class="import-plus" aria-hidden="true">＋</span> Importar livros <span aria-hidden="true">⌄</span>
+      </button>
+      <div class="import-menu" id="importMenu" hidden>
+        <label class="menu-label" for="importCategory">Guardar na categoria</label>
+        <select id="importCategory">
+          <option value="romance">Romances</option>
+          <option value="adulto">Romance hot</option>
+          <option value="ficcao">Ficção e aventuras</option>
+          <option value="brasileiros">Autores brasileiros</option>
+          <option value="filmes">Filmes inspirado em livros</option>
+          <option value="veterinaria">Medicina Veterinária</option>
+        </select>
+        <label for="pdfFile" class="import-option" id="pdfLink"><span aria-hidden="true">▤</span> Importar livro PDF <span aria-hidden="true">›</span></label>
+        <label for="pdfFile" class="import-option" id="vetAtlasPilot" title="Teste apenas com seu PDF do Atlas de Citologia Clínica de Cães e Gatos"><span aria-hidden="true">♧</span> Testar Atlas veterinário <span aria-hidden="true">›</span></label>
+        <input id="pdfFile" type="file" accept=".pdf,application/pdf">
+        <label class="import-option" for="txtFile"><span aria-hidden="true">≡</span> Importar livro TXT <span aria-hidden="true">›</span></label>
+        <input id="txtFile" type="file" accept=".txt,text/plain">
+        <label class="import-option" for="epubFile"><span aria-hidden="true">▧</span> Importar livro EPUB <span aria-hidden="true">›</span></label>
+        <input id="epubFile" type="file" accept=".epub,application/epub+zip">
+        <label class="import-option" for="audioFile"><span aria-hidden="true">♫</span> Importar audiolivro MP3 ou M4B <span aria-hidden="true">›</span></label>
+        <input id="audioFile" type="file" accept=".mp3,.m4a,.m4b,audio/*">
+        <label class="import-option" for="audioCoverFile"><span aria-hidden="true">▣</span> Capa original (opcional) <span aria-hidden="true">›</span></label>
+        <input id="audioCoverFile" type="file" accept="image/jpeg,image/png,image/webp">
+        <p id="pdfImportStatus" class="pdf-import-status" role="status" aria-live="polite" hidden></p>
+      </div>
+    </div>
+    <nav class="library-tools" aria-label="Ferramentas da biblioteca">
+      <a class="explore-link" href="./explorar-livros.html" aria-label="Buscar livros e audiolivros gratuitos na internet">⌕ Buscar livros</a>
+      <a class="explore-link" href="./minha-biblioteca-privada.html" aria-label="Abrir meu catálogo particular de livros">▤ Minha biblioteca particular</a>
+      <button type="button" id="arrangeButton" aria-pressed="false">Organizar livros</button>
+      <button type="button" id="roomButton" aria-expanded="false">Meu ambiente</button>
+      <button type="button" id="statsButton" aria-expanded="false">Minhas leituras</button>
+    </nav>
+    <section id="roomPanel" class="utility-panel" hidden aria-label="Personalizar ambiente">
+      <div class="utility-heading"><h2>Personalizar a estante</h2><button type="button" class="back-to-shelf">← Estante</button></div>
+      <p class="environment-intro">Escolha o fundo, a madeira e os tons. Veja a mudança na estante antes de salvar.</p>
+      <div class="environment-preview" aria-label="Prévia da sua estante">
+        <div class="environment-preview-books" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <div class="environment-preview-board" aria-hidden="true"></div>
+        <span class="environment-preview-caption">Prévia do ambiente</span>
+      </div>
+      <fieldset class="environment-fieldset">
+        <legend>Parede <small>Escolha seu fundo</small></legend>
+        <div class="environment-choices" role="group" aria-label="Modelos de parede">
+          <button type="button" class="environment-choice" data-wall-option="tijolos" aria-pressed="false"><span class="environment-choice-image wall-option-tijolos"></span><span>Tijolos escuros</span></button>
+          <button type="button" class="environment-choice" data-wall-option="ripas" aria-pressed="false"><span class="environment-choice-image wall-option-ripas"></span><span>Madeira ripada</span></button>
+          <button type="button" class="environment-choice" data-wall-option="reboco" aria-pressed="false"><span class="environment-choice-image wall-option-reboco"></span><span>Reboco vintage</span></button>
+          <button type="button" class="environment-choice" data-wall-option="botanico" aria-pressed="false"><span class="environment-choice-image wall-option-botanico"></span><span>Botânico</span></button>
+          <button type="button" class="environment-choice" data-wall-option="rose" aria-pressed="false"><span class="environment-choice-image wall-option-rose"></span><span>Rosé clássico</span></button>
+          <button type="button" class="environment-choice" data-wall-option="original" aria-pressed="false"><span class="environment-choice-image wall-option-original"></span><span>Aurora original</span></button>
+        </div>
+        <div class="environment-tones" role="group" aria-label="Cor da parede"><span class="environment-tones-label">Tom</span>
+          <button type="button" data-wall-tone="noite" class="environment-tone" aria-label="Parede preta" aria-pressed="false" title="Noite"></button>
+          <button type="button" data-wall-tone="azul" class="environment-tone" aria-label="Parede azul" aria-pressed="false" title="Azul"></button>
+          <button type="button" data-wall-tone="verde" class="environment-tone" aria-label="Parede verde" aria-pressed="false" title="Verde"></button>
+          <button type="button" data-wall-tone="petroleo" class="environment-tone" aria-label="Parede petróleo" aria-pressed="false" title="Petróleo"></button>
+          <button type="button" data-wall-tone="lilas" class="environment-tone" aria-label="Parede lilás" aria-pressed="false" title="Lilás"></button>
+          <button type="button" data-wall-tone="rosa" class="environment-tone" aria-label="Parede rosa" aria-pressed="false" title="Rosa"></button>
+          <button type="button" data-wall-tone="calor" class="environment-tone" aria-label="Parede aconchegante" aria-pressed="false" title="Âmbar"></button>
+        </div>
+      </fieldset>
+      <fieldset class="environment-fieldset">
+        <legend>Prateleiras <small>Escolha o acabamento</small></legend>
+        <div class="environment-choices" role="group" aria-label="Modelos de prateleira">
+          <button type="button" class="environment-choice" data-shelf-option="nogueira" aria-pressed="false"><span class="environment-choice-image shelf-option-nogueira"></span><span>Nogueira</span></button>
+          <button type="button" class="environment-choice" data-shelf-option="carvalho" aria-pressed="false"><span class="environment-choice-image shelf-option-carvalho"></span><span>Carvalho claro</span></button>
+          <button type="button" class="environment-choice" data-shelf-option="mogno" aria-pressed="false"><span class="environment-choice-image shelf-option-mogno"></span><span>Mogno entalhado</span></button>
+          <button type="button" class="environment-choice" data-shelf-option="marmore" aria-pressed="false"><span class="environment-choice-image shelf-option-marmore"></span><span>Mármore e latão</span></button>
+          <button type="button" class="environment-choice" data-shelf-option="metal" aria-pressed="false"><span class="environment-choice-image shelf-option-metal"></span><span>Metal moderno</span></button>
+          <button type="button" class="environment-choice" data-shelf-option="original" aria-pressed="false"><span class="environment-choice-image shelf-option-original"></span><span>Estante original</span></button>
+        </div>
+        <div class="environment-tones" role="group" aria-label="Cor das prateleiras"><span class="environment-tones-label">Tom</span>
+          <button type="button" data-shelf-tone="natural" class="environment-tone" aria-label="Prateleira natural" aria-pressed="false" title="Natural"></button>
+          <button type="button" data-shelf-tone="noite" class="environment-tone" aria-label="Prateleira preta" aria-pressed="false" title="Noite"></button>
+          <button type="button" data-shelf-tone="azul" class="environment-tone" aria-label="Prateleira azul" aria-pressed="false" title="Azul"></button>
+          <button type="button" data-shelf-tone="verde" class="environment-tone" aria-label="Prateleira verde" aria-pressed="false" title="Verde"></button>
+          <button type="button" data-shelf-tone="lilas" class="environment-tone" aria-label="Prateleira lilás" aria-pressed="false" title="Lilás"></button>
+          <button type="button" data-shelf-tone="rosa" class="environment-tone" aria-label="Prateleira rosa" aria-pressed="false" title="Rosa"></button>
+          <button type="button" data-shelf-tone="calor" class="environment-tone" aria-label="Prateleira âmbar" aria-pressed="false" title="Âmbar"></button>
+        </div>
+      </fieldset>
+      <div class="environment-actions"><button type="button" id="environmentCancel">Cancelar</button><button type="button" id="environmentSave">Salvar minha estante ✓</button></div>
+      <p class="environment-saved" id="environmentStatus" role="status" aria-live="polite"></p>
+      <details class="environment-previous-settings"><summary>Ajustes anteriores de iluminação</summary>
+        <div class="utility-fields">
+          <label>Estilo
+            <select id="roomTheme">
+              <option value="aurora">Aurora original</option>
+              <option value="classico">Madeira aconchegante</option>
+              <option value="noturno">Biblioteca noturna</option>
+            </select>
+          </label>
+          <label>Iluminação <input id="roomLight" type="range" min="70" max="120" value="100" step="5"></label>
+          <label class="checkline"><input id="roomPlants" type="checkbox" checked> Manter as plantinhas</label>
+        </div>
+      </details>
+    </section>
+    <section id="statsPanel" class="utility-panel" hidden aria-label="Acompanhar leituras">
+      <div class="utility-heading"><h2>Minhas leituras</h2><button type="button" class="back-to-shelf">← Estante</button></div>
+      <div class="reading-stats">
+        <p><strong id="statBooks">0</strong><span>Livros importados</span></p>
+        <p><strong id="statStarted">0</strong><span>Em leitura</span></p>
+        <p><strong id="statFinished">0</strong><span>Concluídos</span></p>
+        <p><strong id="statMinutes">0</strong><span>Minutos lendo</span></p>
+      </div>
+      <label class="goal-line">Minha meta de leitura: <input id="readingGoal" type="number" min="1" max="500" value="12" inputmode="numeric"> livros</label>
+      <p id="goalProgress" class="goal-progress"></p>
+    </section>
+  </header>
+
+  <main class="library" id="library" aria-label="Estantes por categoria"></main>
+  <section id="auroraCatalogOverlay" class="aurora-catalog-overlay" role="dialog" aria-modal="true" aria-labelledby="auroraCatalogTitle" hidden>
+    <div class="aurora-catalog-panel">
+      <header class="aurora-catalog-head">
+        <button type="button" id="auroraCatalogBack" class="aurora-catalog-back">← Estante</button>
+        <h2 id="auroraCatalogTitle"></h2>
+        <span id="auroraCatalogTotal" class="aurora-catalog-total"></span>
+      </header>
+      <p class="aurora-catalog-caption">Toque para abrir. Arraste a capa para ver a lombada e a contracapa.</p>
+      <div id="auroraCatalogGrid" class="aurora-catalog-grid" aria-label="Capas dos livros desta categoria"></div>
+      <button type="button" id="auroraCatalogMore" class="aurora-catalog-more" hidden>Mais capas ↓</button>
+    </div>
+  </section>
+  <aside class="arrange-bar" id="arrangeBar" hidden aria-live="polite">
+    <span id="arrangeSelection">Toque em um livro para mudar sua posição.</span>
+    <div class="arrange-actions">
+      <button id="arrangeBack" class="arrange-back" type="button">← Estante</button>
+      <button id="deleteBook" class="arrange-delete" type="button" disabled>Excluir</button>
+    </div>
+    <div class="arrange-moves">
+      <button id="moveLeft" type="button" disabled>Mover para esquerda</button>
+      <button id="moveRight" type="button" disabled>Mover para direita</button>
+    </div>
+  </aside>
+  <footer class="footnote">Seus arquivos importados ficam neste aparelho. Livros adicionados pela busca guardam apenas o link, até você decidir baixar.</footer>
+
+  <!-- O mesmo livro WebGL percorre a estante e fica aqui para inspeção, sem trocar de página. -->
+  <section id="auroraShowcase" class="aurora-showcase" role="dialog" aria-modal="true" aria-label="Livro em três dimensões" hidden>
+    <nav class="aurora-show-controls" aria-label="Opções do livro">
+      <button type="button" id="auroraShowBack">← Estante</button>
+      <label class="aurora-category-control"><span class="visually-hidden">Categoria do livro</span>
+        <select id="auroraShowCategory" aria-label="Categoria do livro">
+          <option value="romance">Romances</option>
+          <option value="adulto">Romance hot</option>
+          <option value="ficcao">Ficção e aventuras</option>
+          <option value="brasileiros">Autores brasileiros</option>
+          <option value="filmes">Filmes inspirado em livros</option>
+          <option value="veterinaria">Medicina Veterinária</option>
+        </select>
+      </label>
+    </nav>
+    <header class="aurora-show-heading"><h2 id="auroraShowTitle"></h2><p id="auroraShowAuthor"></p></header>
+    <div id="scene" class="aurora-show-scene" aria-label="Livro 3D. Arraste para girar e toque para ler.">
+      <div id="book3d" class="aurora-css-book" role="button" tabindex="0" aria-label="Toque para abrir o livro">
+        <div class="volume-back"></div><div class="volume-spine"></div><div class="volume-edge"></div>
+        <div class="volume-top"></div><div class="volume-bottom"></div><div class="volume-paper"></div>
+        <div class="volume-cover"><img id="cover3d" alt="Capa original do PDF"></div>
+      </div>
+    </div>
+    <details id="auroraShowDescription" class="aurora-show-description" open>
+      <summary>Descrição do livro</summary>
+      <div class="aurora-description-text">
+        <p><strong>Autor:</strong> <span id="auroraDescriptionAuthor"></span></p>
+        <p><strong>Origem:</strong> <span id="auroraDescriptionOrigin"></span></p>
+        <p><strong>Publicado originalmente:</strong> <span id="auroraDescriptionYear"></span></p>
+        <p><strong>Páginas:</strong> <span id="auroraDescriptionPages"></span></p>
+        <p><strong>Formato:</strong> <span id="auroraDescriptionFormat"></span></p>
+        <p id="auroraDescriptionStory"></p>
+      </div>
+    </details>
+  </section>
+
+  <section class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Leitor de livros em texto" aria-hidden="true">
+    <div class="reader-head">
+      <button class="btn" id="close" type="button">← Estante</button>
+      <h2 id="readerTitle"></h2>
+      <button class="btn" id="txtSettingsButton" type="button" aria-controls="txtReaderPrefs" aria-expanded="false">Aa</button>
+    </div>
+    <p class="reader-intro">Arraste a página ou use as setas para folhear. A narração usa a voz do aparelho.</p>
+    <section class="txt-reader-prefs" id="txtReaderPrefs" hidden aria-label="Personalizar leitura">
+      <div class="txt-reader-prefs-head"><h3>Personalizar leitura</h3><button type="button" id="txtPrefsClose">Fechar</button></div>
+      <label>Tamanho das letras <input type="range" id="txtFontSize" min="14" max="24" value="17"><output id="txtFontSizeValue">17</output></label>
+      <label>Papel <select id="txtTheme"><option value="sepia">Sépia</option><option value="claro">Claro</option><option value="noite">Noturno</option></select></label>
+      <div class="txt-audio-tools"><button class="btn" id="listen" type="button">♫ Ouvir</button><button class="btn" id="stop" type="button">■ Parar áudio</button></div>
+      <label class="txt-page-sound"><input type="checkbox" data-page-sound checked> Som suave ao folhear</label>
+    </section>
+    <div class="stage"><div class="book-open" id="openbook">
+      <div class="paper" id="left"></div><div class="paper right" id="right"></div>
+    </div></div>
+    <div class="reader-actions">
+      <button class="btn" id="prev" type="button">← Anterior</button>
+      <span class="pagecount" id="count"></span>
+      <button class="btn" id="next" type="button">Próxima →</button>
+    </div>
+  </section>
+  <script src="./aurora-titulos.js?v=1" defer></script>
+  <script src="./aurora-sinopses.js?v=3" defer></script>
+  <script src="./aurora-som-folhas.js?v=2" defer></script>
+  <script src="./aurora-estante.js?v=20" defer></script>
+  <script src="./aurora-lombadas.js?v=5" defer></script>
+  <script src="./aurora-sala-3d.js?v=27" defer></script>
+  <script src="./aurora-importados.js?v=27" defer></script>
+  <script src="./aurora-avancado.js?v=6" defer></script>
+  <script src="./aurora-online-estante.js?v=4" defer></script>
+  <script src="./vendor/jszip.min.js" defer></script>
+  <script src="./aurora-formatos.js?v=10" defer></script>
+  <script src="./aurora-catalogos.js?v=3" defer></script>
+  <script src="./aurora-novos-formatos.js?v=5" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
+  <script src="./aurora-pdf-covers.js?v=1" defer></script>
+  <script src="./aurora-pdf-import.js?v=6" defer></script>
+  <script src="./aurora-edition-surfaces.js?v=5" defer></script>
+  <script type="module" src="./aurora-livro-3d.mjs?v=9"></script>
+</body>
+</html>
