@@ -914,6 +914,9 @@
         const availableHeight = Math.max(270,$('viewport').clientHeight-(reasonPdf?8:45));
         const width = Math.max(150,Math.floor(Math.min(availableWidth,availableHeight*ratio)));
         const height = Math.max(200,Math.floor(width/ratio));
+        // Teste A: aumentar somente a altura da folha animada do PDF piloto.
+        // Mantém a largura, o folheio e os demais livros sem alterações.
+        const leafHeight = reasonPdf ? Math.min(Math.floor($('viewport').clientHeight-2),Math.ceil(height*1.06)) : height;
         // Proporção imutável da folha física, compartilhada pelo PDF inteiro.
         session.leafRatio=width/height;
         const fragment = document.createDocumentFragment();
@@ -927,7 +930,7 @@
         }
         host.append(fragment);
         session.flip = new St.PageFlip(host,{
-          width,height,size:'fixed',showCover:true,drawShadow:true,maxShadowOpacity:.55,
+          width,height:leafHeight,size:'fixed',showCover:true,drawShadow:true,maxShadowOpacity:.55,
           flippingTime:900,usePortrait:mobile,mobileScrollSupport:false,swipeDistance:20
         });
         session.flip.loadFromHTML(session.pages);
