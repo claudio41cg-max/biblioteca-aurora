@@ -438,3 +438,55 @@ body.epub-reader{
   filter:saturate(.75) contrast(1.08);
 }
 }
+
+
+/* EPUB Pai Rico, Pai Pobre: paridade de empilhamento com o PDF.
+   O acabamento é um volume ATRÁS da folha móvel; nunca cobre o papel
+   que o StPageFlip está virando. Apenas as margens externas aparecem. */
+@media(max-width:669px){
+  .epub-reader.aurora-richdad-volume .reader-stage{
+    isolation:isolate;
+    overflow:visible;
+  }
+  .epub-reader.aurora-richdad-volume .aurora-reader-volume{
+    z-index:0;
+  }
+  .epub-reader.aurora-richdad-volume .aurora-reader-finishing{
+    z-index:1;
+  }
+  .epub-reader.aurora-richdad-volume .flip-host{
+    position:relative;
+    z-index:2;
+    overflow:visible;
+  }
+  /* A lombada não é uma linha desenhada sobre a folha:
+     somente a sombra difusa na margem externa fica visível. */
+  .epub-reader.aurora-richdad-volume .aurora-reader-finishing__gutter{
+    left:-9px;
+    width:13px;
+    background:linear-gradient(90deg,
+      rgba(39,35,31,.28) 0%,
+      rgba(53,48,42,.13) 35%,
+      rgba(65,60,53,.035) 72%,
+      transparent 100%);
+    border:0;
+    box-shadow:none;
+    opacity:.85;
+  }
+  .epub-reader.aurora-richdad-volume .aurora-reader-finishing__left{
+    border:0;
+    box-shadow:inset -5px 0 9px -6px rgba(35,32,29,.30);
+  }
+  /* A mesma textura vertical do PDF é aplicada pelo JS em background-image.
+     Nenhuma regra de listras horizontais pode substituí-la. */
+  .epub-reader.aurora-richdad-volume .aurora-reader-finishing__cut,
+  .epub-reader.aurora-richdad-volume .aurora-reader-volume__cut{
+    background-size:100% 100%;
+    background-position:center;
+    background-repeat:no-repeat;
+    border:0;
+  }
+  .epub-reader.aurora-richdad-volume .aurora-reader-finishing__bottom{
+    border-top:0;
+  }
+}
