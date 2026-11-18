@@ -96,7 +96,7 @@ function initialize(){
   const shadowMesh=makeContactShadow();
   scene.add(shadowMesh);
 
-  let currentBook=null,frontHinge=null,down=null,rotation={x:-.09,y:.28},opening=false,modelGeneration=0;
+  let currentBook=null,frontHinge=null,shelfSpineMesh=null,down=null,rotation={x:-.09,y:.28},opening=false,modelGeneration=0;
   let shelfPreviewInProgress=false;
   let scheduled=false,requestId=0,inertiaId=0,velocityY=0,lastMoveTime=0;
   const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
@@ -404,11 +404,11 @@ function initialize(){
 
     const spineTexture=spineCanvas(book.name);
     const spineMaterial=new THREE.MeshPhysicalMaterial({map:spineTexture,roughness:.6,metalness:.02,clearcoat:.28});
-    const spineMesh=new THREE.Mesh(new THREE.BoxGeometry(.14,height-.02,thickness+.09),[
+    shelfSpineMesh=new THREE.Mesh(new THREE.BoxGeometry(.14,height-.02,thickness+.09),[
       coverBoard,spineMaterial,trimBoard,trimBoard,coverBoard,coverBoard
     ]);
-    spineMesh.position.x=-width/2+.015;
-    group.add(spineMesh);
+    shelfSpineMesh.position.x=-width/2+.015;
+    group.add(shelfSpineMesh);
 
     // Filetes e relevos nas bordas das duas capas.
     [-1,1].forEach(side=>{
@@ -538,7 +538,7 @@ function initialize(){
     const previousPixelRatio=renderer.getPixelRatio();
     const previousAspect=camera.aspect;
     const previousReady=stage.classList.contains('three-ready');
-    let generationAtStart=0,timeoutId=0,onReady=null,onSelected=null;
+    let generationAtStart=0,timeoutId=0,onReady=null,onSelected=null,previewVisibility=null,previewMesh=null,previewMaterials=null;
     shelfPreviewInProgress=true;
     try{
       renderer.setPixelRatio(Math.min(3,Math.max(1,devicePixelRatio||1)));
@@ -567,8 +567,16 @@ function initialize(){
       const loaded=await ready;
       if(!loaded||modelGeneration!==generationAtStart||currentBook)return '';
       if(options.view==='spine'){
-        // No piloto da estante, vira o mesmo volume até a lombada ficar de frente.
-        // Assim a capa frontal não aparece na prateleira.
+        // Renderiza somente a face texturizada da lombada: as capas e as
+        // faces marrons do miolo não entram na imagem transparente da estante.
+        previewMesh=shelfSpineMesh;
+        if(!previewMesh)return '';
+        previewVisibility=group.children.map(child=>[child,child.visible]);
+        previewMaterials=previewMesh.material;
+        const spineSurface=Array.isArray(previewMaterials)?previewMaterials[1]:previewMaterials;
+        previewMesh.material=Array.isArray(previewMaterials)
+          ?previewMaterials.map(()=>spineSurface):spineSurface;
+        group.children.forEach(child=>{child.visible=child===previewMesh;});
         group.rotation.set(0,Math.PI/2,0);
         render();
       }
@@ -610,6 +618,12 @@ function initialize(){
       if(onReady)window.removeEventListener('aurora:book-ready',onReady);
       if(onSelected)window.removeEventListener('aurora:book-selected',onSelected);
       const stillOwnsModel=generationAtStart&&modelGeneration===generationAtStart&&!currentBook;
+      if(previewVisibility){
+        previewVisibility.forEach(([child,visible])=>{
+          if(child.parent===group)child.visible=visible;
+        });
+      }
+      if(previewMesh?.parent===group&&previewMaterials)previewMesh.material=previewMaterials;
       if(stillOwnsModel){
         clearModel();
         if(!previousReady)stage.classList.remove('three-ready');
