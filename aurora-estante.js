@@ -57,7 +57,8 @@
     const pilotTitle=realPDF&&item.cover?[
       [/cinquentatonscinza|fiftyshadesofgrey/,'Cinquenta Tons de Cinza'],
       [/cinquentatonsmaisescuros|cinquentatonsescuros|fiftyshadesdarker/,'Cinquenta Tons Mais Escuros'],
-      [/cinquentatonsliberdade|fiftyshadesfreed/,'Cinquenta Tons de Liberdade']
+      [/cinquentatonsliberdade|fiftyshadesfreed/,'Cinquenta Tons de Liberdade'],
+      [/iracema/,'Iracema']
     ].find(([pattern])=>pattern.test(normalize(displayTitle+' '+item.title)))?.[1]||'':'';
     if(pilotTitle){button.setAttribute('data-shelf-3d-pilot','true');button.dataset.shelf3dTitle=pilotTitle;}
     const bookHeight=realPDF?160+seed%17:151+seed%24;
