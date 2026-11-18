@@ -139,3 +139,26 @@ body.epub-reader{
   color:#302317;box-shadow:inset 0 0 0 1px #fff5,0 0 0 1px #d7b47b35;
 }
 .epub-reader .theme-controls button:focus-visible{outline:2px solid #efd09b;outline-offset:2px}
+
+/* Prova isolada: Pai Rico, Pai Pobre (EPUB). O papel e a dobra têm a mesma
+   altura do PageFlip; nenhum recorte ou transformação sobre o texto. */
+.epub-reader.aurora-richdad-volume .reader-stage{isolation:isolate}
+.epub-reader.aurora-richdad-volume .flip-host{z-index:1;overflow:visible;filter:drop-shadow(2px 7px 9px #0007)}
+.epub-reader.aurora-richdad-volume .flip-host::before{
+  content:"";position:absolute;pointer-events:none;z-index:-1;
+  left:-17px;top:0;bottom:0;width:26px;border-radius:8px 0 0 6px;
+  background:linear-gradient(90deg,#bba47e 0%,#ead8b9 11%,#fff8e9 28%,#c8b498 63%,#927d65 84%,#f8edd8 100%);
+  box-shadow:inset 4px 0 8px #48301b55,4px 0 7px #3c281a35,-2px 5px 5px #0004;
+}
+.epub-reader.aurora-richdad-volume .flip-host::after{
+  content:"";position:absolute;pointer-events:none;z-index:-1;
+  top:0;bottom:0;right:-9px;width:11px;
+  background:repeating-linear-gradient(to bottom,#f3e5ca 0px,#ddc9a7 1px,#f8e9d0 2px,#b9a381 3px,#efe0c3 4px);
+  border-right:3px solid #4b273d;border-radius:0 5px 5px 0;
+  box-shadow:3px 2px 6px #0007,inset -2px 0 3px #8a6848;
+}
+.epub-reader.aurora-richdad-volume .reader-stage::after{
+  content:"";position:absolute;z-index:2;pointer-events:none;
+  left:0;top:0;bottom:0;width:24px;
+  background:linear-gradient(90deg,#1a0f0959,transparent);
+}
