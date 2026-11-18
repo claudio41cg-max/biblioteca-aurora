@@ -141,8 +141,7 @@
       ctx.fillText('Contracapa ilustrativa • edição digital',52,666);
     }
     const normalizedTitle=String(book.title||book.name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-    const useCoverDerivedSpine=/\biracema\b/.test(normalizedTitle);
-    if(!book.spine||useCoverDerivedSpine){
+    if(!book.spine){
       spine=document.createElement('canvas');spine.width=512;spine.height=1920;
       const ctx=spine.getContext('2d',{alpha:false});
       ctx.scale(2,2);
