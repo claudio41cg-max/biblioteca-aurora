@@ -532,8 +532,8 @@ function initialize(){
   });
   async function renderShelfPreview(book,options={}){
     if(!book?.cover||currentBook||shelfPreviewInProgress)return '';
-    const width=Math.max(280,Math.min(420,Math.round(Number(options.width)||336)));
-    const height=Math.max(360,Math.min(560,Math.round(Number(options.height)||448)));
+    const width=Math.max(96,Math.min(420,Math.round(Number(options.width)||(options.view==='spine'?144:336))));
+    const height=Math.max(240,Math.min(820,Math.round(Number(options.height)||(options.view==='spine'?540:448))));
     const previousSize=renderer.getSize(new THREE.Vector2());
     const previousPixelRatio=renderer.getPixelRatio();
     const previousAspect=camera.aspect;
@@ -566,6 +566,12 @@ function initialize(){
       });
       const loaded=await ready;
       if(!loaded||modelGeneration!==generationAtStart||currentBook)return '';
+      if(options.view==='spine'){
+        // No piloto da estante, vira o mesmo volume até a lombada ficar de frente.
+        // Assim a capa frontal não aparece na prateleira.
+        group.rotation.set(0,Math.PI/2,0);
+        render();
+      }
       const pixelWidth=Math.max(1,renderer.domElement.width);
       const pixelHeight=Math.max(1,renderer.domElement.height);
       const target=new THREE.WebGLRenderTarget(pixelWidth,pixelHeight,{
