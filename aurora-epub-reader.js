@@ -7,6 +7,8 @@
   const txtTitle=query.get('txt');
   const id=txtTitle?'txt:'+txtTitle:query.get('livro');
   const stage=document.querySelector('.reader-stage');
+  // Prova visual restrita ao EPUB Pai Rico, Pai Pobre; TXT e demais EPUBs intactos.
+  const isRichDad=(value)=>/\bpai rico pai pobre\b/.test(String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/gi,' ').toLowerCase());
   let host=$('epubFlip');
   let epub=null,flip=null,book=null,chapter=0,page=0,pages=[],working=false,windowStart=0,windowLength=0,drawGeneration=0;
   const PAGE_WINDOW=24; // folhas opacas em alta resolução: limitar a memória no celular
@@ -333,6 +335,10 @@
         epub=await formats.openEpub(book.data);
       }
       $('bookTitle').textContent=window.AuroraTitles?.display(book.name)||book.name;
+      if(book.format==='epub'&&isRichDad(book.name||book.title)){
+        document.body.classList.add('aurora-richdad-volume');
+        stage.setAttribute('aria-label','Livro aberto com lombada, folha esquerda parcialmente visível e bordas de papel');
+      }
       const saved=await formats.readRecord('progress',id).catch(()=>null);
       if(Number.isInteger(saved?.bookmark)){$('bookmark').dataset.bookmarked='true';$('bookmark').textContent='🔖';$('bookmark').setAttribute('aria-pressed','true');}
       await loadChapter(Math.max(0,Math.min(epub.spine.length-1,saved?.chapter||0)),saved?.page||0);
