@@ -673,6 +673,13 @@ function initialize(){
   }
   window.Aurora3D={display,setPose,reset,playOpen,renderShelfPreview};
   window.addEventListener('aurora:book-selected',event=>display(event.detail));
+  window.addEventListener('aurora:book-closed',()=>{
+    stopMotion();
+    currentBook=null;
+    opening=false;
+    clearModel();
+    stage.classList.remove('three-ready');
+  });
   if(window.__auroraSelectedBook) display(window.__auroraSelectedBook);
   resize();
   window.dispatchEvent(new Event('aurora:3d-ready'));
