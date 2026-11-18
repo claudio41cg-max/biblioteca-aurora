@@ -44,7 +44,7 @@
   // tipo de superfície: o verso da dobra não revela uma segunda folha embaixo.
   // A mesma medição determina as quebras e a pintura, sem cortar frases.
   const paperPalette=()=>({
-    light:{paper:'#fffdf8',ink:'#332a23',edge:'#d6c9ae',number:'#97876f'},
+    light:{paper:document.body.classList.contains('aurora-richdad-volume')?'#ffffff':'#fffdf8',ink:'#332a23',edge:document.body.classList.contains('aurora-richdad-volume')?'#f0f0ec':'#d6c9ae',number:'#97876f'},
     sepia:{paper:'#f0e1c6',ink:'#392c21',edge:'#c9b38d',number:'#8d7557'},
     night:{paper:'#24312f',ink:'#f0e5d0',edge:'#162320',number:'#aeb5a9'}
   }[settings.theme]);
@@ -183,6 +183,20 @@
     host.style.width=width+'px';host.style.height=height+'px';
     const accessible=document.createElement('span');accessible.id='epubAccessibleText';accessible.className='epub-accessible-content';
     stage.replaceChildren(host,accessible);
+    if(document.body.classList.contains('aurora-richdad-volume')){
+      // O mesmo miolo e acabamento do PDF, sempre medidos pela folha real do EPUB.
+      const volume=document.createElement('div');volume.className='aurora-reader-volume';
+      volume.style.width=width+'px';volume.style.height=height+'px';
+      for(const part of ['cover','sheets','turned','cut','foot']){
+        const element=document.createElement('div');element.className='aurora-reader-volume__'+part;volume.append(element);
+      }
+      const finish=document.createElement('div');finish.className='aurora-reader-finishing';
+      finish.style.width=width+'px';finish.style.height=height+'px';
+      for(const part of ['left','gutter','back','cut','bottom']){
+        const element=document.createElement('div');element.className='aurora-reader-finishing__'+part;finish.append(element);
+      }
+      stage.prepend(volume);stage.append(finish);
+    }
     windowStart=start;windowLength=visible.length;
     if(window.St?.PageFlip&&elements.length>1){
       try{
