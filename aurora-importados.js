@@ -134,6 +134,7 @@
     Promise.all([readAll('books'),readAll('progress')]).then(([books,progress])=>{
       db.close();
       const lastPages=new Map(progress.map(item=>[item.id,item]));
+      const isIracema=book=>/\\biracema\\b/.test(String(book.title||book.name||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase());
       const imported=books.map(book=>({
         id:book.id,
         format:book.format||'pdf',
@@ -148,8 +149,8 @@
         coverCheckedVersion:book.coverCheckedVersion||0,
         back:book.back||'',
         backChecked:book.backChecked===true,
-        spine:book.spine||'',
-        spineAspect:book.spineAspect||0,
+        spine:isIracema(book)?'':book.spine||'',
+        spineAspect:isIracema(book)?0:(book.spineAspect||0),
         ratio:book.ratio||.72,
         total:book.total||0,
         status:book.status||'quero-ler',
