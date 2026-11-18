@@ -93,8 +93,9 @@
     canvas.width=56;canvas.height=192;
     const ctx=canvas.getContext('2d');
     if(!ctx)return null;
-    const crop=Math.max(1,Math.min(image.naturalWidth,image.naturalHeight*.29));
-    const left=Math.max(0,(image.naturalWidth-crop)*.53);
+    // Mesmo recorte central adotado no acabamento do livro 3D.
+    const crop=Math.max(1,Math.min(image.naturalWidth,image.naturalHeight*.27));
+    const left=Math.max(0,(image.naturalWidth-crop)*.5);
     ctx.drawImage(image,left,0,crop,image.naturalHeight,0,0,canvas.width,canvas.height);
     return canvas;
   }
@@ -129,7 +130,8 @@
     return lines;
   }
   function drawSpine(model,w,h,title,seedText,illustrative=false){
-    const dpr=clamp((window.devicePixelRatio||1)*1.2,2,3);
+    // Textura em alta resolução para telas de celular; limita a memória por lombada.
+    const dpr=Math.min(5,Math.max(3.5,window.devicePixelRatio||3),1024/Math.max(1,w),2048/Math.max(1,h));
     const canvas=document.createElement('canvas');
     canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);
     const ctx=canvas.getContext('2d',{alpha:false});
@@ -141,15 +143,15 @@
     // No caso de capa ilustrativa, não imprimimos duas vezes o título genérico.
     if(model.artwork&&!illustrative){
       ctx.save();
-      ctx.globalAlpha=.36;
+      ctx.globalAlpha=.90;
       ctx.drawImage(model.artwork,0,0,w,h);
       ctx.restore();
     }
     const rand=rng(hash(seedText));
     // Microfibras de tecido e marcas discretas, sem esticar a capa como imagem.
-    for(let x=0;x<w;x+=.75){ctx.fillStyle=rand()<.5?'#ffffff0c':'#0000000b';ctx.fillRect(x,0,.35,h);}
-    for(let y=0;y<h;y+=1.5){ctx.fillStyle=rand()<.5?'#ffffff09':'#00000009';ctx.fillRect(0,y,w,.5);}
-    for(let i=0;i<Math.floor(w*h/330);i++){
+    if(illustrative)for(let x=0;x<w;x+=.75){ctx.fillStyle=rand()<.5?'#ffffff0c':'#0000000b';ctx.fillRect(x,0,.35,h);}
+    if(illustrative)for(let y=0;y<h;y+=1.5){ctx.fillStyle=rand()<.5?'#ffffff09':'#00000009';ctx.fillRect(0,y,w,.5);}
+    if(illustrative)for(let i=0;i<Math.floor(w*h/330);i++){
       ctx.fillStyle=rand()<.5?'#ffffff20':'#00000020';
       ctx.fillRect(rand()*w,rand()*h,.3+rand()*.7,.3+rand()*1.7);
     }
@@ -216,7 +218,7 @@
     gloss.addColorStop(0,'#00000033');gloss.addColorStop(.4,'#ffffff13');
     gloss.addColorStop(.6,'#ffffff08');gloss.addColorStop(1,'#0000002f');
     ctx.fillStyle=gloss;ctx.fillRect(0,0,w,h);
-    return canvas.toDataURL('image/webp',.92);
+    return canvas.toDataURL('image/webp',.97);
   }
   function fitLegacyTitle(button){
     const node=button.querySelector('.spine-title');
