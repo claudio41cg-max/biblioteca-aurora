@@ -162,3 +162,186 @@ body.epub-reader{
   left:0;top:0;bottom:0;width:24px;
   background:linear-gradient(90deg,#1a0f0959,transparent);
 }
+
+/* EPUB de teste: acabamento extraído das mesmas regras do PDF Razão e Sensibilidade. */
+.epub-reader.aurora-richdad-volume{
+  --aurora-sheet:#fff;
+  --aurora-sheet-light:#fff;
+  --aurora-sheet-shade:#f0f0ec;
+  --aurora-sheet-deep:#b3b0a8;
+  --aurora-fold-shadow:rgba(37,32,25,.35);
+  --aurora-cut-line:rgba(106,100,88,.22);
+  --aurora-binding:#655448;
+}
+.epub-reader.aurora-richdad-volume[data-reader-theme="sepia"]{
+  --aurora-sheet:#f8edda;
+  --aurora-sheet-light:#fff4df;
+  --aurora-sheet-shade:#e8d8bd;
+  --aurora-sheet-deep:#afa082;
+  --aurora-fold-shadow:rgba(68,46,26,.40);
+  --aurora-cut-line:rgba(134,107,70,.24);
+  --aurora-binding:#685340;
+}
+.epub-reader.aurora-richdad-volume[data-reader-theme="night"]{
+  --aurora-sheet:#232c29;
+  --aurora-sheet-light:#34413b;
+  --aurora-sheet-shade:#192421;
+  --aurora-sheet-deep:#101a18;
+  --aurora-fold-shadow:rgba(0,0,0,.67);
+  --aurora-cut-line:rgba(169,185,175,.12);
+  --aurora-binding:#18221f;
+}
+
+@media(max-width:669px){
+  .epub-reader.aurora-richdad-volume .aurora-reader-volume{
+    position:absolute;z-index:1;pointer-events:none;overflow:visible;
+  }
+  .epub-reader.aurora-richdad-volume .aurora-reader-volume__cover{
+    position:absolute;inset:4px -13px -5px -14px;
+    border:3px solid var(--aurora-binding);
+    border-radius:3px 5px 7px 4px;
+    background-color:var(--aurora-binding);
+    background-position:center;background-size:cover;background-repeat:no-repeat;
+    box-shadow:0 9px 18px rgba(0,0,0,.43),inset 0 1px 4px rgba(255,255,255,.14);
+  }
+  .epub-reader.aurora-richdad-volume .aurora-reader-volume__sheets{
+    position:absolute;inset:1px -9px -2px -8px;
+    border:1px solid var(--aurora-sheet-deep);
+    border-radius:2px 6px 6px 3px;
+    /* Corpo opaco do miolo. Os filetes vêm da textura real do livro 3D
+       em duas faces específicas, sem faixas repetidas no corpo inteiro. */
+    background:linear-gradient(90deg,var(--aurora-sheet-shade),var(--aurora-sheet) 12%,var(--aurora-sheet) 90%,var(--aurora-sheet-shade));
+    box-shadow:3px 3px 7px -2px var(--aurora-fold-shadow);
+  }
+  /* O corte lateral usa as fibras reais do canvas de acabamento do livro 3D.
+     A textura é exibida quase na resolução original, com relevo e capa ao fundo. */
+  .epub-reader.aurora-richdad-volume .aurora-reader-volume__cut{
+    position:absolute;top:1px;right:-12px;bottom:-1px;width:13px;
+    border-radius:0 5px 5px 0;overflow:hidden;
+    background-color:var(--aurora-sheet-shade);
+    background-position:center;background-size:100% 100%;background-repeat:no-repeat;
+    box-shadow:inset 2px 0 3px -1px var(--aurora-fold-shadow),3px 2px 7px -2px var(--aurora-fold-shadow);
+    filter:saturate(.75) contrast(1.08);
+  }
+  .epub-reader.aurora-richdad-volume .aurora-reader-volume__cut::after{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(90deg,
+      rgba(65,48,32,.30) 0%,rgba(65,48,32,.07) 27%,
+      rgba(255,252,235,.15) 70%,rgba(94,73,51,.18) 100%);
+  }
+  .epub-reader.aurora-richdad-volume[data-reader-theme="sepia"] .aurora-reader-volume__cut,
+  .epub-reader.aurora-richdad-volume[data-reader-theme="sepia"] .aurora-reader-volume__foot{
+    filter:sepia(.45) saturate(.72) brightness(1.05);
+  }
+  .epub-reader.aurora-richdad-volume[data-reader-theme="night"] .aurora-reader-volume__cut,
+  .epub-reader.aurora-richdad-volume[data-reader-theme="night"] .aurora-reader-volume__foot{
+    filter:grayscale(1) invert(.83) brightness(.36);
+  }
+  .epub-reader.aurora-richdad-volume .aurora-reader-volume__foot{
+    position:absolute;left:3px;right:-7px;bottom:-3px;height:5px;
+    border-radius:0 0 4px 4px;
+    background-color:var(--aurora-sheet-shade);
+    background-position:center;background-size:100% 100%;background-repeat:no-repeat;
+    box-shadow:0 2px 4px -2px var(--aurora-fold-shadow);
+    filter:saturate(.8) contrast(1.07);
+  }
+  /* À esquerda existe o restante de OUTRA FOLHA do mesmo livro aberto.
+     Quase toda a folha fica sob o motor StPageFlip (z-index:2).
+     Só a faixa externa aparece: a área do PDF nunca recebe uma camada por cima. */
+  .epub-reader.aurora-richdad-volume .aurora-reader-volume__turned{
+    position:absolute;left:-32px;top:3px;bottom:3px;width:46px;
+    border-radius:8px 3px 2px 5px / 7px 3px 2px 6px;
+    background:linear-gradient(90deg,
+      var(--aurora-sheet-deep) 0%,
+      var(--aurora-sheet-shade) 7%,
+      var(--aurora-sheet) 23%,
+      var(--aurora-sheet-light) 57%,
+      var(--aurora-sheet) 80%,
+      var(--aurora-sheet-shade) 100%);
+    box-shadow:-6px 6px 14px -5px var(--aurora-fold-shadow),
+      inset 5px 0 8px -7px var(--aurora-fold-shadow);
+    transform-origin:right center;
+    transform:perspective(340px) rotateY(8deg);
+  }
+  .epub-reader.aurora-richdad-volume .aurora-reader-volume__turned::after{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    border-radius:inherit;
+    background:linear-gradient(90deg,transparent 43%,var(--aurora-fold-shadow) 100%);
+    opacity:.22;
+  }
+  .epub-reader.aurora-richdad-volume .aurora-reader-finishing{
+    position:absolute;z-index:3;overflow:visible;pointer-events:none;
+  }
+  /* Porção da página esquerda. A sombra acompanha a curva suave do papel,
+     sem criar uma linha reta ou uma segunda capa sobre as palavras. */
+  .epub-reader.aurora-richdad-volume .aurora-reader-finishing__left{
+    position:absolute;top:0;bottom:0;left:0;width:21px;
+    border-radius:9px 1px 2px 6px / 11px 2px 3px 9px;
+    background:
+      radial-gradient(ellipse 15px 72% at 100% 50%,
+        var(--aurora-fold-shadow) 0%,transparent 91%),
+      linear-gradient(90deg,
+        var(--aurora-sheet-shade) 0%,
+        var(--aurora-sheet-light) 24%,
+        var(--aurora-sheet) 58%,
+        var(--aurora-sheet-shade) 100%);
+    box-shadow:inset -3px 0 8px -4px var(--aurora-fold-shadow),
+      1px 0 4px -3px var(--aurora-fold-shadow);
+  }
+  .epub-reader.aurora-richdad-volume .aurora-reader-finishing__gutter{
+    position:absolute;top:0;bottom:0;left:20px;width:18px;
+    background:linear-gradient(90deg,var(--aurora-fold-shadow),transparent);
+    opacity:.73;
+  }
+  /* Na margem externa direita, o papel apresenta espessura, fibras e
+     uma tira da contracapa do exemplar, como no livro 3D original. */
+  .epub-reader.aurora-richdad-volume .aurora-reader-finishing__back{
+    position:absolute;z-index:0;top:2px;bottom:2px;right:0;width:16px;
+    border-right:2px solid var(--aurora-binding);
+    border-radius:1px 5px 6px 1px;
+    background-color:var(--aurora-binding);
+    background-position:right center;background-size:auto 100%;background-repeat:no-repeat;
+    box-shadow:3px 4px 8px -4px var(--aurora-fold-shadow),inset -2px 0 2px #0004;
+  }
+  .epub-reader.aurora-richdad-volume .aurora-reader-finishing__cut{
+    position:absolute;z-index:1;top:0;bottom:0;right:4px;width:13px;
+    border-radius:1px 3px 3px 1px;
+    background-color:var(--aurora-sheet-shade);
+    background-position:center;background-size:100% 100%;background-repeat:no-repeat;
+    box-shadow:inset 3px 0 5px -3px var(--aurora-fold-shadow),
+      -3px 0 8px -6px var(--aurora-fold-shadow),
+      2px 2px 4px -3px var(--aurora-fold-shadow);
+    filter:saturate(.85) contrast(1.22);
+  }
+  .epub-reader.aurora-richdad-volume .aurora-reader-finishing__cut::after{
+    content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+    background:linear-gradient(90deg,
+      rgba(53,39,26,.29),rgba(53,39,26,.05) 36%,
+      rgba(255,250,228,.24) 64%,rgba(49,37,27,.23));
+  }
+  .epub-reader.aurora-richdad-volume .aurora-reader-finishing__bottom{
+    position:absolute;left:6px;right:17px;bottom:0;height:3px;
+    border-bottom:1px solid var(--aurora-binding);
+    background-color:var(--aurora-sheet-shade);
+    background-size:100% 100%;background-position:center;background-repeat:no-repeat;
+    box-shadow:0 2px 4px -2px var(--aurora-fold-shadow);
+    filter:saturate(.8) contrast(1.15);
+  }
+  .epub-reader.aurora-richdad-volume[data-reader-theme="sepia"] .aurora-reader-finishing__cut,
+  .epub-reader.aurora-richdad-volume[data-reader-theme="sepia"] .aurora-reader-finishing__bottom{
+    filter:sepia(.42) saturate(.8) contrast(1.17);
+  }
+  .epub-reader.aurora-richdad-volume[data-reader-theme="night"] .aurora-reader-finishing__cut,
+  .epub-reader.aurora-richdad-volume[data-reader-theme="night"] .aurora-reader-finishing__bottom{
+    filter:grayscale(1) invert(.81) brightness(.39) contrast(1.2);
+  }
+}
+
+.epub-reader.aurora-richdad-volume .reader-stage{isolation:isolate}
+.epub-reader.aurora-richdad-volume .aurora-reader-volume,
+.epub-reader.aurora-richdad-volume .aurora-reader-finishing{left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none}
+.epub-reader.aurora-richdad-volume .flip-host{z-index:2;filter:none}
+.epub-reader.aurora-richdad-volume .flip-host::before,
+.epub-reader.aurora-richdad-volume .flip-host::after,
+.epub-reader.aurora-richdad-volume .reader-stage::after{content:none}
+.epub-reader.aurora-richdad-volume .aurora-reader-finishing{z-index:3}
