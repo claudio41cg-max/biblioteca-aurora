@@ -97,6 +97,7 @@ function initialize(){
   scene.add(shadowMesh);
 
   let currentBook=null,frontHinge=null,down=null,rotation={x:-.09,y:.28},opening=false,modelGeneration=0;
+  let shelfPreviewInProgress=false;
   let scheduled=false,requestId=0,inertiaId=0,velocityY=0,lastMoveTime=0;
   const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
   const render=()=>renderer.render(scene,camera);
@@ -323,7 +324,7 @@ function initialize(){
       material.needsUpdate=true;
       try {
         try{onImage(img);}catch(error){console.warn('Texturas complementares indisponíveis:',error);}
-        resize();
+        if(!shelfPreviewInProgress)resize();
         render();
         provisional?.dispose();
         // Só escondemos o livro CSS depois de o WebGL já ter a capa original.
@@ -529,7 +530,67 @@ function initialize(){
       group.rotation.y=rotation.y;queueRender();
     }
   });
-  window.Aurora3D={display,setPose,reset,playOpen};
+  async function renderShelfPreview(book,options={}){
+    if(!book?.cover||currentBook||shelfPreviewInProgress)return '';
+    const width=Math.max(280,Math.min(420,Math.round(Number(options.width)||336)));
+    const height=Math.max(360,Math.min(560,Math.round(Number(options.height)||448)));
+    const previousSize=renderer.getSize(new THREE.Vector2());
+    const previousPixelRatio=renderer.getPixelRatio();
+    const previousAspect=camera.aspect;
+    const previousReady=stage.classList.contains('three-ready');
+    let generationAtStart=0,timeoutId=0,onReady=null,onSelected=null;
+    shelfPreviewInProgress=true;
+    try{
+      renderer.setPixelRatio(Math.min(3,Math.max(1,devicePixelRatio||1)));
+      renderer.setSize(width,height,false);
+      camera.aspect=width/height;
+      camera.updateProjectionMatrix();
+      const previewBook={...book,id:book.id||'aurora-shelf-preview'};
+      const ready=new Promise(resolve=>{
+        let settled=false;
+        const finish=value=>{
+          if(settled)return;
+          settled=true;
+          clearTimeout(timeoutId);
+          resolve(value);
+        };
+        onReady=event=>{
+          if(String(event.detail?.id)===String(previewBook.id))finish(true);
+        };
+        onSelected=()=>finish(false);
+        window.addEventListener('aurora:book-ready',onReady);
+        window.addEventListener('aurora:book-selected',onSelected);
+        timeoutId=setTimeout(()=>finish(false),7000);
+        makeModel(previewBook);
+        generationAtStart=modelGeneration;
+      });
+      const loaded=await ready;
+      if(!loaded||modelGeneration!==generationAtStart||currentBook)return '';
+      render();
+      return renderer.domElement.toDataURL('image/webp',.97);
+    }catch(error){
+      console.warn('Prévia 3D da estante indisponível:',error);
+      return '';
+    }finally{
+      clearTimeout(timeoutId);
+      if(onReady)window.removeEventListener('aurora:book-ready',onReady);
+      if(onSelected)window.removeEventListener('aurora:book-selected',onSelected);
+      const stillOwnsModel=generationAtStart&&modelGeneration===generationAtStart&&!currentBook;
+      if(stillOwnsModel){
+        clearModel();
+        if(!previousReady)stage.classList.remove('three-ready');
+      }
+      renderer.setPixelRatio(previousPixelRatio);
+      renderer.setSize(previousSize.x,previousSize.y,false);
+      camera.aspect=previousAspect;
+      camera.updateProjectionMatrix();
+      shelfPreviewInProgress=false;
+      if(currentBook){resize();render();}
+      else if(!previousReady)stage.classList.remove('three-ready');
+    }
+  }
+  window.Aurora3D={display,setPose,reset,playOpen,renderShelfPreview};
+  window.dispatchEvent(new Event('aurora:3d-ready'));
   window.addEventListener('aurora:book-selected',event=>display(event.detail));
   if(window.__auroraSelectedBook) display(window.__auroraSelectedBook);
   resize();
