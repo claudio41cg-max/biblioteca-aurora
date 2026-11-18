@@ -164,6 +164,10 @@ function initialize(){
     ctx.fillStyle=gradient;ctx.fillRect(0,0,256,512);
     return canvasTexture(canvas);
   }
+  function isIracemaBook(book){
+    const name=String(book?.title||book?.name||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase();
+    return /\\biracema\\b/.test(name);
+  }
   function spineCanvas(name){
     const canvas=document.createElement('canvas');
     canvas.width=512;canvas.height=1920;
@@ -402,7 +406,7 @@ function initialize(){
     backMesh.position.z=-thickness/2-.03;
     group.add(backMesh);
 
-    const spineTexture=spineCanvas(book.name);
+    const spineTexture=spineCanvas(book.title||book.name);
     const spineMaterial=new THREE.MeshPhysicalMaterial({map:spineTexture,roughness:.6,metalness:.02,clearcoat:.28});
     shelfSpineMesh=new THREE.Mesh(new THREE.BoxGeometry(.14,height-.02,thickness+.09),[
       coverBoard,spineMaterial,trimBoard,trimBoard,coverBoard,coverBoard
@@ -420,7 +424,7 @@ function initialize(){
     loadOriginalFront(frontMaterial,book.cover,token,book.id,img=>
       matchEditionSurfaces(img,book,backSurface,spineTexture,coverBoard,trimBoard));
     paintPhoto(backSurface,book.back,token);
-    paintPhoto(spineTexture,book.spine,token,true);
+    paintPhoto(spineTexture,isIracemaBook(book)?'':book.spine,token,true);
     group.rotation.set(rotation.x,rotation.y,0);
     queueRender();
   }
