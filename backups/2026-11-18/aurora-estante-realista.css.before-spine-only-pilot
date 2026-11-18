@@ -1,0 +1,150 @@
+/* Acabamento físico unificado em todas as categorias.
+   Cada exemplar mantém suas capas, lombadas, dimensões e inclinação próprias. */
+/* Madeira mais iluminada: livros em foco, sem a faixa de sombra pesada. */
+.category.shelf-premium .cabinet{
+  padding-top:36px;min-height:266px;
+  box-shadow:inset 0 0 0 2px #ddb67d54,inset 0 13px 22px #1a0c085c,
+    inset 11px 0 18px #32180942,inset -11px 0 19px #32180942,
+    0 12px 19px #0006,0 2px 3px #0004;
+}
+.category.shelf-premium .cabinet:before{
+  background:radial-gradient(ellipse at 43% 22%,#f6d4a44a 0%,transparent 66%),
+    linear-gradient(90deg,#0004,transparent 10%,transparent 90%,#0004),
+    linear-gradient(180deg,#0005,#0000 28%,#0001 80%,#0007);
+}
+.category.shelf-premium .cabinet:after{
+  content:'ACERVO AURORA';pointer-events:none;position:absolute;z-index:2;
+  top:8px;right:18px;padding:3px 9px;border:1px solid #b9925970;
+  border-radius:3px;background:#22190dc7;color:#efce9c;
+  font:8px/1.35 Georgia,serif;letter-spacing:1.35px;
+  text-shadow:0 1px 2px #000;box-shadow:0 2px 5px #0008,inset 0 1px #fff3;
+}
+.category.shelf-premium .bookrow{
+  perspective:1300px;perspective-origin:47% 64%;
+  min-height:228px;gap:3px;padding:25px 14px 4px;
+  overflow-x:auto;overflow-y:hidden;
+}
+
+/* Espessura e altura individual: volume em pé, jamais uma imagem plana. */
+.category.shelf-premium .book-spine{
+  flex-basis:calc(var(--book-width,42px) + var(--premium-width,0px));
+  height:calc(var(--book-height,166px) + var(--premium-height,0px));
+  border-left:3px solid #21130d;border-right:2px solid #c59a6c;
+  border-radius:3px 5px 4px 2px;
+  transform:translateZ(1px) rotateY(var(--premium-yaw,-7deg)) rotateZ(calc(var(--tilt,0deg) + var(--premium-lean,0deg)));
+  filter:none;
+  box-shadow:inset 3px 0 5px #0b060490,inset 1px 0 1px #fff2c54d,
+    inset -3px 0 5px #edd1a45c,3px 3px 4px #0007,
+    5px 8px 8px #0008;
+}
+.category.shelf-premium .book-spine::after{
+  background:linear-gradient(90deg,#06040390 0%,#170b0838 13%,transparent 38%,
+    #fff5c32a 62%,#0a040365 92%,#0008 100%);
+}
+.category.shelf-premium .book-spine::before{
+  height:12px;bottom:-8px;left:-7px;right:-8px;
+  background:#080301a8;filter:blur(5px);
+}
+.category.shelf-premium .book-spine .spine-title{
+  font-family:'Palatino Linotype','Book Antiqua',Georgia,serif;
+  font-weight:700;letter-spacing:.26px;
+  text-shadow:0 1px 3px #090403,0 0 7px #090403;
+}
+.category.shelf-premium .book-spine[data-source="demo"] .spine-title::before,
+.category.shelf-premium .book-spine[data-source="demo"] .spine-title::after{
+  content:'';position:absolute;left:8px;right:8px;height:1px;
+  background:linear-gradient(90deg,transparent,#e8c58c,transparent);
+  box-shadow:0 1px 2px #0009;
+}
+.category.shelf-premium .book-spine[data-source="demo"] .spine-title::before{top:12px}
+.category.shelf-premium .book-spine[data-source="demo"] .spine-title::after{bottom:13px}
+.category.shelf-premium .book-spine[data-has-real-cover="true"]{
+  border-right:2px solid #3d281b;
+  box-shadow:inset 3px 0 6px #090604a8,inset -2px 0 3px #fff2d34a,
+    4px 6px 7px #0008,6px 11px 12px #0007;
+}
+.category.shelf-premium .shelf-book-cover img{
+  filter:contrast(1.045) saturate(1.05);
+}
+.category.shelf-premium .shelf-lip{
+  height:26px;border-top:3px solid #e7b982;
+  box-shadow:inset 0 2px 2px #fff5e38c,inset 0 -8px 7px #1308048c,
+    0 8px 10px #0009,0 3px 2px #160902;
+}
+
+/* Não alterar o gesto de pegar o livro, os controles de organizar ou o 3D. */
+@media(hover:hover) and (pointer:fine){
+  body:not(.arranging) .category.shelf-premium .book-spine:hover,
+  body:not(.arranging) .category.shelf-premium .book-spine:focus-visible{
+    transform:translateY(-13px) translateZ(34px) rotateY(-23deg) rotateZ(0);
+    filter:brightness(1.12);z-index:20;
+    box-shadow:inset 4px 0 7px #090604b8,13px 21px 18px #000e;
+  }
+  body:not(.arranging) .category.shelf-premium .book-spine[data-has-real-cover="true"]:hover,
+  body:not(.arranging) .category.shelf-premium .book-spine[data-has-real-cover="true"]:focus-visible{
+    transform:translateY(-11px) translateZ(54px) rotateY(-58deg) rotateX(3deg);
+  }
+}
+@media(max-width:550px){
+  .category .section-title{gap:7px}
+  .category.shelf-premium .cabinet{padding-top:27px;min-height:241px}
+  .category.shelf-premium .cabinet:after{top:6px;right:13px;font-size:7px}
+  .category.shelf-premium .bookrow{min-height:214px;padding:21px 11px 3px;gap:2px}
+  .category.shelf-premium .book-spine{
+    flex-basis:calc(var(--book-width,42px) + var(--premium-width,0px));
+    height:calc(var(--book-height,166px) + var(--premium-height,0px));
+  }
+  body:not(.arranging) .category.shelf-premium .book-spine[data-has-real-cover="true"]:active{
+    transform:translateY(-5px) translateZ(14px) rotateY(-19deg);
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .category.shelf-premium .book-spine{transition:none}
+}/* A prévia vem do mesmo modelo WebGL do livro 3D e substitui a lombada CSS
+   apenas nos três livros marcados para o piloto. */
+.category.shelf-premium .book-spine[data-shelf-3d-pilot="true"][data-shelf-preview="ready"]{
+  flex:0 0 clamp(140px,36vw,170px)!important;
+  width:clamp(140px,36vw,170px)!important;
+  height:clamp(220px,58vw,270px)!important;
+  margin:0 14px 0 0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:none!important;
+  box-shadow:none!important;
+  filter:none!important;
+  transform:none!important;
+  overflow:visible!important;
+  z-index:8;
+}
+.category.shelf-premium .book-spine[data-shelf-3d-pilot="true"][data-shelf-preview="ready"]::before,
+.category.shelf-premium .book-spine[data-shelf-3d-pilot="true"][data-shelf-preview="ready"]::after{
+  display:none!important;
+  content:none!important;
+}
+.category.shelf-premium .book-spine[data-shelf-3d-pilot="true"][data-shelf-preview="ready"] .shelf-3d-preview-image{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  image-rendering:auto;
+  filter:none;
+  pointer-events:none;
+}
+body:not(.arranging) .category.shelf-premium .book-spine[data-shelf-3d-pilot="true"][data-shelf-preview="ready"]:hover,
+body:not(.arranging) .category.shelf-premium .book-spine[data-shelf-3d-pilot="true"][data-shelf-preview="ready"]:focus-visible{
+  transform:translateY(-8px)!important;
+  filter:none!important;
+  box-shadow:none!important;
+  z-index:20;
+}
+body:not(.arranging) .category.shelf-premium .book-spine[data-shelf-3d-pilot="true"][data-shelf-preview="ready"]:active{
+  transform:translateY(-4px)!important;
+}
+@media(min-width:700px){
+  .category.shelf-premium .book-spine[data-shelf-3d-pilot="true"][data-shelf-preview="ready"]{
+    flex-basis:clamp(160px,17vw,190px)!important;
+    width:clamp(160px,17vw,190px)!important;
+    height:clamp(245px,26vw,300px)!important;
+  }
+}
