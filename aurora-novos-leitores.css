@@ -422,3 +422,19 @@ body.epub-reader{
   background:linear-gradient(90deg,#d4d3cf,#fff 11%,#fff 92%,#d5d3cf);
 }
 }
+
+/* v12: o corte vertical vem do MESMO canvas do PDF, nunca de linhas
+   horizontais CSS. Preservar largura e posição do acabamento existente. */
+@media(max-width:669px){
+.epub-reader.aurora-richdad-volume[data-reader-theme="light"] .epub-sheet,
+.epub-reader.aurora-richdad-volume[data-reader-theme="light"] .epub-page-canvas{
+  background-color:#fff;
+}
+.epub-reader.aurora-richdad-volume .aurora-reader-finishing__cut,
+.epub-reader.aurora-richdad-volume .aurora-reader-volume__cut{
+  background-size:100% 100%;
+  background-repeat:no-repeat;
+  background-position:center;
+  filter:saturate(.75) contrast(1.08);
+}
+}
