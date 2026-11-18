@@ -12,7 +12,7 @@
   let active=null;
   const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
   const niceTitle=title=>window.AuroraTitles?.display(title)||String(title||'Livro sem título');
-  const isIracema=book=>/\\biracema\\b/.test(String(book?.title||book?.name||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase());
+  const isIracema=book=>/\biracema\b/.test(String(book?.title||book?.name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase());
   const formatName={pdf:'PDF',epub:'EPUB',txt:'TXT',audio:'Audiolivro',online:'Leitura on-line',demo:'Demonstração'};
   function showBookDetails(session){
     if(!session)return;
