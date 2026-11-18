@@ -378,3 +378,8 @@
     background:#1f2422;
   }
 }
+
+/* Leitura nítida opcional: reforça letras do PDF sem ampliar o livro. */
+.reader.aurora-sharp-text .page:not(.text-page) canvas{
+  filter:var(--reader-page-filter) contrast(1.18) brightness(.985);
+}
