@@ -566,8 +566,36 @@ function initialize(){
       });
       const loaded=await ready;
       if(!loaded||modelGeneration!==generationAtStart||currentBook)return '';
-      render();
-      return renderer.domElement.toDataURL('image/webp',.97);
+      const pixelWidth=Math.max(1,renderer.domElement.width);
+      const pixelHeight=Math.max(1,renderer.domElement.height);
+      const target=new THREE.WebGLRenderTarget(pixelWidth,pixelHeight,{
+        format:THREE.RGBAFormat,type:THREE.UnsignedByteType,
+        depthBuffer:true,stencilBuffer:false
+      });
+      target.texture.colorSpace=THREE.SRGBColorSpace;
+      if(renderer.capabilities.isWebGL2)
+        target.samples=Math.min(4,renderer.capabilities.maxSamples||4);
+      const previousTarget=renderer.getRenderTarget();
+      try{
+        renderer.setRenderTarget(target);
+        render();
+        const pixels=new Uint8Array(pixelWidth*pixelHeight*4);
+        renderer.readRenderTargetPixels(target,0,0,pixelWidth,pixelHeight,pixels);
+        const imageCanvas=document.createElement('canvas');
+        imageCanvas.width=pixelWidth;imageCanvas.height=pixelHeight;
+        const imageContext=imageCanvas.getContext('2d',{alpha:true});
+        const imageData=imageContext.createImageData(pixelWidth,pixelHeight);
+        const rowBytes=pixelWidth*4;
+        for(let y=0;y<pixelHeight;y++){
+          const sourceStart=(pixelHeight-1-y)*rowBytes;
+          imageData.data.set(pixels.subarray(sourceStart,sourceStart+rowBytes),y*rowBytes);
+        }
+        imageContext.putImageData(imageData,0,0);
+        return imageCanvas.toDataURL('image/webp',.97);
+      }finally{
+        renderer.setRenderTarget(previousTarget);
+        target.dispose();
+      }
     }catch(error){
       console.warn('Prévia 3D da estante indisponível:',error);
       return '';
