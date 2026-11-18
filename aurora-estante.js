@@ -54,6 +54,12 @@
     button.setAttribute('aria-label', 'Pegar ' + displayTitle);
     const realPDF=['pdf','epub','audio'].includes(item.source)||
       (item.source!=='demo'&&Boolean(item.cover||item.spine));
+    const pilotTitle=realPDF&&item.cover?[
+      [/cinquentatonscinza|fiftyshadesofgrey/,'Cinquenta Tons de Cinza'],
+      [/cinquentatonsmaisescuros|cinquentatonsescuros|fiftyshadesdarker/,'Cinquenta Tons Mais Escuros'],
+      [/cinquentatonsliberdade|fiftyshadesfreed/,'Cinquenta Tons de Liberdade']
+    ].find(([pattern])=>pattern.test(normalize(displayTitle+' '+item.title)))?.[1]||'':'';
+    if(pilotTitle)button.dataset.shelf3dPilot='true';
     const bookHeight=realPDF?160+seed%17:151+seed%24;
     const estimatedWidth=realPDF?Math.max(28,Math.min(62,27+Number(item.total||0)/27)):37+seed%13;
     const naturalWidth=item.spineAspect?Math.max(22,Math.min(68,bookHeight*Number(item.spineAspect))):estimatedWidth;
@@ -96,7 +102,7 @@
     }
     const label=document.createElement('span');
     label.className='spine-title';
-    label.textContent=displayTitle.replace(/[-_]+/g,' ');
+    label.textContent=pilotTitle||displayTitle.replace(/[-_]+/g,' ');
     button.append(label);
     if (item.source && item.source !== 'demo') {
       const source = document.createElement('span');
