@@ -164,10 +164,6 @@ function initialize(){
     ctx.fillStyle=gradient;ctx.fillRect(0,0,256,512);
     return canvasTexture(canvas);
   }
-  function isIracemaBook(book){
-    const name=String(book?.title||book?.name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-    return /\biracema\b/.test(name);
-  }
   function spineCanvas(name){
     const canvas=document.createElement('canvas');
     canvas.width=512;canvas.height=1920;
@@ -424,7 +420,7 @@ function initialize(){
     loadOriginalFront(frontMaterial,book.cover,token,book.id,img=>
       matchEditionSurfaces(img,book,backSurface,spineTexture,coverBoard,trimBoard));
     paintPhoto(backSurface,book.back,token);
-    paintPhoto(spineTexture,isIracemaBook(book)?'':book.spine,token,true);
+    paintPhoto(spineTexture,book.spine,token,true);
     group.rotation.set(rotation.x,rotation.y,0);
     queueRender();
   }
