@@ -145,7 +145,11 @@
       const ctx=spine.getContext('2d',{alpha:false});
       ctx.scale(2,2);
       ctx.imageSmoothingQuality='high';
-      ctx.drawImage(img,0,0,Math.max(1,img.naturalWidth*.13),img.naturalHeight,0,0,256,960);
+      // Sem lombada original: prolonga a arte central da capa para a lateral.
+      // Evita a faixa esquerda quase sempre preta e a aparência de couro antigo.
+      const cropWidth=Math.max(1,Math.min(img.naturalWidth,img.naturalHeight*.27));
+      const cropX=Math.max(0,(img.naturalWidth-cropWidth)*.5);
+      ctx.drawImage(img,cropX,0,cropWidth,img.naturalHeight,0,0,256,960);
       const shade=ctx.createLinearGradient(0,0,256,0);
       shade.addColorStop(0,'#000b');shade.addColorStop(.23,'#0006');
       shade.addColorStop(.57,'#0003');shade.addColorStop(1,'#000c');
