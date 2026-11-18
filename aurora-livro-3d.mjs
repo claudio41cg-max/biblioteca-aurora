@@ -165,8 +165,8 @@ function initialize(){
     return canvasTexture(canvas);
   }
   function isIracemaBook(book){
-    const name=String(book?.title||book?.name||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase();
-    return /\\biracema\\b/.test(name);
+    const name=String(book?.title||book?.name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+    return /\biracema\b/.test(name);
   }
   function spineCanvas(name){
     const canvas=document.createElement('canvas');
