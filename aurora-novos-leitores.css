@@ -357,3 +357,68 @@ body.epub-reader{
   background-image:repeating-linear-gradient(to right,#f7f6f0 0px,#d6d3c9 2px,#fff 4px);
 }
 }
+
+/* v11: refinamento visual exclusivo do EPUB Pai Rico, Pai Pobre.
+   Acabamento fica fora da área de texto, na mesma altura da folha. */
+@media(max-width:669px){
+.epub-reader.aurora-richdad-volume{
+  --aurora-sheet:#fff;
+  --aurora-sheet-light:#fff;
+  --aurora-sheet-shade:#ededeb;
+  --aurora-sheet-deep:#a9a8a3;
+  --aurora-fold-shadow:rgba(38,36,32,.39);
+  --aurora-binding:#4b273d;
+}
+.epub-reader.aurora-richdad-volume .reader-stage{overflow:hidden}
+.epub-reader.aurora-richdad-volume .aurora-reader-volume,
+.epub-reader.aurora-richdad-volume .aurora-reader-finishing{
+  left:50%;top:50%;transform:translate(-50%,-50%);
+}
+.epub-reader.aurora-richdad-volume .aurora-reader-volume{z-index:1}
+.epub-reader.aurora-richdad-volume .aurora-reader-finishing{z-index:3}
+.epub-reader.aurora-richdad-volume .flip-host{z-index:2}
+.epub-reader.aurora-richdad-volume .aurora-reader-volume__turned{
+  left:-32px;width:49px;
+  background:linear-gradient(90deg,#aaa9a5 0%,#e5e5e2 11%,#fff 28%,#f8f8f7 56%,#dededb 83%,#a6a5a0 100%);
+  box-shadow:-5px 4px 11px #0004,inset -5px 0 8px -5px #37342f66;
+}
+.epub-reader.aurora-richdad-volume .aurora-reader-finishing__left{
+  left:-24px;width:27px;
+  background:linear-gradient(90deg,#d0d0cb 0%,#fff 24%,#fefefe 58%,#e4e4e1 84%,#bab9b4 100%);
+  box-shadow:inset -4px 0 6px -3px #36332e66;
+}
+.epub-reader.aurora-richdad-volume .aurora-reader-finishing__gutter{
+  left:-5px;width:14px;
+  background:linear-gradient(90deg,#55514a66 0%,#8a857b33 35%,transparent 100%);
+  opacity:.8;
+}
+.epub-reader.aurora-richdad-volume .aurora-reader-finishing__back{
+  right:-18px;width:21px;
+  background:linear-gradient(90deg,#563249,#4b273d 45%,#321b2c);
+  border-right:3px solid #301a2a;
+  border-radius:0 5px 6px 0;
+  box-shadow:3px 4px 9px #0008;
+}
+.epub-reader.aurora-richdad-volume .aurora-reader-finishing__cut{
+  right:-13px;width:14px;
+  background:repeating-linear-gradient(to bottom,#fff 0px,#c9c7c1 1px,#fafafa 2px,#d4d1cb 3px,#fff 4px);
+  border-right:1px solid #aaa49b;
+  box-shadow:inset 3px 0 4px #77716a44,2px 2px 5px #0004;
+  filter:contrast(1.2);
+}
+.epub-reader.aurora-richdad-volume .aurora-reader-volume__cut{right:-13px}
+.epub-reader.aurora-richdad-volume .aurora-reader-finishing__bottom{
+  left:0;right:-13px;bottom:-3px;height:5px;
+  border-bottom:2px solid #4b273d;
+  background:repeating-linear-gradient(to right,#fff 0px,#d5d3cd 2px,#fff 4px);
+}
+.epub-reader.aurora-richdad-volume .aurora-reader-volume__cover{
+  inset:3px -19px -7px -30px;
+  border-color:#4b273d;
+  background:#4b273d;
+}
+.epub-reader.aurora-richdad-volume .aurora-reader-volume__sheets{
+  inset:1px -13px -3px -24px;
+  background:linear-gradient(90deg,#d4d3cf,#fff 11%,#fff 92%,#d5d3cf);
+}
+}
