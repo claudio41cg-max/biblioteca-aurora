@@ -490,3 +490,59 @@ body.epub-reader{
     border-top:0;
   }
 }
+
+
+/* v14: a folha animada tem prioridade absoluta sobre o acabamento.
+   Retira a falsa folha lateral e a linha dura na junção. */
+@media(max-width:669px){
+  .epub-reader.aurora-richdad-volume .reader-stage{
+    overflow:hidden;
+    isolation:isolate;
+  }
+  .epub-reader.aurora-richdad-volume .aurora-reader-volume{
+    z-index:0;
+  }
+  .epub-reader.aurora-richdad-volume .aurora-reader-finishing{
+    z-index:1;
+  }
+  .epub-reader.aurora-richdad-volume .flip-host{
+    z-index:5;
+    isolation:isolate;
+    overflow:visible;
+  }
+  /* O vinco deve parecer uma sombra gradual, não uma segunda folha
+     rígida que atravessa o papel durante a virada. */
+  .epub-reader.aurora-richdad-volume .aurora-reader-volume__turned,
+  .epub-reader.aurora-richdad-volume .aurora-reader-finishing__left{
+    display:none;
+  }
+  .epub-reader.aurora-richdad-volume .aurora-reader-finishing__gutter{
+    left:-13px;
+    width:13px;
+    border:0;
+    border-radius:0;
+    box-shadow:none;
+    background:linear-gradient(to right,
+      rgba(45,40,36,.22) 0%,
+      rgba(45,40,36,.10) 38%,
+      rgba(45,40,36,.025) 75%,
+      transparent 100%);
+    opacity:1;
+  }
+  /* Pequena borda da capa sob a base do miolo, como um livro físico. */
+  .epub-reader.aurora-richdad-volume .aurora-reader-volume__cover{
+    bottom:-9px;
+    border-bottom:4px solid #4b273d;
+    border-radius:1px 2px 5px 5px;
+    box-shadow:0 5px 8px -3px rgba(0,0,0,.65);
+  }
+  .epub-reader.aurora-richdad-volume .aurora-reader-volume__sheets{
+    bottom:-3px;
+  }
+  .epub-reader.aurora-richdad-volume .aurora-reader-finishing__bottom{
+    bottom:-4px;
+    height:3px;
+    border-bottom:0;
+    box-shadow:0 1px 3px rgba(0,0,0,.2);
+  }
+}
