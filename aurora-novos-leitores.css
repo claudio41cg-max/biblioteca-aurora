@@ -345,3 +345,15 @@ body.epub-reader{
 .epub-reader.aurora-richdad-volume .flip-host::after,
 .epub-reader.aurora-richdad-volume .reader-stage::after{content:none}
 .epub-reader.aurora-richdad-volume .aurora-reader-finishing{z-index:3}
+
+/* Filetes finos de papel no corte externo, atrás da folha, sem riscar o texto. */
+@media(max-width:669px){
+.epub-reader.aurora-richdad-volume .aurora-reader-volume__cut,
+.epub-reader.aurora-richdad-volume .aurora-reader-finishing__cut{
+  background-image:repeating-linear-gradient(to bottom,#f7f6f0 0px,#d6d3c9 1px,#faf9f5 2px,#e3e0d8 3px,#fff 4px);
+}
+.epub-reader.aurora-richdad-volume .aurora-reader-volume__foot,
+.epub-reader.aurora-richdad-volume .aurora-reader-finishing__bottom{
+  background-image:repeating-linear-gradient(to right,#f7f6f0 0px,#d6d3c9 2px,#fff 4px);
+}
+}
