@@ -898,13 +898,20 @@
         session.startedAt=Date.now();
         const firstPage = await session.pdf.getPage(1);
         if (session !== active || token !== generation) return;
-        const vp = firstPage.getViewport({scale:1});
-        const ratio = vp.width/vp.height;
         const mobile = innerWidth < 670;
-        // A página PDF volta à largura ORIGINAL do leitor: o acabamento 3D
-      // será desenhado somente sobre as margens vazias da própria página.
-      const availableWidth = mobile ? innerWidth-2 : Math.min(540,(innerWidth-60)/2);
-        const availableHeight = Math.max(270,$('viewport').clientHeight-45);
+        const reasonPdf = mobile && $('reader').classList.contains('aurora-page-curl-preview');
+        // A capa/páginas preliminares podem ter proporção diferente do miolo.
+        // Somente neste PDF de teste, medir uma página interna para que a
+        // folha animada e o corpo do livro usem a mesma geometria.
+        const referencePage = reasonPdf && session.total >= 12
+          ? await session.pdf.getPage(12) : firstPage;
+        if (session !== active || token !== generation) return;
+        const vp = referencePage.getViewport({scale:1});
+        const ratio = vp.width/vp.height;
+        const availableWidth = mobile ? innerWidth-2 : Math.min(540,(innerWidth-60)/2);
+        // A reserva antiga de 45px encolhia a página em relação à área
+        // disponível. Para o teste, usar quase toda a altura real do visor.
+        const availableHeight = Math.max(270,$('viewport').clientHeight-(reasonPdf?8:45));
         const width = Math.max(150,Math.floor(Math.min(availableWidth,availableHeight*ratio)));
         const height = Math.max(200,Math.floor(width/ratio));
         // Proporção imutável da folha física, compartilhada pelo PDF inteiro.
