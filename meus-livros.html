@@ -157,6 +157,7 @@
         <button type="button" data-reader-theme="night" aria-pressed="false">Noturno</button>
       </fieldset>
       <label class="reader-page-sound-choice"><input type="checkbox" data-page-sound checked> Som suave de folhas ao virar</label>
+      <label class="reader-page-sound-choice"><input type="checkbox" id="readerSharpText"> Leitura nítida (letras mais escuras, sem zoom)</label>
       <button type="button" id="readerSpeak" class="reader-speak">♫ Ouvir o texto</button>
       <details class="reader-extra-pdf"><summary>Opções adicionais do PDF</summary>
         <label class="reader-text-toggle"><input id="readerTextMode" type="checkbox"> Texto adaptado</label>
@@ -227,6 +228,12 @@
       $('readerSettings').setAttribute('aria-expanded',String(open));
     }
     applyReadingPrefs();
+    // Ajuste visual opcional: não altera o tamanho nem a geometria das folhas.
+    const sharpToggle=$('readerSharpText');
+    sharpToggle.checked=localStorage.getItem('aurora-sharp-pdf-v1')==='1';
+    const applySharp=()=> $('reader').classList.toggle('aurora-sharp-text',sharpToggle.checked);
+    sharpToggle.addEventListener('change',()=>{localStorage.setItem('aurora-sharp-pdf-v1',sharpToggle.checked?'1':'0');applySharp();});
+    applySharp();
     if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     let database, catalog = [], selectedId = null, active = null, down = null, rotation = {x:-5,y:-22}, generation = 0;
     const recoveringCovers = new Set();
