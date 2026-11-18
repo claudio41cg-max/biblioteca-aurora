@@ -1,4 +1,4 @@
-const CACHE = 'aurora-v77';
+const CACHE = 'aurora-v78';
 const CORE = [
   './index.html?v=73', './meus-livros.html?v=32', './aurora-sala-3d.js?v=31',
   './aurora-estante.js?v=24', './aurora-estante-realista.css?v=9',
@@ -38,8 +38,8 @@ self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(caches.open(CACHE).then(async cache => {
     // Se a versão nova não estiver disponível, a antiga não é descartada.
-    await cache.add('./index.html?v=70');
-    await Promise.allSettled(CORE.filter(url => url !== './index.html?v=70').map(url => cache.add(url)));
+    await cache.add('./index.html?v=73');
+    await Promise.allSettled(CORE.filter(url => url !== './index.html?v=73').map(url => cache.add(url)));
   }));
 });
 
@@ -57,7 +57,7 @@ self.addEventListener('fetch', event => {
     // O endereço raiz pode permanecer no cache do GitHub Pages após um deploy.
     // A entrada versionada abre a edição atual também nos PWAs já instalados.
     const isAppRoot = new URL(request.url).pathname === new URL(self.registration.scope).pathname;
-    const resource = isAppRoot ? new Request(new URL('./index.html?v=70',self.registration.scope)) : request;
+    const resource = isAppRoot ? new Request(new URL('./index.html?v=73',self.registration.scope)) : request;
     event.respondWith(fetchWithTimeout(resource,NAVIGATION_TIMEOUT_MS).then(response => {
       if (response.ok) {
         const copy = response.clone();
