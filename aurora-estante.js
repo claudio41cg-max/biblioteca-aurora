@@ -59,7 +59,7 @@
       [/cinquentatonsmaisescuros|cinquentatonsescuros|fiftyshadesdarker/,'Cinquenta Tons Mais Escuros'],
       [/cinquentatonsliberdade|fiftyshadesfreed/,'Cinquenta Tons de Liberdade']
     ].find(([pattern])=>pattern.test(normalize(displayTitle+' '+item.title)))?.[1]||'':'';
-    if(pilotTitle)button.dataset.shelf3dPilot='true';
+    if(pilotTitle){button.dataset.shelf3dPilot='true';button.dataset.shelf3dTitle=pilotTitle;}
     const bookHeight=realPDF?160+seed%17:151+seed%24;
     const estimatedWidth=realPDF?Math.max(28,Math.min(62,27+Number(item.total||0)/27)):37+seed%13;
     const naturalWidth=item.spineAspect?Math.max(22,Math.min(68,bookHeight*Number(item.spineAspect))):estimatedWidth;
