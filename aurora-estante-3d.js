@@ -1,7 +1,7 @@
 /* Pré-renderiza apenas os três livros do piloto usando o mesmo modelo WebGL do visor. */
 (()=>{
   'use strict';
-  let importedBooks=[];
+  let importedBooks=window.AuroraImportedBooks||[];
   let working=false;
 
   const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -15,8 +15,15 @@
       ));
       for(const button of buttons){
         if(!button.isConnected||button.dataset.shelfPreview==='ready')continue;
-        const book=importedBooks.find(item=>String(item.id)===String(button.dataset.bookId));
-        if(!book?.cover)continue;
+        const coverNode=button.querySelector('.shelf-book-cover img');
+        const book=importedBooks.find(item=>String(item.id)===String(button.dataset.bookId))||{
+          id:button.dataset.bookId,
+          title:button.dataset.shelf3dTitle||button.dataset.rawTitle||'Livro',
+          name:button.dataset.shelf3dTitle||button.dataset.rawTitle||'Livro',
+          cover:coverNode?.currentSrc||coverNode?.src||'',
+          ratio:.72,total:0
+        };
+        if(!book.cover)continue;
         const title=button.dataset.shelf3dTitle||book.title||book.name||'Livro';
         const bounds=button.getBoundingClientRect();
         const shelfRatio=Math.max(.12,Math.min(.4,(bounds.width||44)/(bounds.height||170)));
@@ -59,7 +66,8 @@
   }
 
   document.addEventListener('aurora:library-data',event=>{
-    importedBooks=event.detail?.books||[];
+    importedBooks=event.detail?.books||window.AuroraImportedBooks||[];
+    window.AuroraImportedBooks=importedBooks;
     void renderPilots();
   });
   window.addEventListener('aurora:3d-ready',()=>void renderPilots());
