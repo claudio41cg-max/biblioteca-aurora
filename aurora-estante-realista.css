@@ -105,7 +105,7 @@
 .category.shelf-premium .book-spine[data-shelf-3d-pilot="true"][data-shelf-preview="ready"]{
   border:0!important;
   border-radius:0!important;
-  background-color:#050505!important;
+  background-color:transparent!important;
   background-image:none!important;
   box-shadow:none!important;
 }
