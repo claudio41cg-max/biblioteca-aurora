@@ -94,6 +94,7 @@
     const session=active;
     if(!session)return;
     active=null;
+    window.dispatchEvent(new Event('aurora:book-closed'));
     clearTimeout(session.fallback);
     session.motion?.cancel();
     if(session.frame)cancelAnimationFrame(session.frame);
