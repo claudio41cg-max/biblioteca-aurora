@@ -101,3 +101,33 @@
 @media(prefers-reduced-motion:reduce){
   .category.shelf-premium .book-spine{transition:none}
 }
+
+/* Piloto visual: somente os três livros da série Cinquenta Tons.
+   A capa real fica voltada para frente e a lombada aparece ao lado,
+   usando o mesmo ângulo do volume 3D aberto no visor. */
+.category.shelf-premium .book-spine[data-shelf-3d-pilot="true"][data-has-real-cover="true"]{
+  flex-shrink:0;
+  margin-inline-end:clamp(64px,18vw,86px);
+  z-index:6;
+  border-radius:1px;
+  transform:translateZ(1px) rotateY(-58deg) rotateX(3deg);
+  box-shadow:inset 4px 0 7px #090604b8,inset -3px 0 5px #fff2d32c,
+    8px 12px 14px #000a;
+}
+.category.shelf-premium .book-spine[data-shelf-3d-pilot="true"][data-has-real-cover="true"] .shelf-book-cover{
+  pointer-events:auto;
+  border-radius:1px;
+  box-shadow:inset 7px 0 9px #0007,8px 12px 16px #000a;
+}
+.category.shelf-premium .book-spine[data-shelf-3d-pilot="true"][data-has-real-cover="true"] .spine-title{
+  font-size:clamp(8px,2.35vw,10px);
+  letter-spacing:.15px;
+}
+body:not(.arranging) .category.shelf-premium .book-spine[data-shelf-3d-pilot="true"][data-has-real-cover="true"]:hover,
+body:not(.arranging) .category.shelf-premium .book-spine[data-shelf-3d-pilot="true"][data-has-real-cover="true"]:focus-visible{
+  transform:translateY(-11px) translateZ(54px) rotateY(-58deg) rotateX(3deg);
+  z-index:20;
+}
+body:not(.arranging) .category.shelf-premium .book-spine[data-shelf-3d-pilot="true"][data-has-real-cover="true"]:active{
+  transform:translateY(-5px) translateZ(14px) rotateY(-58deg) rotateX(3deg);
+}
