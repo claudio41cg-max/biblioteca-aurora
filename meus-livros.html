@@ -83,6 +83,7 @@
         <option value="adulto">Romances picantes</option>
         <option value="ficcao">Ficção e aventuras</option>
         <option value="brasileiros">Autores brasileiros</option>
+        <option value="veterinaria">Medicina Veterinária</option>
       </select>
     </label>
   </nav>
@@ -100,6 +101,7 @@
         <option value="adulto">Romances picantes</option>
         <option value="ficcao">Ficção e aventuras</option>
         <option value="brasileiros">Autores brasileiros</option>
+        <option value="veterinaria">Medicina Veterinária</option>
         </select>
       </label>
     </div>
@@ -241,7 +243,7 @@
     const retriedBrokenCovers = new Set();
     const routeParams = new URLSearchParams(location.search);
     const originalRoute = routeParams.get('livro');
-    const validCategories = ['romance','adulto','ficcao','brasileiros'];
+    const validCategories = ['romance','adulto','ficcao','brasileiros','veterinaria'];
     const requestedCategory=routeParams.get('categoria');
     if(validCategories.includes(requestedCategory)) $('importCategory').value=requestedCategory;
     const normalize = value => String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
