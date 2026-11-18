@@ -195,6 +195,30 @@
       for(const part of ['left','gutter','back','cut','bottom']){
         const element=document.createElement('div');element.className='aurora-reader-finishing__'+part;finish.append(element);
       }
+      // Exatamente a mesma textura de corte usada no leitor PDF:
+      // AuroraEditionSurfaces.paperEdgeCanvas + recorte readerPaperTrim.
+      const paperTrim=(orientation)=>{
+        try{
+          const source=window.AuroraEditionSurfaces?.paperEdgeCanvas?.(orientation);
+          if(!source)return '';
+          const vertical=orientation==='vertical';
+          const left=vertical?7:0,top=vertical?0:Math.round(source.height*.41);
+          const w=vertical?Math.min(39,source.width-left):source.width;
+          const h=vertical?source.height:Math.min(28,source.height-top);
+          const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+          const context=canvas.getContext('2d',{alpha:false});
+          if(!context)return '';
+          context.drawImage(source,left,top,w,h,0,0,w,h);
+          return 'url('+JSON.stringify(canvas.toDataURL('image/png'))+')';
+        }catch(error){console.warn('Textura PDF indisponível no EPUB:',error);return '';}
+      };
+      const verticalTrim=paperTrim('vertical'),horizontalTrim=paperTrim('horizontal');
+      for(const part of [volume.querySelector('.aurora-reader-volume__cut'),finish.querySelector('.aurora-reader-finishing__cut')]){
+        if(part&&verticalTrim)part.style.setProperty('background-image',verticalTrim,'important');
+      }
+      for(const part of [volume.querySelector('.aurora-reader-volume__foot'),finish.querySelector('.aurora-reader-finishing__bottom')]){
+        if(part&&horizontalTrim)part.style.setProperty('background-image',horizontalTrim,'important');
+      }
       stage.prepend(volume);stage.append(finish);
     }
     windowStart=start;windowLength=visible.length;
