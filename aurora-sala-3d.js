@@ -8,7 +8,7 @@
   const cssBook=$('book3d');
   const cover=$('cover3d');
   if(!showcase||!scene||!cssBook||!cover)return;
-  const categories=['romance','adulto','ficcao','brasileiros','filmes'];
+  const categories=['romance','adulto','ficcao','brasileiros','filmes','veterinaria'];
   let active=null;
   const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
   const niceTitle=title=>window.AuroraTitles?.display(title)||String(title||'Livro sem título');
