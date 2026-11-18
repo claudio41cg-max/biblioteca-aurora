@@ -12,7 +12,6 @@
   let active=null;
   const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
   const niceTitle=title=>window.AuroraTitles?.display(title)||String(title||'Livro sem título');
-  const isIracema=book=>/\biracema\b/.test(String(book?.title||book?.name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase());
   const formatName={pdf:'PDF',epub:'EPUB',txt:'TXT',audio:'Audiolivro',online:'Leitura on-line',demo:'Demonstração'};
   function showBookDetails(session){
     if(!session)return;
@@ -204,7 +203,7 @@
     cssBook.style.setProperty('--depth',(halfDepth*2)+'px');
     cssBook.style.width='min('+(65*ratio/.72).toFixed(1)+'vw,'+Math.round(326*ratio/.72)+'px)';
     cssBook.querySelector('.volume-back').style.backgroundImage=book.back?'url('+JSON.stringify(book.back)+')':'';
-    const spineImage=isIracema(book)?'':book.spine;
+    const spineImage=book.spine||'';
     cssBook.querySelector('.volume-spine').style.backgroundImage=spineImage?'url('+JSON.stringify(spineImage)+')':'';
     // A textura usada no primeiro quadro é a mesma que seguirá no modelo WebGL.
     window.__auroraSelectedBook={id:book.id,name:book.name||book.title,
