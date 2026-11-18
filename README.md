@@ -1,3 +1,11 @@
+## Atualização v65 — piloto isolado do Atlas veterinário (18/11/2026)
+
+- Nova categoria **Medicina Veterinária**, inicialmente vazia, e atalho **Testar Atlas veterinário** em **Importar livros**. O atalho seleciona a categoria e abre o seletor de PDF do próprio aparelho.
+- O PDF é importado somente quando o usuário seleciona um arquivo que já possui. Nenhum livro de terceiros é incluído no repositório, transferido para servidor ou redistribuído pelo aplicativo.
+- Após importar, o mesmo leitor PDF e livro 3D da Aurora são usados, com a capa extraída da primeira página e o arquivo guardado localmente no navegador. O livro aparece na categoria veterinária.
+- Não foram alterados os componentes de folheio, as páginas, as animações, o exemplar piloto **Razão e Sensibilidade** ou os arquivos das outras categorias.
+- Backup do GitHub: `backup-aurora-antes-piloto-veterinaria-20261118`.
+
 # Biblioteca Aurora
 
 ## Atualização v64 — dobra do PDF sem encurtar as pontas
