@@ -1,8 +1,8 @@
-const CACHE = 'aurora-v73';
+const CACHE = 'aurora-v74';
 const CORE = [
   './index.html?v=73', './meus-livros.html?v=32', './aurora-sala-3d.js?v=30',
   './aurora-estante.js?v=24', './aurora-estante-realista.css?v=9',
-  './aurora-importados.js?v=28', './aurora-estante-3d.js?v=4', './aurora-livro-3d.mjs?v=17', './aurora-edition-surfaces.js?v=7',
+  './aurora-importados.js?v=28', './aurora-estante-3d.js?v=4', './aurora-livro-3d.mjs?v=17', './aurora-edition-surfaces.js?v=8',
   './', './index.html', './index.html?v=22', './index.html?v=35', './index.html?v=36', './index.html?v=37', './index.html?v=38', './index.html?v=39', './index.html?v=40', './index.html?v=41', './index.html?v=42', './index.html?v=43', './index.html?v=44', './index.html?v=45', './index.html?v=47', './index.html?v=48', './index.html?v=49', './index.html?v=50', './index.html?v=51', './index.html?v=52', './index.html?v=53', './index.html?v=54', './index.html?v=55', './index.html?v=56', './index.html?v=57', './index.html?v=58', './index.html?v=59', './index.html?v=60', './index.html?v=61', './index.html?v=62', './index.html?v=63', './index.html?v=46', './meus-livros.html?v=22', './meus-livros.html?v=23', './meus-livros.html?v=24', './meus-livros.html?v=25', './meus-livros.html?v=26', './meus-livros.html?v=27', './meus-livros.html?v=28', './meus-livros.html?v=29', './meus-livros.html?v=30', './meus-livros.html?v=20', './meus-livros.html?v=21',
   './explorar-livros.html', './ler-online.html', './minha-biblioteca-privada.html', './aurora-notion-privado.js?v=2', './aurora-online.css?v=6', './aurora-online.css?v=7',
   './aurora-online.js?v=5', './aurora-online-estante.js?v=3', './aurora-leitura-online.js?v=5', './aurora-leitura-online.js?v=6',
