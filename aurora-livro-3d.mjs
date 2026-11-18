@@ -189,7 +189,11 @@ function initialize(){
       .replace(/[^a-z0-9]+/gi,' ').toLowerCase();
     return /\brazao e sensibilidade\b/.test(normalized);
   }
-  function reasonOpeningCanvas(which){
+  function isRichDadOpening(book){
+    const name=String(book.title||book.name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/gi,' ').toLowerCase();
+    return /\bpai rico pai pobre\b/.test(name) && book.format==='epub';
+  }
+  function reasonOpeningCanvas(which,richDad=false){
     const canvas=document.createElement('canvas');
     canvas.width=1024;canvas.height=1440;
     const ctx=canvas.getContext('2d',{alpha:false});
@@ -238,19 +242,19 @@ function initialize(){
       // Primeira folha de rosto, ligada visualmente ao papel do bloco.
       ctx.fillStyle='#8d7350';ctx.font='16px Georgia,serif';
       ctx.fillText('BIBLIOTECA AURORA',W/2,119);
-      ctx.font='italic 23px Georgia,serif';ctx.fillText('Jane Austen',W/2,239);
+      ctx.font='italic 23px Georgia,serif';ctx.fillText(richDad?'Robert T. Kiyosaki':'Jane Austen',W/2,239);
       ctx.fillStyle='#4a3325';ctx.font='49px Georgia,serif';
-      ctx.fillText('Razão e',W/2,318);
-      ctx.fillText('Sensibilidade',W/2,378);
+      ctx.fillText(richDad?'Pai Rico,':'Razão e',W/2,318);
+      ctx.fillText(richDad?'Pai Pobre':'Sensibilidade',W/2,378);
       ctx.strokeStyle='#ab865c';ctx.lineWidth=1.6;
       ctx.beginPath();ctx.moveTo(145,422);ctx.lineTo(229,422);
       ctx.moveTo(283,422);ctx.lineTo(367,422);ctx.stroke();
       ctx.fillStyle='#9b7850';ctx.font='25px Georgia,serif';ctx.fillText('❦',W/2,424);
       ctx.fillStyle='#745b43';ctx.font='italic 21px Georgia,serif';
-      ctx.fillText('Entre a prudência e o coração,',W/2,490);
-      ctx.fillText('duas maneiras de sentir.',W/2,520);
+      ctx.fillText(richDad?'Educação financeira':'Entre a prudência e o coração,',W/2,490);
+      ctx.fillText(richDad?'e escolhas para o futuro.':'duas maneiras de sentir.',W/2,520);
       ctx.fillStyle='#9f8b70';ctx.font='14px Georgia,serif';
-      ctx.fillText('UMA HISTÓRIA DE JANE AUSTEN',W/2,620);
+      ctx.fillText(richDad?'DESENVOLVA SUA INTELIGÊNCIA FINANCEIRA':'UMA HISTÓRIA DE JANE AUSTEN',W/2,620);
     }
     return canvas;
   }
@@ -363,9 +367,10 @@ function initialize(){
     const thickness=clamp(.25+(Number(book.total||180)/1000),.34,.72);
     shadowMesh.position.set(0,-height/2-.22,-thickness/2-.35);
     shadowMesh.scale.set(width*1.35,.52,1);
-    const previewOpening=hasReasonOpening(book);
+    const richDadOpening=isRichDadOpening(book);
+    const previewOpening=hasReasonOpening(book)||richDadOpening;
     const titleLeaf=previewOpening?new THREE.MeshStandardMaterial({
-      map:canvasTexture(reasonOpeningCanvas('title')),roughness:.94,metalness:0
+      map:canvasTexture(reasonOpeningCanvas('title',richDadOpening)),roughness:.94,metalness:0
     }):parchment;
     const paper=new THREE.Mesh(new THREE.BoxGeometry(width-.12,height-.11,thickness-.075),[
       pageMaterial,pageMaterial,topPageMaterial,topPageMaterial,titleLeaf,parchment
