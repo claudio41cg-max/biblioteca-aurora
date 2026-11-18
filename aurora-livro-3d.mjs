@@ -590,8 +590,8 @@ function initialize(){
     }
   }
   window.Aurora3D={display,setPose,reset,playOpen,renderShelfPreview};
-  window.dispatchEvent(new Event('aurora:3d-ready'));
   window.addEventListener('aurora:book-selected',event=>display(event.detail));
   if(window.__auroraSelectedBook) display(window.__auroraSelectedBook);
   resize();
+  window.dispatchEvent(new Event('aurora:3d-ready'));
 }
