@@ -1,3 +1,12 @@
+# Biblioteca Aurora
+
+## Atualização v87 — personalização por categorias na nova estante
+
+- O editor de nova estante agora separa Estantes, Flores, Vasos, Velas, Decoração, Fotos, Iluminação e Camadas, seguindo as ferramentas do vídeo.
+- Foram integrados PNGs transparentes de jiboia em vaso marfim, par de velas e globo vintage. Os objetos podem ser arrastados, redimensionados, girados, removidos e recuperados com Desfazer.
+- A categoria Foto permite adicionar uma imagem do aparelho de até 900 KB. A montagem fica salva no próprio dispositivo.
+- A estrutura de madeira, as seções, o armazenamento de estantes e os recursos existentes da Biblioteca Aurora foram preservados.
+
 ## Atualização v65 — piloto isolado do Atlas veterinário (18/11/2026)
 
 - Nova categoria **Medicina Veterinária**, inicialmente vazia, e atalho **Testar Atlas veterinário** em **Importar livros**. O atalho seleciona a categoria e abre o seletor de PDF do próprio aparelho.
@@ -303,3 +312,4 @@ A prova v56 foi refinada no leitor PDF **somente de Razão e Sensibilidade**: a 
 ### v58 — Acabamento do leitor reaproveitando o livro 3D real
 
 O ensaio de **Razão e Sensibilidade** não desenha mais falsos filetes horizontais em CSS: agora as bordas direita e inferior recebem recortes da própria função `AuroraEditionSurfaces.paperEdgeCanvas('vertical'/'horizontal')`, que já gera as fibras finíssimas do volume WebGL. A base do miolo é lisa e opaca, e a curva esquerda usa sombra suave, papel no mesmo tom da página e uma dobra mais larga. Quando disponível, a capa de trás real do exemplar é usada por baixo do miolo; na ausência dela, mantém-se a capa original. Apenas este PDF em telefone recebe a experiência. StPageFlip, tempo de 900 ms, marcadores, progresso e demais formatos não foram alterados. O código compartilhado é carregado antes do leitor. Backup: `backup-aurora-v57-antes-miolo-3d-compartilhado-20261117`.
+

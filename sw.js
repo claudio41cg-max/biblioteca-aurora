@@ -1,6 +1,6 @@
-const CACHE = 'aurora-v86';
+const CACHE = 'aurora-v87';
 const CORE = [
-  './nova-estante.html?v=3', './aurora-nova-estante.css?v=3', './aurora-nova-estante.js?v=2',
+  './nova-estante.html', './nova-estante.html?v=4', './aurora-nova-estante.css?v=4', './aurora-nova-estante.js?v=3',
   './configuracoes.html?v=1', './aurora-configuracoes.css?v=1',
   './index.html?v=78', './meus-livros.html?v=32', './aurora-sala-3d.js?v=31',
   './aurora-estante.js?v=26', './aurora-estante-realista.css?v=9',
@@ -25,6 +25,7 @@ const CORE = [
   './assets/ambientes/parede-4.webp', './assets/ambientes/prateleira-0.webp',
   './assets/ambientes/prateleira-1.webp', './assets/ambientes/prateleira-2.webp',
   './assets/ambientes/prateleira-3.webp', './assets/ambientes/prateleira-4.webp',
+  './assets/customizador/folhagem-pendente.png', './assets/customizador/velas-marfim.png', './assets/customizador/globo-antigo.png',
   './manifest.webmanifest'
 ];
 
@@ -81,3 +82,4 @@ self.addEventListener('fetch', event => {
     });
   }));
 });
+
