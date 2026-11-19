@@ -1,7 +1,15 @@
 (() => {
   const KEY='aurora-nova-estante-v1';
+  const LIST_KEY='aurora-estantes-personalizadas-v1';
+  const params=new URLSearchParams(location.search);
+  const isNew=params.get('nova')==='1';
   const defaults={name:'Minha estante',wall:'charcoal',wood:'oak',theme:'',light:85,sections:1,showHelp:true};
-  let state={...defaults};
+  const readShelves=()=>{try{return JSON.parse(localStorage.getItem(LIST_KEY)||'[]')}catch(_){return []}};
+  const makeId=()=>Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);
+  const shelves=readShelves();
+  const shelfId=params.get('id')||(isNew?makeId():(shelves[shelves.length-1]?.id||makeId()));
+  const found=shelves.find(item=>item.id===shelfId);
+  let state={...defaults,...(!isNew?(found||(()=>{try{return JSON.parse(localStorage.getItem(KEY)||'null')||{}}catch(_){return {}}})()):{}),id:shelfId};
   let history=[];
   let activeTool='tema';
   let toastTimer;
@@ -22,7 +30,13 @@
     fundo:[['Carvão','charcoal','linear-gradient(145deg,#524a43,#17191b)'],['Azul profundo','navy','linear-gradient(145deg,#6884a2,#182537)'],['Botânico','botanical','linear-gradient(145deg,#829079,#1b2821)'],['Pedra','stone','linear-gradient(145deg,#96999a,#2b2d31)'],['Areia','cream','linear-gradient(145deg,#d1bd9f,#594b3a)'],['Rosé antigo','rose','linear-gradient(145deg,#aa7775,#3b292c)']],
     madeira:[['Carvalho','oak','linear-gradient(145deg,#f0cc8f,#a36b3b)'],['Nogueira','walnut','linear-gradient(145deg,#bb885c,#503421)'],['Mogno','mahogany','linear-gradient(145deg,#d28b64,#6e302a)'],['Preta','black','linear-gradient(145deg,#686056,#191919)'],['Marfim','white','linear-gradient(145deg,#f3e8d5,#8a7b66)']]
   };
-  function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(_){}}
+  function save(){try{
+    state.id=shelfId;
+    localStorage.setItem(KEY,JSON.stringify(state));
+    const list=readShelves(), index=list.findIndex(item=>item.id===shelfId), entry={...state,updatedAt:Date.now()};
+    if(index>=0)list[index]=entry;else list.push(entry);
+    localStorage.setItem(LIST_KEY,JSON.stringify(list));
+  }catch(_){}}
   function remember(){history.push(JSON.stringify(state));if(history.length>25)history.shift()}
   function notify(message){const el=$('canvasToast');el.textContent=message;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2100)}
   function paint(){
@@ -57,9 +71,8 @@
   $('helpToggle').addEventListener('change',e=>{state.showHelp=e.target.checked;$('emptyHint').hidden=!state.showHelp||state.sections===0;save()});
   $('resetShelf').addEventListener('click',e=>{e.preventDefault();remember();state={...defaults};paint();renderTray();$('settingsDialog').close();notify('Prévia reiniciada')});
   $('importBooksButton').addEventListener('click',()=>notify('A importação de livros será ligada a esta estante na próxima etapa'));
-  $('finishButton').addEventListener('click',()=>{save();notify('Estante salva neste aparelho');$('dockStatus').textContent='Estante salva · '+state.name});
+  $('finishButton').addEventListener('click',()=>{save();notify('Estante salva e vinculada às configurações');$('dockStatus').textContent='Salva neste app · '+state.name});
   $('undoButton').addEventListener('click',()=>{if(!history.length){notify('Nada para desfazer ainda');return}state=JSON.parse(history.pop());paint();renderTray();notify('Última mudança desfeita')});
   $('shelfNameInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('saveShelfName').click()}});
-  try{const stored=JSON.parse(localStorage.getItem(KEY)||'null');if(stored)state={...defaults,...stored}}catch(_){}
-  paint();renderNav();renderTray();
+    paint();renderNav();renderTray();
 })();
