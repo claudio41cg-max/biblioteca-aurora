@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#17191b">
+<link rel="stylesheet" href="./aurora-nova-estante.css?v=1">
+<title>Nova estante • Biblioteca Aurora</title>
+</head>
+<body class="new-shelf-page">
+<main class="studio">
+  <header class="studio-top">
+    <a href="./configuracoes.html" class="icon-button back-button" aria-label="Voltar às configurações">‹</a>
+    <div class="studio-heading"><span class="eyebrow">BIBLIOTECA AURORA</span><h1>Minha biblioteca</h1><p id="shelfSummary">Nova estante · em branco</p></div>
+    <button id="finishButton" class="icon-button finish-button" aria-label="Salvar estante" title="Salvar estante">✓</button>
+  </header>
+  <div class="studio-actions">
+    <button id="shelfNameButton" class="name-chip" type="button"><span id="shelfNameLabel">Minha estante</span><span aria-hidden="true">⌄</span></button>
+    <div class="quick-actions">
+      <button id="importBooksButton" class="quick-button" type="button" aria-label="Importar livros" title="Importar livros">＋</button>
+      <button id="editorSettingsButton" class="quick-button" type="button" aria-label="Configurações da estante" title="Configurações">⚙</button>
+    </div>
+  </div>
+  <section id="canvas" class="shelf-canvas wall wall-charcoal wood-oak" aria-label="Prévia da nova estante">
+    <div class="canvas-light" id="canvasLight"></div>
+    <div class="shelf-scene" id="shelfScene"></div>
+    <div class="empty-hint" id="emptyHint"><span>✦</span><strong>Sua estante começa aqui</strong><small>Escolha uma parede e uma madeira para criar o seu espaço.</small></div>
+    <div class="canvas-toast" id="canvasToast" role="status" aria-live="polite"></div>
+  </section>
+  <section class="editor-dock" aria-label="Personalizar estante">
+    <div class="tool-tray" id="toolTray" aria-label="Opções de personalização"></div>
+    <nav class="tool-nav" id="toolNav" aria-label="Ferramentas da estante"></nav>
+    <div class="dock-foot"><span id="dockStatus">Prévia salva automaticamente neste aparelho</span><button id="undoButton" class="dock-undo" type="button">↶ Desfazer</button></div>
+  </section>
+</main>
+<dialog id="nameDialog" class="aurora-dialog"><form method="dialog"><label for="shelfNameInput">Nome da estante</label><input id="shelfNameInput" maxlength="36" placeholder="Ex.: Meu cantinho"><div class="dialog-actions"><button value="cancel">Cancelar</button><button id="saveShelfName" value="default">Salvar</button></div></form></dialog>
+<dialog id="settingsDialog" class="aurora-dialog"><form method="dialog"><h2>Ajustes da estante</h2><label class="switch-row"><span>Brilho ambiente</span><input id="lightRange" type="range" min="35" max="120" value="85"></label><label class="switch-row"><span>Mostrar ajuda inicial</span><input id="helpToggle" type="checkbox" checked></label><div class="dialog-actions"><button value="cancel">Fechar</button><button id="resetShelf" value="default">Recomeçar</button></div></form></dialog>
+<dialog id="layersDialog" class="aurora-dialog"><form method="dialog"><h2>Camadas da estante</h2><div id="layersContent" class="layers-content"></div><div class="dialog-actions"><button value="cancel">Fechar</button></div></form></dialog>
+<input id="hiddenImport" type="file" accept=".pdf,.epub,.txt,application/pdf,application/epub+zip,text/plain" hidden>
+<script src="./aurora-nova-estante.js?v=1" defer></script>
+</body>
+</html>
