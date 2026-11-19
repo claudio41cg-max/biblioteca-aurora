@@ -29,3 +29,6 @@
 .config-done{width:100%;height:48px;border:1px solid #b58c59;border-radius:12px;background:linear-gradient(#dcb576,#c69556);color:#21190f;font-size:14px;font-weight:800;cursor:pointer}
 .config-option:focus-visible,.config-save:focus-visible,.config-done:focus-visible,.config-back:focus-visible{outline:2px solid #ffdb9e;outline-offset:3px}
 @media(max-width:380px){.config-shell{padding-left:14px;padding-right:14px}.config-save{padding:0 9px}.config-profile{gap:9px}}
+
+#savedShelves[hidden],#savedShelvesHeading[hidden]{display:none}
+#savedShelves .config-option{min-height:64px}
