@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#171b1b">
+  <link rel="stylesheet" href="./aurora-configuracoes.css?v=1">
+  <title>Configurações • Biblioteca Aurora</title>
+</head>
+<body class="config-page">
+  <main class="config-shell">
+    <header class="config-header">
+      <a class="config-back" href="./index.html" aria-label="Voltar para a estante">‹</a>
+      <div><h1>Configurações</h1><p>Seu espaço, do seu jeito</p></div>
+    </header>
+
+    <section aria-labelledby="profileHeading">
+      <h2 class="config-label" id="profileHeading">Seu perfil</h2>
+      <div class="config-card config-profile">
+        <div class="config-icon" aria-hidden="true">♙</div>
+        <div>
+          <label for="profileName">Seu nome</label>
+          <div class="config-name-row">
+            <input id="profileName" type="text" maxlength="48" autocomplete="name" placeholder="Digite seu nome">
+            <button class="config-save" id="saveName" type="button">Salvar</button>
+          </div>
+        </div>
+        <p class="config-note" id="nameStatus">Ainda sem nome. Você pode adicionar ou alterar quando quiser.</p>
+      </div>
+    </section>
+
+    <section aria-labelledby="shelvesHeading">
+      <h2 class="config-label" id="shelvesHeading">Estantes</h2>
+      <div class="config-card config-options">
+        <button class="config-option" type="button" id="newShelf">
+          <span class="config-option-icon" aria-hidden="true">＋</span>
+          <span class="config-option-text"><strong>Nova estante</strong><small>Começar com um espaço vazio</small></span>
+          <span class="config-arrow" aria-hidden="true">›</span>
+        </button>
+        <button class="config-option" type="button" id="customizeShelf">
+          <span class="config-option-icon" aria-hidden="true">✧</span>
+          <span class="config-option-text"><strong>Personalizar estante</strong><small>Ajustar a aparência e organizar o espaço</small></span>
+          <span class="config-arrow" aria-hidden="true">›</span>
+        </button>
+      </div>
+      <p class="config-feedback" id="actionStatus" role="status" aria-live="polite"></p>
+    </section>
+
+    <button class="config-done" type="button" onclick="location.href='./index.html'">Voltar para a estante</button>
+  </main>
+  <script>
+    (() => {
+      const key = 'aurora-perfil-nome';
+      const input = document.getElementById('profileName');
+      const status = document.getElementById('nameStatus');
+      const actionStatus = document.getElementById('actionStatus');
+      try {
+        const saved = localStorage.getItem(key) || '';
+        input.value = saved;
+        if (saved) status.textContent = 'Nome salvo neste aparelho. Você pode alterar quando quiser.';
+      } catch (_) {}
+      document.getElementById('saveName').addEventListener('click', () => {
+        const name = input.value.trim();
+        try {
+          if (name) localStorage.setItem(key, name);
+          else localStorage.removeItem(key);
+          status.textContent = name ? 'Nome salvo neste aparelho.' : 'Nome removido. Você pode adicionar quando quiser.';
+        } catch (_) {
+          status.textContent = 'Não foi possível salvar neste aparelho.';
+        }
+      });
+      document.getElementById('newShelf').addEventListener('click', () => {
+        actionStatus.textContent = 'A criação da nova estante será a próxima etapa.';
+      });
+      document.getElementById('customizeShelf').addEventListener('click', () => {
+        actionStatus.textContent = 'A personalização será aberta quando a nova estante estiver pronta.';
+      });
+    })();
+  </script>
+</body>
+</html>
