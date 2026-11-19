@@ -1,8 +1,8 @@
-const CACHE = 'aurora-v82';
+const CACHE = 'aurora-v83';
 const CORE = [
   './nova-estante.html?v=1', './aurora-nova-estante.css?v=1', './aurora-nova-estante.js?v=1',
   './configuracoes.html?v=1', './aurora-configuracoes.css?v=1',
-  './index.html?v=77', './meus-livros.html?v=32', './aurora-sala-3d.js?v=31',
+  './index.html?v=78', './meus-livros.html?v=32', './aurora-sala-3d.js?v=31',
   './aurora-estante.js?v=26', './aurora-estante-realista.css?v=9',
   './aurora-importados.js?v=30', './aurora-estante-3d.js?v=4', './aurora-livro-3d.mjs?v=18', './aurora-edition-surfaces.js?v=9',
   './', './index.html', './index.html?v=22', './index.html?v=35', './index.html?v=36', './index.html?v=37', './index.html?v=38', './index.html?v=39', './index.html?v=40', './index.html?v=41', './index.html?v=42', './index.html?v=43', './index.html?v=44', './index.html?v=45', './index.html?v=47', './index.html?v=48', './index.html?v=49', './index.html?v=50', './index.html?v=51', './index.html?v=52', './index.html?v=53', './index.html?v=54', './index.html?v=55', './index.html?v=56', './index.html?v=57', './index.html?v=58', './index.html?v=59', './index.html?v=60', './index.html?v=61', './index.html?v=62', './index.html?v=63', './index.html?v=46', './meus-livros.html?v=22', './meus-livros.html?v=23', './meus-livros.html?v=24', './meus-livros.html?v=25', './meus-livros.html?v=26', './meus-livros.html?v=27', './meus-livros.html?v=28', './meus-livros.html?v=29', './meus-livros.html?v=30', './meus-livros.html?v=20', './meus-livros.html?v=21',
@@ -40,8 +40,8 @@ self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(caches.open(CACHE).then(async cache => {
     // Se a versão nova não estiver disponível, a antiga não é descartada.
-    await cache.add('./index.html?v=77');
-    await Promise.allSettled(CORE.filter(url => url !== './index.html?v=77').map(url => cache.add(url)));
+    await cache.add('./index.html?v=78');
+    await Promise.allSettled(CORE.filter(url => url !== './index.html?v=78').map(url => cache.add(url)));
   }));
 });
 
@@ -59,7 +59,7 @@ self.addEventListener('fetch', event => {
     // O endereço raiz pode permanecer no cache do GitHub Pages após um deploy.
     // A entrada versionada abre a edição atual também nos PWAs já instalados.
     const isAppRoot = new URL(request.url).pathname === new URL(self.registration.scope).pathname;
-    const resource = isAppRoot ? new Request(new URL('./index.html?v=77',self.registration.scope)) : request;
+    const resource = isAppRoot ? new Request(new URL('./index.html?v=78',self.registration.scope)) : request;
     event.respondWith(fetchWithTimeout(resource,NAVIGATION_TIMEOUT_MS).then(response => {
       if (response.ok) {
         const copy = response.clone();
