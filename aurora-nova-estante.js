@@ -34,7 +34,7 @@
     $('canvasLight').style.opacity=Math.max(.2,Math.min(1,state.light/85));
     scene.replaceChildren();
     for(let i=0;i<state.sections;i++){const section=document.createElement('div');section.className='shelf-section';section.setAttribute('aria-label','Prateleira '+(i+1));const board=document.createElement('div');board.className='shelf-board';section.append(board);scene.append(section)}
-    $('emptyHint').hidden=state.sections===0;
+    $('emptyHint').hidden=state.sections===0||!state.showHelp;
     save();
   }
   function renderNav(){nav.innerHTML='';tools.forEach(t=>{const b=document.createElement('button');b.type='button';b.className='tool-button'+(activeTool===t.id?' active':'');b.innerHTML='<span class="tool-icon">'+t.icon+'</span><span>'+t.label+'</span>';b.addEventListener('click',()=>selectTool(t.id));nav.append(b)})}
