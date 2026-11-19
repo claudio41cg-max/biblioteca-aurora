@@ -1,6 +1,6 @@
-const CACHE = 'aurora-v84';
+const CACHE = 'aurora-v85';
 const CORE = [
-  './nova-estante.html?v=2', './aurora-nova-estante.css?v=2', './aurora-nova-estante.js?v=1',
+  './nova-estante.html?v=3', './aurora-nova-estante.css?v=3', './aurora-nova-estante.js?v=1',
   './configuracoes.html?v=1', './aurora-configuracoes.css?v=1',
   './index.html?v=78', './meus-livros.html?v=32', './aurora-sala-3d.js?v=31',
   './aurora-estante.js?v=26', './aurora-estante-realista.css?v=9',
