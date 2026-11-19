@@ -8,6 +8,7 @@
   const makeId=()=>Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);
   const shelves=readShelves();
   const shelfId=params.get('id')||(isNew?makeId():(shelves[shelves.length-1]?.id||makeId()));
+  if(isNew)window.history.replaceState(null,'',location.pathname+'?id='+encodeURIComponent(shelfId));
   const found=shelves.find(item=>item.id===shelfId);
   let state={...defaults,...(!isNew?(found||(()=>{try{return JSON.parse(localStorage.getItem(KEY)||'null')||{}}catch(_){return {}}})()):{}),id:shelfId};
   let history=[];
