@@ -34,15 +34,17 @@
       <div class="config-card config-options">
         <button class="config-option" type="button" id="newShelf">
           <span class="config-option-icon" aria-hidden="true">＋</span>
-          <span class="config-option-text"><strong>Nova estante</strong><small>Começar com um espaço vazio</small></span>
+          <span class="config-option-text"><strong>Nova estante</strong><small>Criar uma estante vazia neste app</small></span>
           <span class="config-arrow" aria-hidden="true">›</span>
         </button>
         <button class="config-option" type="button" id="customizeShelf">
           <span class="config-option-icon" aria-hidden="true">✧</span>
-          <span class="config-option-text"><strong>Personalizar estante</strong><small>Ajustar a aparência e organizar o espaço</small></span>
+          <span class="config-option-text"><strong>Personalizar estante</strong><small>Continuar editando uma das suas estantes</small></span>
           <span class="config-arrow" aria-hidden="true">›</span>
         </button>
       </div>
+      <h2 class="config-label" id="savedShelvesHeading" hidden>Suas estantes criadas</h2>
+      <div class="config-card config-options" id="savedShelves" hidden></div>
       <p class="config-feedback" id="actionStatus" role="status" aria-live="polite"></p>
     </section>
 
@@ -69,11 +71,27 @@
           status.textContent = 'Não foi possível salvar neste aparelho.';
         }
       });
+      const listKey='aurora-estantes-personalizadas-v1';
+      const list=document.getElementById('savedShelves');
+      const listHeading=document.getElementById('savedShelvesHeading');
+      const readShelves=()=>{try{return JSON.parse(localStorage.getItem(listKey)||'[]')}catch(_){return []}};
+      const savedShelves=readShelves();
+      listHeading.hidden=!savedShelves.length;
+      list.hidden=!savedShelves.length;
+      savedShelves.slice().reverse().forEach(shelf=>{
+        const button=document.createElement('button');
+        button.className='config-option';button.type='button';
+        button.innerHTML='<span class="config-option-icon" aria-hidden="true">▤</span><span class="config-option-text"><strong></strong><small>Continuar montando esta estante</small></span><span class="config-arrow" aria-hidden="true">›</span>';
+        button.querySelector('strong').textContent=shelf.name||'Minha estante';
+        button.addEventListener('click',()=>location.href='./nova-estante.html?id='+encodeURIComponent(shelf.id));
+        list.append(button);
+      });
       document.getElementById('newShelf').addEventListener('click', () => {
-        location.href = './nova-estante.html';
+        location.href = './nova-estante.html?nova=1';
       });
       document.getElementById('customizeShelf').addEventListener('click', () => {
-        location.href = './nova-estante.html';
+        const latest=savedShelves[savedShelves.length-1];
+        location.href = latest?'./nova-estante.html?id='+encodeURIComponent(latest.id):'./nova-estante.html?nova=1';
       });
     })();
   </script>
