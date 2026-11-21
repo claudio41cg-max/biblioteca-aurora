@@ -1,3 +1,11 @@
+## Atualização v89 — instalação PWA no Android (21/11/2026)
+
+- Corrigida a instalação inicial: o Service Worker é registrado imediatamente, sem aguardar todos os recursos da página terminarem de carregar.
+- O cache obrigatório inicial foi reduzido de dezenas de versões e arquivos para a página principal e um pequeno conjunto de recursos do PWA. Os leitores e imagens continuam sendo guardados em cache sob demanda.
+- Manifesto versionado e ícones declarados explicitamente para os usos normal e maskable, além de favicon para a aba.
+- Sem alterações em livros 3D, leitor PDF, EPUB, audiolivro, dados importados, IndexedDB ou localStorage.
+- Verificação final da instalação deve ser feita no Chrome do Samsung S24 FE.
+
 ## Atualização v88 — Biblioteca Aurora instalável como PWA (21/11/2026)
 
 - A estante principal registra o Service Worker, que já existia, para permitir instalação e reutilização offline de recursos visitados.

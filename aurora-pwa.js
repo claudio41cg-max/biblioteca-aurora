@@ -51,10 +51,9 @@
   });
   refreshButton();
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js', {scope: './'}).catch(error => {
-        console.warn('Biblioteca Aurora: modo offline indisponível neste navegador.', error);
-      });
-    });
+    // Registra imediatamente. Esperar o evento load pode atrasar a instalação
+    // em celulares com recursos externos lentos.
+    navigator.serviceWorker.register('./sw.js', {scope: './', updateViaCache: 'none'})
+      .catch(error => console.warn('Biblioteca Aurora: modo offline indisponível neste navegador.', error));
   }
 })();
