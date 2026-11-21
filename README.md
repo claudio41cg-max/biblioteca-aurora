@@ -1,3 +1,11 @@
+## Atualização v88 — Biblioteca Aurora instalável como PWA (21/11/2026)
+
+- A estante principal registra o Service Worker, que já existia, para permitir instalação e reutilização offline de recursos visitados.
+- Manifesto com identificação estável, nome, abertura na estante e ícones PNG 192/512 px, incluindo ícone seguro para máscara no Android.
+- Botão **Instalar aplicativo** no celular: usa o diálogo nativo quando disponível e orienta pelo menu do navegador nos demais casos.
+- Tela inicial em modo standalone, sem Play Store. Recursos externos (busca online, bibliotecas CDN ainda não carregadas) continuam dependendo de conexão.
+- Nenhum dado de localStorage ou IndexedDB é apagado. Livro 3D, folheio PDF, leitor EPUB, audiolivros e personalizações não foram alterados.
+
 # Biblioteca Aurora
 
 ## Atualização v87 — personalização por categorias na nova estante

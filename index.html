@@ -4,6 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#081d1d">
+  <meta name="description" content="Sua biblioteca pessoal com estantes personalizadas, livros 3D, páginas que viram, EPUB e audiolivros.">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Aurora">
+  <link rel="apple-touch-icon" href="./icons/aurora-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="stylesheet" href="./aurora-estante.css?v=19">
   <link rel="stylesheet" href="./aurora-avancado.css?v=4">
@@ -13,6 +19,7 @@
   <link rel="stylesheet" href="./aurora-configuracoes.css?v=1">
   <link rel="stylesheet" href="./aurora-sala-3d.css?v=7">
   <link rel="stylesheet" href="./aurora-online.css?v=6">
+  <link rel="stylesheet" href="./aurora-pwa.css?v=1">
   <title>Biblioteca Aurora • Minha estante</title>
 </head>
 <body>
@@ -55,7 +62,9 @@
       <button type="button" id="arrangeButton" aria-pressed="false">Organizar livros</button>
       <button type="button" id="roomButton" aria-expanded="false">Meu ambiente</button>
       <button type="button" id="statsButton" aria-expanded="false">Minhas leituras</button>
+      <button type="button" id="auroraInstallButton" class="aurora-install-button" hidden>⌂ Instalar aplicativo</button>
     </nav>
+    <p id="auroraInstallHelp" class="aurora-install-help" role="status" hidden></p>
     <section id="roomPanel" class="utility-panel" hidden aria-label="Personalizar ambiente">
       <div class="utility-heading"><h2>Personalizar a estante</h2><button type="button" class="back-to-shelf">← Estante</button></div>
       <p class="environment-intro">Escolha o fundo, a madeira e os tons. Veja a mudança na estante antes de salvar.</p>
@@ -239,5 +248,6 @@
   <script src="./aurora-pdf-import.js?v=6" defer></script>
   <script src="./aurora-edition-surfaces.js?v=9" defer></script>
   <script type="module" src="./aurora-livro-3d.mjs?v=18"></script>
+  <script src="./aurora-pwa.js?v=1" defer></script>
 </body>
 </html>

@@ -1,0 +1,26 @@
+/* Instalação discreta, sem modificar os estilos do livro 3D. */
+.library-tools .aurora-install-button {
+  appearance:none;
+  cursor:pointer;
+  font:inherit;
+  border:1px solid rgba(212,172,102,.55);
+  border-radius:999px;
+  background:linear-gradient(180deg,#a67d42,#735029);
+  color:#fff5dc;
+  padding:9px 15px;
+  box-shadow:0 2px 9px #0004;
+}
+.library-tools .aurora-install-button:focus-visible {outline:2px solid #f4d9a2;outline-offset:3px}
+.library-tools .aurora-install-button[hidden],.aurora-install-help[hidden] {display:none!important}
+.aurora-install-help {
+  max-width:700px;
+  margin:12px auto;
+  padding:11px 15px;
+  border:1px solid #b48a55;
+  border-radius:12px;
+  color:#f6e6c9;
+  background:#192928;
+  font-size:14px;
+  line-height:1.5;
+  text-align:center;
+}
