@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#171b1b">
-  <link rel="stylesheet" href="./aurora-configuracoes.css?v=1">
+  <link rel="stylesheet" href="./aurora-configuracoes.css?v=2">
   <title>Configurações • Biblioteca Aurora</title>
 </head>
 <body class="config-page">
@@ -48,6 +48,32 @@
       <p class="config-feedback" id="actionStatus" role="status" aria-live="polite"></p>
     </section>
 
+    <section aria-labelledby="backupHeading">
+      <h2 class="config-label" id="backupHeading">Backup da biblioteca</h2>
+      <div class="config-card config-options">
+        <button class="config-option" id="backupExport" type="button">
+          <span class="config-option-icon" aria-hidden="true">↓</span>
+          <span class="config-option-text"><strong>Exportar backup</strong><small>Baixar livros, estantes, progresso e preferências</small></span>
+          <span class="config-arrow" aria-hidden="true">›</span>
+        </button>
+        <button class="config-option" id="backupImport" type="button">
+          <span class="config-option-icon" aria-hidden="true">↑</span>
+          <span class="config-option-text"><strong>Restaurar backup</strong><small>Adicionar dados de um arquivo .aurora</small></span>
+          <span class="config-arrow" aria-hidden="true">›</span>
+        </button>
+        <input id="backupFile" type="file" accept=".aurora,application/octet-stream" hidden>
+      </div>
+      <p class="config-feedback" id="backupStatus" role="status" tabindex="-1"></p>
+      <div class="config-card config-backup-review" id="backupReview" hidden>
+        <p id="backupSummary" tabindex="-1"></p>
+        <div id="backupConflicts"></div>
+        <div class="config-backup-actions">
+          <button class="config-save" id="backupConfirm" type="button">Restaurar biblioteca</button>
+          <button class="config-back" id="backupCancel" type="button">Cancelar</button>
+        </div>
+      </div>
+    </section>
+
     <button class="config-done" type="button" onclick="location.href='./index.html'">Voltar para a estante</button>
   </main>
   <script>
@@ -56,11 +82,15 @@
       const input = document.getElementById('profileName');
       const status = document.getElementById('nameStatus');
       const actionStatus = document.getElementById('actionStatus');
-      try {
-        const saved = localStorage.getItem(key) || '';
-        input.value = saved;
-        if (saved) status.textContent = 'Nome salvo neste aparelho. Você pode alterar quando quiser.';
-      } catch (_) {}
+      function renderName() {
+        try {
+          const saved = localStorage.getItem(key) || '';
+          input.value = saved;
+          status.textContent = saved ? 'Nome salvo neste aparelho. Você pode alterar quando quiser.'
+            : 'Ainda sem nome. Você pode adicionar ou alterar quando quiser.';
+        } catch (_) {}
+      }
+      renderName();
       document.getElementById('saveName').addEventListener('click', () => {
         const name = input.value.trim();
         try {
@@ -75,25 +105,35 @@
       const list=document.getElementById('savedShelves');
       const listHeading=document.getElementById('savedShelvesHeading');
       const readShelves=()=>{try{return JSON.parse(localStorage.getItem(listKey)||'[]')}catch(_){return []}};
-      const savedShelves=readShelves();
-      listHeading.hidden=!savedShelves.length;
-      list.hidden=!savedShelves.length;
-      savedShelves.slice().reverse().forEach(shelf=>{
-        const button=document.createElement('button');
-        button.className='config-option';button.type='button';
-        button.innerHTML='<span class="config-option-icon" aria-hidden="true">▤</span><span class="config-option-text"><strong></strong><small>Continuar montando esta estante</small></span><span class="config-arrow" aria-hidden="true">›</span>';
-        button.querySelector('strong').textContent=shelf.name||'Minha estante';
-        button.addEventListener('click',()=>location.href='./nova-estante.html?id='+encodeURIComponent(shelf.id));
-        list.append(button);
+      function renderShelves() {
+        const savedShelves=readShelves();
+        list.replaceChildren();
+        listHeading.hidden=!savedShelves.length;
+        list.hidden=!savedShelves.length;
+        savedShelves.slice().reverse().forEach(shelf=>{
+          const button=document.createElement('button');
+          button.className='config-option';button.type='button';
+          button.innerHTML='<span class="config-option-icon" aria-hidden="true">▤</span><span class="config-option-text"><strong></strong><small>Continuar montando esta estante</small></span><span class="config-arrow" aria-hidden="true">›</span>';
+          button.querySelector('strong').textContent=shelf.name||'Minha estante';
+          button.addEventListener('click',()=>location.href='./nova-estante.html?id='+encodeURIComponent(shelf.id));
+          list.append(button);
+        });
+      }
+      renderShelves();
+      document.addEventListener('aurora:backup-restored', () => {
+        renderName();
+        renderShelves();
       });
       document.getElementById('newShelf').addEventListener('click', () => {
         location.href = './nova-estante.html?nova=1';
       });
       document.getElementById('customizeShelf').addEventListener('click', () => {
-        const latest=savedShelves[savedShelves.length-1];
+        const latest=readShelves().at(-1);
         location.href = latest?'./nova-estante.html?id='+encodeURIComponent(latest.id):'./nova-estante.html?nova=1';
       });
     })();
   </script>
+  <script src="./aurora-formatos.js?v=10" defer></script>
+  <script type="module" src="./aurora-backup-ui.mjs"></script>
 </body>
 </html>
