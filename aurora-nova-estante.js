@@ -19,6 +19,15 @@
   let toastTimer;
   const $=id=>document.getElementById(id);
   const canvas=$('canvas'),scene=$('shelfScene'),tray=$('toolTray'),nav=$('toolNav');
+  const sizeControls=document.createElement('div');
+  sizeControls.className='object-size-controls';
+  sizeControls.setAttribute('role','group');
+  const sizeActions=[['smaller','Diminuir','−'],['larger','Aumentar','+']];
+  for(const [action,,symbol] of sizeActions){
+    const button=document.createElement('button');
+    button.type='button';button.dataset.resize=action;button.textContent=symbol;
+    sizeControls.append(button);
+  }
   const tools=[
     {id:'tema',label:'Estantes',icon:'▤'},
     {id:'fundo',label:'Fundo',icon:'▧'},
@@ -88,6 +97,56 @@
   }
   function remember(){history.push(JSON.stringify(state));if(history.length>25)history.shift()}
   function notify(message){const el=$('canvasToast');el.textContent=message;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2100)}
+  function nextSize(item,action){
+    const size=Number(item.size)||88;
+    return Math.max(44,Math.min(160,size+(action==='larger'?12:-12)));
+  }
+  function updateSizeControls(){
+    const object=scene.querySelector('.shelf-object.selected');
+    const item=state.objects.find(entry=>entry.id===selectedObjectId);
+    if(!object||!item){sizeControls.remove();return;}
+    if(object.nextElementSibling!==sizeControls)object.after(sizeControls);
+    sizeControls.setAttribute('aria-label','Tamanho de '+item.name);
+    const layer=object.parentElement.getBoundingClientRect(),box=object.getBoundingClientRect();
+    const localLeft=box.left-layer.left,localRight=box.right-layer.left;
+    const diameter=sizeControls.firstElementChild.offsetWidth;
+    const gap=3,limit=Math.max(0,layer.width-diameter);
+    const left=Math.max(0,Math.min(limit,localLeft-gap-diameter));
+    const right=Math.max(0,Math.min(limit,localRight+gap));
+    // Quando a peça encosta numa lateral, libere o centro para continuar arrastando.
+    const overlap=left+diameter>localLeft+gap||right<localRight-gap;
+    const top=box.top-layer.top,bottom=box.bottom-layer.top;
+    const y=overlap?(top>=diameter+gap?top-diameter-gap:bottom+gap):(top+bottom-diameter)/2;
+    sizeControls.style.setProperty('--resize-top',Math.max(0,Math.min(layer.height-diameter,y))+'px');
+    for(const [index,[action,label]] of sizeActions.entries()){
+      const button=sizeControls.children[index];
+      button.style.left=(index===0?left:right)+'px';
+      button.setAttribute('aria-label',label+' '+item.name);
+      button.disabled=nextSize(item,action)===(Number(item.size)||88);
+    }
+  }
+  function selectObject(button){
+    scene.querySelector('.shelf-object.selected')?.classList.remove('selected');
+    selectedObjectId=button?.dataset.objectId||null;
+    button?.classList.add('selected');
+    updateSizeControls();
+  }
+  function resizeObject(item,action){
+    const size=nextSize(item,action);
+    if(size===(Number(item.size)||88))return;
+    remember();
+    item.size=size;
+    const object=scene.querySelector('.shelf-object.selected');
+    if(object)window.AuroraShelfScene.position(object,item);
+    updateSizeControls();
+    save();
+  }
+  sizeControls.addEventListener('click',event=>{
+    const action=event.target.closest('[data-resize]')?.dataset.resize;
+    const item=state.objects.find(entry=>entry.id===selectedObjectId);
+    if(item&&action)resizeObject(item,action);
+  });
+  new ResizeObserver(updateSizeControls).observe(scene);
   function paint(){
     canvas.className='shelf-canvas wall wall-'+state.wall+' wood-'+state.wood;
     document.body.dataset.wall=state.wall;
@@ -104,6 +163,7 @@
       const section=window.AuroraShelfScene.section(state.objects,i,{editable:true,selectedId:selectedObjectId});
       scene.append(section);
     }
+    updateSizeControls();
     $('emptyHint').hidden=state.sections===0||!state.showHelp;
     return save();
   }
@@ -199,7 +259,7 @@
     const toolbar=document.createElement('div');toolbar.className='object-layer-tools';
     const selected=state.objects.find(item=>item.id===selectedObjectId);
     const name=document.createElement('strong');name.textContent=selected?selected.name:'Selecione uma peça na lista';toolbar.append(name);
-    [['smaller','Diminuir'],['larger','Aumentar'],['rotate','Girar 5°'],['remove','Remover']].forEach(([action,label])=>{const button=document.createElement('button');button.type='button';button.dataset.objectAction=action;button.textContent=label;button.disabled=!selected;toolbar.append(button)});
+    [['smaller','Diminuir'],['larger','Aumentar'],['rotate','Girar 5°'],['remove','Remover']].forEach(([action,label])=>{const button=document.createElement('button');button.type='button';button.dataset.objectAction=action;button.textContent=label;button.disabled=!selected||((action==='smaller'||action==='larger')&&nextSize(selected,action)===(Number(selected.size)||88));toolbar.append(button)});
     content.append(toolbar);
     state.objects.forEach(item=>{const row=document.createElement('div');row.className='layer-object-row';row.dataset.objectRow=item.id;
       const image=document.createElement('img');image.src=item.src;image.alt='';const choose=document.createElement('button');choose.type='button';choose.className='layer-object-select';choose.textContent=item.name+' · prateleira '+(item.section+1);
@@ -211,8 +271,10 @@
       if(row){selectedObjectId=row.dataset.objectRow;paint();showLayers();return}
       const action=event.target.closest('[data-object-action]')?.dataset.objectAction;
       const item=state.objects.find(entry=>entry.id===selectedObjectId);if(!action||!item)return;
-      if(action==='remove'){remember();state.objects=state.objects.filter(entry=>entry.id!==item.id);selectedObjectId=null}
-      else{remember();if(action==='larger')item.size=Math.min(160,item.size+12);if(action==='smaller')item.size=Math.max(44,item.size-12);if(action==='rotate')item.rotation=(item.rotation+5)%360}
+      if(action==='smaller'||action==='larger'){resizeObject(item,action);showLayers();return}
+      remember();
+      if(action==='remove'){state.objects=state.objects.filter(entry=>entry.id!==item.id);selectedObjectId=null}
+      else if(action==='rotate')item.rotation=(item.rotation+5)%360;
       paint();showLayers();
     })}
     if(!$('layersDialog').open)$('layersDialog').showModal();
@@ -227,39 +289,56 @@
   $('importBooksButton').addEventListener('click',()=>selectTool('livro'));
   $('finishButton').addEventListener('click',()=>finish());
   $('undoButton').addEventListener('click',()=>{if(!history.length){notify('Nada para desfazer ainda');return}state=JSON.parse(history.pop());paint();renderTray();notify('Última mudança desfeita')});
+  scene.addEventListener('click',event=>{
+    const object=event.target.closest('[data-object-id]');
+    if(object)selectObject(object);
+  });
+  scene.addEventListener('keydown',event=>{
+    if(event.key!=='Escape'||!selectedObjectId)return;
+    scene.querySelector('.shelf-object.selected')?.focus({preventScroll:true});
+    selectObject(null);
+  });
   scene.addEventListener('pointerdown',event=>{
-    const button=event.target.closest('[data-object-id]');if(!button)return;
+    if(!event.isPrimary||event.button!==0||sizeControls.contains(event.target))return;
+    const button=event.target.closest('[data-object-id]');
+    selectObject(button);
+    if(!button)return;
     const item=state.objects.find(entry=>entry.id===button.dataset.objectId),layer=button.closest('.shelf-object-layer');if(!item||!layer)return;
-    if(!event.isPrimary||event.button!==0)return;
     event.preventDefault();
-    remember();
-    selectedObjectId=item.id;
-    scene.querySelector('.shelf-object.selected')?.classList.remove('selected');
-    button.classList.add('selected');
     scene.setPointerCapture(event.pointerId);
-    const original={section:item.section,x:item.x,bottom:item.bottom};
+    const position={...item};
     const start=layer.getBoundingClientRect();
     const grabX=event.clientX-start.left-button.offsetLeft;
     const grabFromBase=start.bottom-event.clientY-(window.AuroraShelfScene.onBoard(item)?0:button.offsetParent.clientHeight-button.offsetTop-button.offsetHeight);
+    let moving=false;
     const move=moveEvent=>{
       if(moveEvent.pointerId!==event.pointerId)return;
+      if(!moving){
+        if(Math.hypot(moveEvent.clientX-event.clientX,moveEvent.clientY-event.clientY)<4)return;
+        moving=true;sizeControls.hidden=true;
+      }
       const section=document.elementFromPoint(moveEvent.clientX,moveEvent.clientY)?.closest('.shelf-section');
       const nextLayer=section&&scene.contains(section)?section.querySelector('.shelf-object-layer'):button.parentElement;
       if(nextLayer!==button.parentElement)nextLayer.append(button);
       const rect=nextLayer.getBoundingClientRect();
       if(!rect.width||!rect.height)return;
-      item.section=Number(nextLayer.dataset.section);
-      item.x=Math.max(0,Math.min(rect.width-button.offsetWidth,moveEvent.clientX-rect.left-grabX))/rect.width*100;
-      item.bottom=window.AuroraShelfScene.onBoard(item)?0:
+      position.section=Number(nextLayer.dataset.section);
+      position.x=Math.max(0,Math.min(rect.width-button.offsetWidth,moveEvent.clientX-rect.left-grabX))/rect.width*100;
+      position.bottom=window.AuroraShelfScene.onBoard(item)?0:
         Math.max(0,Math.min(rect.height-button.offsetHeight,rect.bottom-moveEvent.clientY-grabFromBase))/rect.height*100;
-      window.AuroraShelfScene.position(button,item);
+      window.AuroraShelfScene.position(button,position);
     };
     const up=endEvent=>{
       if(endEvent.pointerId!==event.pointerId)return;
       scene.removeEventListener('pointermove',move);
       scene.removeEventListener('pointerup',up);
       scene.removeEventListener('pointercancel',up);
-      if(endEvent.type==='pointercancel')Object.assign(item,original);
+      sizeControls.hidden=false;
+      if(!moving)return;
+      if(endEvent.type==='pointerup'&&(position.section!==item.section||position.x!==item.x||position.bottom!==item.bottom)){
+        remember();
+        Object.assign(item,{section:position.section,x:position.x,bottom:position.bottom});
+      }
       paint();
     };
     scene.addEventListener('pointermove',move);

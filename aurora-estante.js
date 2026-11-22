@@ -119,6 +119,10 @@
       marker.textContent='◆';
       button.append(marker);
     }
+    const hitArea=document.createElement('span');
+    hitArea.className='shelf-book-hit-area';
+    hitArea.setAttribute('aria-hidden','true');
+    button.append(hitArea);
     return button;
   }
   function refreshCount(category) {

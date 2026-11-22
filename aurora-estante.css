@@ -195,3 +195,15 @@ body:not(.arranging) .book-spine[data-has-real-cover="true"]:focus-visible{
 .book-spine[data-spine-crisp="true"] .spine-title{background:none!important;text-shadow:none!important}
 
 .book-spine[data-real-spine="true"]{background-size:contain!important;background-position:center;background-repeat:no-repeat}
+
+/* A arte encolhe a partir da madeira. O espaço de toque acompanha o tamanho anterior. */
+:is(.bookrow,.personal-book-row) > .book-spine{
+  --shelf-book-scale:.94;
+  scale:var(--shelf-book-scale);
+  transform-origin:center bottom;
+}
+.book-spine > .shelf-book-hit-area{
+  position:absolute;inset:0;
+  transform-origin:center bottom;
+  transform:scale(calc(1 / var(--shelf-book-scale,1)));
+}
