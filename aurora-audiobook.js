@@ -5,7 +5,7 @@
   const audio=$('audio'),seek=$('audioSeek');
   const id=new URLSearchParams(location.search).get('livro');
   const formats=window.AuroraFormats;
-  let url='',book=null,lastSaved=0;
+  let url='',book=null,lastSaved=0,ready=false;
   const status=text=>$('audioStatus').textContent=text;
   const time=value=>{
     const seconds=Math.max(0,Math.floor(Number(value)||0));
@@ -22,14 +22,14 @@
     $('play').setAttribute('aria-label',audio.paused?'Reproduzir':'Pausar');
   };
   const save=force=>{
-    if(!book||(!force&&Date.now()-lastSaved<3500))return;
+    if(!ready||(!force&&Date.now()-lastSaved<3500))return;
     lastSaved=Date.now();
     formats.saveRecord('progress',{id:book.id,seconds:audio.currentTime||0,
       percent:Number.isFinite(audio.duration)&&audio.duration?Math.floor(audio.currentTime/audio.duration*100):0,
       updated:Date.now()}).catch(console.warn);
   };
   $('play').addEventListener('click',async()=>{
-    if(!audio.src)return;
+    if(!ready)return;
     if(!audio.paused){audio.pause();return;}
     try{await audio.play();}catch(error){status('Não foi possível iniciar o áudio: '+error.message);}
   });
@@ -42,7 +42,7 @@
   }));
   audio.addEventListener('error',()=>status('O formato de áudio não é compatível com este navegador. Experimente um arquivo MP3.'));
   document.addEventListener('visibilitychange',()=>{if(document.hidden)save(true);});
-  window.addEventListener('pagehide',()=>{save(true);if(url)URL.revokeObjectURL(url);});
+  window.addEventListener('pagehide',event=>{save(true);if(url&&!event.persisted)URL.revokeObjectURL(url);});
   (async()=>{
     try{
       if(!id)throw new Error('Nenhum audiolivro foi selecionado.');
@@ -51,17 +51,17 @@
       $('audioTitle').textContent=book.name;
       $('audioAuthor').textContent=book.author?'por '+book.author:'';
       if(book.cover){$('audioCover').src=book.cover;$('audioCover').hidden=false;$('audioPlaceholder').hidden=true;}
-      url=URL.createObjectURL(new Blob([book.data],{type:book.mime||'audio/mpeg'}));
-      audio.src=url;
       const speed=Number(localStorage.getItem('aurora-audio-speed'))||1;
       if(Array.from($('speed').options).some(option=>Number(option.value)===speed)){$('speed').value=String(speed);audio.playbackRate=speed;}
       const saved=await formats.readRecord('progress',id).catch(()=>null);
       audio.addEventListener('loadedmetadata',()=>{
         if(Number.isFinite(saved?.seconds)&&saved.seconds>0&&saved.seconds<audio.duration-1){audio.currentTime=saved.seconds;status('Continuando de onde você parou: '+time(saved.seconds)+'.');}
         else status('Pronto para ouvir. Seu progresso será salvo automaticamente.');
+        ready=true;
         sync();
       },{once:true});
-      audio.load();
+      url=URL.createObjectURL(new Blob([book.data],{type:book.mime||'audio/mpeg'}));
+      audio.src=url;
     }catch(error){status('Não foi possível abrir o audiolivro: '+error.message);}
   })();
 })();

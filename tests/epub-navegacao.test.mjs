@@ -14,7 +14,7 @@ assert.doesNotMatch(html,/id="previousChapter"|id="nextChapter"/);
 assert.match(reader,/PAGE_WINDOW=24/,'Um capítulo extenso deve usar páginas opacas em lotes econômicos');
 assert.match(reader,/if\(next>=pages\.length\)/,'Fim do capítulo deve avançar para o próximo');
 assert.match(reader,/host\.classList\.add\('epub-static'\)/,'Leitura precisa funcionar sem biblioteca externa');
-assert.match(read('sw.js'),/ignoreSearch:true/,'A navegação EPUB offline precisa ignorar a consulta da URL');
+assert.match(read('sw.js'),/ignoreSearch:\s*true/,'A navegação EPUB offline precisa ignorar a consulta da URL');
 
 // Execute com AURORA_BROWSER_TEST=1 para abrir um EPUB sintético no navegador real.
 if(process.env.AURORA_BROWSER_TEST==='1'){
@@ -34,7 +34,7 @@ if(process.env.AURORA_BROWSER_TEST==='1'){
     browser=await chromium.launch({headless:true,executablePath:'/usr/bin/chromium',args:['--no-sandbox']});
     const context=await browser.newContext({viewport:{width:390,height:830}});
     const page=await context.newPage();
-    await page.route('https://cdn.jsdelivr.net/**',route=>route.abort());
+    await page.route('**/vendor/page-flip-2.0.7.browser.js',route=>route.abort());
     await page.goto(base+'/ler-epub.html');
     await page.evaluate(async()=>{
       const zip=new JSZip();
