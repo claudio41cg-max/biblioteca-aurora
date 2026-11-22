@@ -14,7 +14,7 @@ assert.doesNotMatch(html,/id="previousChapter"|id="nextChapter"/);
 assert.match(reader,/PAGE_WINDOW=24/,'Um capítulo extenso deve usar páginas opacas em lotes econômicos');
 assert.match(reader,/if\(next>=pages\.length\)/,'Fim do capítulo deve avançar para o próximo');
 assert.match(reader,/host\.classList\.add\('epub-static'\)/,'Leitura precisa funcionar sem biblioteca externa');
-assert.match(read('sw.js'),/ignoreSearch:true/,'A navegação EPUB offline precisa ignorar a consulta da URL');
+assert.match(read('sw.js'),/ignoreSearch:\s*true/,'A navegação EPUB offline precisa ignorar a consulta da URL');
 
 // Execute com AURORA_BROWSER_TEST=1 para abrir um EPUB sintético no navegador real.
 if(process.env.AURORA_BROWSER_TEST==='1'){
