@@ -2,9 +2,11 @@ const CACHE = 'aurora-v89';
 // O cache inicial precisa ser leve para ativar o PWA rapidamente no celular.
 // Os demais arquivos da estante, do livro 3D e dos leitores são cacheados
 // quando usados. O conteúdo importado continua no armazenamento local.
+// As versões dos arquivos preservam no mesmo cache os leitores já baixados.
+const HOME = './index.html?v=90';
 const CORE = [
-  './index.html?v=89',
-  './manifest.webmanifest?v=89',
+  HOME,
+  './manifest.webmanifest?v=90',
   './aurora-pwa.js?v=2',
   './aurora-pwa.css?v=2',
   './icons/aurora-192.png',
@@ -23,9 +25,9 @@ self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(caches.open(CACHE).then(async cache => {
     // Se a versão nova não estiver disponível, a antiga não é descartada.
-    await cache.add('./index.html?v=89');
+    await cache.add(HOME);
     // Recursos extras são opcionais; falhas ou lentidão não bloqueiam a instalação.
-    await Promise.allSettled(CORE.filter(url => url !== './index.html?v=89').map(url => cache.add(url)));
+    await Promise.allSettled(CORE.filter(url => url !== HOME).map(url => cache.add(url)));
   }));
 });
 
@@ -42,15 +44,17 @@ self.addEventListener('fetch', event => {
   if (request.mode === 'navigate') {
     // O endereço raiz pode permanecer no cache do GitHub Pages após um deploy.
     // A entrada versionada abre a edição atual também nos PWAs já instalados.
-    const isAppRoot = new URL(request.url).pathname === new URL(self.registration.scope).pathname;
-    const resource = isAppRoot ? new Request(new URL('./index.html?v=89',self.registration.scope)) : request;
+    const pathname = new URL(request.url).pathname;
+    const isHome = pathname === new URL(self.registration.scope).pathname ||
+      pathname === new URL(HOME, self.registration.scope).pathname;
+    const resource = isHome ? new Request(new URL(HOME,self.registration.scope)) : request;
     event.respondWith(fetchWithTimeout(resource,NAVIGATION_TIMEOUT_MS).then(response => {
       if (response.ok) {
         const copy = response.clone();
-        caches.open(CACHE).then(cache => cache.put(request,copy)).catch(() => {});
+        caches.open(CACHE).then(cache => cache.put(resource,copy)).catch(() => {});
       }
       return response;
-    }).catch(() => caches.match(request,{ignoreSearch:true}).then(result => result || caches.match('./index.html'))));
+    }).catch(async () => (isHome ? await caches.match(HOME) : await caches.match(request,{ignoreSearch:true})) || await caches.match(HOME) || Response.error()));
     return;
   }
   event.respondWith(caches.match(request).then(cached => {

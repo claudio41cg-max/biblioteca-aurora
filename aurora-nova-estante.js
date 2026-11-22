@@ -1,16 +1,16 @@
 (() => {
-  const KEY='aurora-nova-estante-v1';
-  const LIST_KEY='aurora-estantes-personalizadas-v1';
+  const savedShelves=window.AuroraEstantesSalvas;
   const params=new URLSearchParams(location.search);
   const isNew=params.get('nova')==='1';
   const defaults={name:'Minha estante',wall:'tijolos',wallTone:'noite',wood:'nogueira',shelfTone:'natural',theme:'',light:85,sections:1,showHelp:true,objects:[]};
-  const readShelves=()=>{try{return JSON.parse(localStorage.getItem(LIST_KEY)||'[]')}catch(_){return []}};
-  const makeId=()=>Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);
-  const shelves=readShelves();
-  const shelfId=params.get('id')||(isNew?makeId():(shelves[shelves.length-1]?.id||makeId()));
-  if(isNew)window.history.replaceState(null,'',location.pathname+'?id='+encodeURIComponent(shelfId));
-  const found=shelves.find(item=>item.id===shelfId);
-  let state={...defaults,...(!isNew?(found||(()=>{try{return JSON.parse(localStorage.getItem(KEY)||'null')||{}}catch(_){return {}}})()):{}),id:shelfId};
+  const makeId=()=>crypto.randomUUID?.()||Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);
+  let shelves=[];
+  try{shelves=savedShelves.read();}catch{/* O aviso de gravação permanece visível no editor. */}
+  const requestedId=params.get('id');
+  const found=isNew?null:requestedId?shelves.find(item=>item?.id===requestedId):shelves.at(-1);
+  const shelfId=found?.id||(!isNew&&requestedId)||makeId();
+  if(isNew||!requestedId)window.history.replaceState(null,'',location.pathname+'?id='+encodeURIComponent(shelfId));
+  let state={...defaults,...found,id:shelfId,published:found?.published===true};
   if(!Array.isArray(state.objects))state.objects=[];
   state.wall=({charcoal:'tijolos',navy:'ripas',botanical:'botanico',stone:'reboco',cream:'original'}[state.wall]||state.wall);
   state.wood=({oak:'carvalho',walnut:'nogueira',mahogany:'mogno',black:'metal',white:'marmore'}[state.wood]||state.wood);
@@ -40,7 +40,7 @@
     decoracao:[{name:'Globo vintage',src:'./assets/customizador/globo-antigo.png'}]
   };
   const palettes={
-    theme:[
+    tema:[
       ['Noite aconchegante','tijolos','url("./assets/ambientes/parede-0.webp")','nogueira','noite','natural'],
       ['Madeira ripada','ripas','url("./assets/ambientes/parede-1.webp")','carvalho','noite','natural'],
       ['Botânico','botanico','url("./assets/ambientes/parede-3.webp")','mogno','verde','calor'],
@@ -64,13 +64,28 @@
       ['Original','original','url("./assets/prateleira-romances.webp")']
     ]
   };
-  function save(){try{
-    state.id=shelfId;
-    localStorage.setItem(KEY,JSON.stringify(state));
-    const list=readShelves(), index=list.findIndex(item=>item.id===shelfId), entry={...state,updatedAt:Date.now()};
-    if(index>=0)list[index]=entry;else list.push(entry);
-    localStorage.setItem(LIST_KEY,JSON.stringify(list));
-  }catch(_){}}
+  function save(publish=false){
+    const status=$('dockStatus');
+    try{
+      const entry=savedShelves.save(state,publish);
+      state.published=entry.published;
+      if(entry.published)state.publishedAt=entry.publishedAt;
+      status.textContent=entry.published?'Alterações salvas neste aparelho':'Rascunho salvo neste aparelho';
+      return true;
+    }catch(error){
+      status.textContent=error.name==='QuotaExceededError'
+        ?'Armazenamento cheio. Remova uma foto da estante e tente salvar novamente.'
+        :'Não foi possível salvar neste aparelho. Tente novamente antes de sair.';
+      return false;
+    }
+  }
+  function finish(chooseBooks=false){
+    if(!save(true)){notify($('dockStatus').textContent);return;}
+    const url=new URL('./index.html',location.href);
+    url.searchParams.set('estante',shelfId);
+    if(chooseBooks)url.searchParams.set('livros','1');
+    location.assign(url.href);
+  }
   function remember(){history.push(JSON.stringify(state));if(history.length>25)history.shift()}
   function notify(message){const el=$('canvasToast');el.textContent=message;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2100)}
   function paint(){
@@ -82,28 +97,22 @@
     canvas.style.filter='brightness('+Math.max(.55,Math.min(1.18,state.light/85))+')';
     canvas.classList.toggle('has-sections',state.sections>0);
     $('shelfNameLabel').textContent=state.name;
-    $('shelfSummary').textContent=state.sections+' '+(state.sections===1?'prateleira':'prateleiras')+' · em branco';
+    $('shelfSummary').textContent=state.sections+' '+(state.sections===1?'prateleira':'prateleiras')+(state.published?'':' · rascunho');
     $('canvasLight').style.opacity=Math.max(.2,Math.min(1,state.light/85));
     scene.replaceChildren();
     for(let i=0;i<state.sections;i++){
-      const section=document.createElement('div');section.className='shelf-section';section.setAttribute('aria-label','Prateleira '+(i+1));
-      const objectLayer=document.createElement('div');objectLayer.className='shelf-object-layer';objectLayer.dataset.section=String(i);
-      state.objects.filter(item=>item.section===i).forEach(item=>{
-        const object=document.createElement('button');object.type='button';object.className='shelf-object'+(selectedObjectId===item.id?' selected':'');object.dataset.objectId=item.id;object.setAttribute('aria-label',item.name+' na prateleira '+(i+1)+'. Arraste para reposicionar.');
-        object.style.left=item.x+'%';object.style.bottom=item.bottom+'%';object.style.setProperty('--object-size',item.size+'px');object.style.setProperty('--object-rotation',item.rotation+'deg');
-        const image=document.createElement('img');image.src=item.src;image.alt=item.name;image.draggable=false;object.append(image);objectLayer.append(object);
-      });
-      const board=document.createElement('div');board.className='shelf-board';section.append(objectLayer,board);scene.append(section)
+      const section=window.AuroraShelfScene.section(state.objects,i,{editable:true,selectedId:selectedObjectId});
+      scene.append(section);
     }
     $('emptyHint').hidden=state.sections===0||!state.showHelp;
-    save();
+    return save();
   }
   function renderNav(){nav.innerHTML='';tools.forEach(t=>{const b=document.createElement('button');b.type='button';b.className='tool-button'+(activeTool===t.id?' active':'');b.innerHTML='<span class="tool-icon">'+t.icon+'</span><span>'+t.label+'</span>';b.addEventListener('click',()=>selectTool(t.id));nav.append(b)})}
   function addDecor(item){
     if(!state.sections){notify('Adicione uma prateleira antes de colocar um objeto');selectTool('secao');return}
     remember();const section=Math.max(0,Math.min(state.sections-1,targetSection));
     const count=state.objects.filter(entry=>entry.section===section).length;
-    const object={id:makeId(),name:item.name,src:item.src,section,x:Math.min(70,58+count*10),bottom:0,size:88,rotation:0};
+    const object={id:makeId(),name:item.name,src:item.src,mount:activeTool==='foto'?'wall':'board',section,x:Math.min(70,58+count*10),bottom:0,size:88,rotation:0};
     state.objects.push(object);selectedObjectId=object.id;paint();renderTray();notify(item.name+' colocado na estante');
   }
   function renderDecorTray(){
@@ -129,8 +138,20 @@
       items.forEach(([label,value,style,themeWood,themeWallTone,themeShelfTone])=>{
         const b=document.createElement('button');b.type='button';
         const selected=activeTool==='madeira'?state.wood===value:activeTool==='tema'?state.wall===value&&state.wood===themeWood:state.wall===value;
-        b.className='tray-card'+(selected?' active':'');
-        b.innerHTML='<span class="swatch" style="background:'+style+' center/cover"></span><strong>'+label+'</strong>';
+        b.className='tray-card material-card'+(selected?' active':'');
+        b.setAttribute('aria-pressed',String(selected));
+        const swatch=document.createElement('span');
+        swatch.className='swatch';
+        swatch.setAttribute('aria-hidden','true');
+        if(activeTool==='tema'){
+          swatch.classList.add('shelf-material-sample');
+          Object.assign(swatch.dataset,{wall:value,wallTone:themeWallTone,shelf:themeWood,shelfTone:themeShelfTone});
+        }else{
+          swatch.style.backgroundImage=style;
+        }
+        const title=document.createElement('strong');
+        title.textContent=label;
+        b.append(swatch,title);
         b.addEventListener('click',()=>{
           remember();
           if(activeTool==='madeira')state.wood=value;
@@ -163,7 +184,12 @@
     else if(activeTool==='luz'){const c=document.createElement('label');c.className='tray-card';c.innerHTML='<span class="swatch" style="background:radial-gradient(circle,#ffdc9a,#9c7140 32%,#30261e)">✦</span><strong>Brilho do ambiente</strong>';const range=document.createElement('input');range.type='range';range.min='35';range.max='120';range.value=state.light;range.setAttribute('aria-label','Brilho do ambiente');range.style.width='72px';range.addEventListener('input',()=>{state.light=+range.value;paint()});c.append(range);tray.append(c)}
     else if(['flores','vasos','velas','decoracao','foto'].includes(activeTool))renderDecorTray();
     else if(activeTool==='camadas'){const b=document.createElement('button');b.type='button';b.className='tray-card';b.innerHTML='<span class="swatch" style="display:grid;place-items:center;color:#e4bd7c;font-size:22px">☷</span><strong>Ver camadas</strong>';b.addEventListener('click',showLayers);tray.append(b)}
-    else {const b=document.createElement('div');b.className='tray-card';b.innerHTML='<span class="swatch" style="display:grid;place-items:center;color:#ddbd8a;font-size:21px">✦</span><strong>Na próxima etapa</strong>';tray.append(b);const p=document.createElement('span');p.style.cssText='align-self:center;color:#bbb5ab;font-size:12px;max-width:190px;line-height:1.45';p.textContent='Os livros serão colocados nesta estante depois que aprovarmos o editor.';tray.append(p)}
+    else if(activeTool==='livro'){
+      const button=document.createElement('button');
+      button.type='button';button.className='tray-card';
+      button.textContent=state.published?'Salvar e escolher livros':'Concluir e escolher livros';
+      button.addEventListener('click',()=>finish(true));tray.append(button);
+    }
   }
   function selectTool(id){activeTool=id;renderNav();renderTray();if(id==='secao')notify('Adicione prateleiras à sua nova estante');if(id==='camadas')showLayers()}
   function showLayers(){
@@ -193,21 +219,52 @@
   }
   function labelFor(v){return ({noite:'Noite',azul:'Azul',verde:'Verde',petroleo:'Petróleo',lilas:'Lilás',rosa:'Rosa',calor:'Âmbar',natural:'Natural',tijolos:'Tijolos escuros',ripas:'Madeira ripada',reboco:'Reboco vintage',botanico:'Botânico',rose:'Rosé clássico',original:'Original',nogueira:'Nogueira',carvalho:'Carvalho claro',mogno:'Mogno',marmore:'Mármore',metal:'Metal escovado'})[v]||v}
   $('shelfNameButton').addEventListener('click',()=>{$('shelfNameInput').value=state.name;$('nameDialog').showModal()});
-  $('saveShelfName').addEventListener('click',e=>{e.preventDefault();state.name=$('shelfNameInput').value.trim()||'Minha estante';paint();$('nameDialog').close();notify('Nome da estante salvo')});
+  $('saveShelfName').addEventListener('click',e=>{e.preventDefault();state.name=$('shelfNameInput').value.trim()||'Minha estante';const saved=paint();$('nameDialog').close();notify(saved?'Nome da estante salvo':$('dockStatus').textContent)});
   $('editorSettingsButton').addEventListener('click',()=>{$('lightRange').value=state.light;$('helpToggle').checked=state.showHelp;$('settingsDialog').showModal()});
   $('lightRange').addEventListener('input',e=>{state.light=+e.target.value;paint()});
   $('helpToggle').addEventListener('change',e=>{state.showHelp=e.target.checked;$('emptyHint').hidden=!state.showHelp||state.sections===0;save()});
-  $('resetShelf').addEventListener('click',e=>{e.preventDefault();remember();state={...defaults};paint();renderTray();$('settingsDialog').close();notify('Prévia reiniciada')});
-  $('importBooksButton').addEventListener('click',()=>notify('A importação de livros será ligada a esta estante na próxima etapa'));
-  $('finishButton').addEventListener('click',()=>{save();notify('Estante salva e vinculada às configurações');$('dockStatus').textContent='Salva neste app · '+state.name});
+  $('resetShelf').addEventListener('click',e=>{e.preventDefault();remember();state={...defaults,objects:[],id:shelfId,published:state.published};paint();renderTray();$('settingsDialog').close();notify('Prévia reiniciada')});
+  $('importBooksButton').addEventListener('click',()=>selectTool('livro'));
+  $('finishButton').addEventListener('click',()=>finish());
   $('undoButton').addEventListener('click',()=>{if(!history.length){notify('Nada para desfazer ainda');return}state=JSON.parse(history.pop());paint();renderTray();notify('Última mudança desfeita')});
   scene.addEventListener('pointerdown',event=>{
     const button=event.target.closest('[data-object-id]');if(!button)return;
     const item=state.objects.find(entry=>entry.id===button.dataset.objectId),layer=button.closest('.shelf-object-layer');if(!item||!layer)return;
-    event.preventDefault();remember();selectedObjectId=item.id;button.classList.add('selected');button.setPointerCapture(event.pointerId);
-    const move=moveEvent=>{const rect=layer.getBoundingClientRect();const maxLeft=Math.max(0,100-item.size/rect.width*100);item.x=Math.max(0,Math.min(maxLeft,(moveEvent.clientX-rect.left)/rect.width*100));item.bottom=Math.max(0,Math.min(78,(rect.bottom-moveEvent.clientY)/rect.height*100));button.style.left=item.x+'%';button.style.bottom=item.bottom+'%'};
-    const up=()=>{button.removeEventListener('pointermove',move);button.removeEventListener('pointerup',up);button.removeEventListener('pointercancel',up);save()};
-    button.addEventListener('pointermove',move);button.addEventListener('pointerup',up);button.addEventListener('pointercancel',up);
+    if(!event.isPrimary||event.button!==0)return;
+    event.preventDefault();
+    remember();
+    selectedObjectId=item.id;
+    scene.querySelector('.shelf-object.selected')?.classList.remove('selected');
+    button.classList.add('selected');
+    scene.setPointerCapture(event.pointerId);
+    const original={section:item.section,x:item.x,bottom:item.bottom};
+    const start=layer.getBoundingClientRect();
+    const grabX=event.clientX-start.left-button.offsetLeft;
+    const grabFromBase=start.bottom-event.clientY-(window.AuroraShelfScene.onBoard(item)?0:button.offsetParent.clientHeight-button.offsetTop-button.offsetHeight);
+    const move=moveEvent=>{
+      if(moveEvent.pointerId!==event.pointerId)return;
+      const section=document.elementFromPoint(moveEvent.clientX,moveEvent.clientY)?.closest('.shelf-section');
+      const nextLayer=section&&scene.contains(section)?section.querySelector('.shelf-object-layer'):button.parentElement;
+      if(nextLayer!==button.parentElement)nextLayer.append(button);
+      const rect=nextLayer.getBoundingClientRect();
+      if(!rect.width||!rect.height)return;
+      item.section=Number(nextLayer.dataset.section);
+      item.x=Math.max(0,Math.min(rect.width-button.offsetWidth,moveEvent.clientX-rect.left-grabX))/rect.width*100;
+      item.bottom=window.AuroraShelfScene.onBoard(item)?0:
+        Math.max(0,Math.min(rect.height-button.offsetHeight,rect.bottom-moveEvent.clientY-grabFromBase))/rect.height*100;
+      window.AuroraShelfScene.position(button,item);
+    };
+    const up=endEvent=>{
+      if(endEvent.pointerId!==event.pointerId)return;
+      scene.removeEventListener('pointermove',move);
+      scene.removeEventListener('pointerup',up);
+      scene.removeEventListener('pointercancel',up);
+      if(endEvent.type==='pointercancel')Object.assign(item,original);
+      paint();
+    };
+    scene.addEventListener('pointermove',move);
+    scene.addEventListener('pointerup',up);
+    scene.addEventListener('pointercancel',up);
   });
   $('shelfNameInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('saveShelfName').click()}});
     paint();renderNav();renderTray();

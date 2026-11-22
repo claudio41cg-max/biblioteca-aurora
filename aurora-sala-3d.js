@@ -174,6 +174,7 @@
 
   function open(button,book){
     if(active)return;
+    button=window.AuroraEstanteExemplares?.originFor(button)||button;
     // Toda edição adicionada passa pelo mesmo visor, mesmo quando não traz capa.
     if(book&&!book.cover&&window.AuroraFormats?.createDigitalCover){
       book.cover=window.AuroraFormats.createDigitalCover(window.AuroraTitles?.display(book.title||book.name)||book.title||book.name,book.author,book.format);

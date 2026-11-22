@@ -126,6 +126,6 @@
     }
     schedule();
   });
-  window.AuroraLombadas={processAll,hash,luminance,contrast,sampleProfile:window.AuroraEditionSurfaces.sampleProfile,modelFromProfile};
+  window.AuroraLombadas={enhance,processAll,hash,luminance,contrast,sampleProfile:window.AuroraEditionSurfaces.sampleProfile,modelFromProfile};
   schedule();
 })();
