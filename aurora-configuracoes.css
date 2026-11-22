@@ -3,7 +3,7 @@
 .settings-trigger svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
 .settings-trigger:focus-visible{outline:2px solid #ffdb9e;outline-offset:3px}
 .config-page{min-height:100vh;background:radial-gradient(ellipse at 50% 0%,#2a3833 0,#171b1b 48%,#111314 100%);color:#f4ead8;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
-.config-shell{width:min(100%,760px);min-height:100vh;margin:auto;padding:calc(env(safe-area-inset-top) + 17px) 18px calc(env(safe-area-inset-bottom) + 30px)}
+.config-shell{box-sizing:border-box;width:min(100%,760px);min-height:100vh;margin:auto;padding:calc(env(safe-area-inset-top) + 17px) 18px calc(env(safe-area-inset-bottom) + 30px)}
 .config-header{display:flex;align-items:center;gap:13px;margin:0 0 28px}
 .config-back{width:43px;height:43px;flex:0 0 43px;border:1px solid #414346;border-radius:50%;background:#202326;color:#f2e8d7;font-size:24px;line-height:1;text-decoration:none;display:grid;place-items:center}
 .config-header h1{font:500 27px/1.1 Georgia,"Times New Roman",serif;letter-spacing:0;margin:0;color:#f4e8d4}
@@ -32,3 +32,11 @@
 
 #savedShelves[hidden],#savedShelvesHeading[hidden]{display:none}
 #savedShelves .config-option{min-height:64px}
+
+.config-backup-review{padding:16px;margin-bottom:16px;font-size:14px}
+.config-backup-review p{margin:0 0 12px}
+.config-backup-review label{display:block;margin-bottom:12px;overflow-wrap:anywhere}
+.config-backup-review select{display:block;width:100%;margin-top:5px;padding:8px;border:1px solid #746651;border-radius:8px;background:#17191a;color:#f4ead8;font:inherit}
+.config-backup-actions{display:flex;gap:8px;flex-wrap:wrap}
+.config-backup-actions .config-back{flex:0 0 auto;width:auto;height:42px;padding:0 13px;font:inherit;cursor:pointer}
+.config-option:disabled,.config-backup-actions button:disabled{opacity:.55;cursor:wait}
