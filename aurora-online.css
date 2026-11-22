@@ -1,8 +1,6 @@
 /* Busca pública leve, sem alterar o livro 3D nem a estante de madeira. */
 .library-tools .explore-link{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border:1px solid #d2aa73;background:linear-gradient(150deg,#6f4e2d,#3c3023);color:#ffe7b9;border-radius:8px;padding:8px 12px;font:600 12px system-ui,sans-serif;box-shadow:0 3px 10px #0004}
 .library-tools .explore-link:hover,.library-tools .explore-link:focus-visible{background:#735337;outline:2px solid #eac38b;outline-offset:2px}
-.book-spine[data-source="online"]{border-right-color:#c69b5d;box-shadow:inset 3px 0 8px #111b,inset -2px 0 4px #f5ca7f33,4px 4px 5px #000a}
-.book-spine[data-source="online"] .spine-source{font-size:7px;background:#204a3a}
 .explore-page{margin:0;min-height:100dvh;background:radial-gradient(ellipse at 50% -25%,#3b6252 0%,#142e27 45%,#101916 100%);color:#f4ead5;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .explore-page *{box-sizing:border-box}
 .explore-page button,.explore-page input,.explore-page select{font:inherit}

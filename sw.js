@@ -3,10 +3,11 @@ const CACHE = 'aurora-v89';
 // Os demais arquivos da estante, do livro 3D e dos leitores são cacheados
 // quando usados. O conteúdo importado continua no armazenamento local.
 // As versões dos arquivos preservam no mesmo cache os leitores já baixados.
-const HOME = './index.html?v=91';
+const HOME = './index.html?v=92';
+const EDITOR = './nova-estante.html?v=92';
 const CORE = [
   HOME,
-  './manifest.webmanifest?v=91',
+  './manifest.webmanifest?v=92',
   './aurora-pwa.js?v=2',
   './aurora-pwa.css?v=2',
   './icons/aurora-192.png',
@@ -47,14 +48,20 @@ self.addEventListener('fetch', event => {
     const pathname = new URL(request.url).pathname;
     const isHome = pathname === new URL(self.registration.scope).pathname ||
       pathname === new URL(HOME, self.registration.scope).pathname;
-    const resource = isHome ? new Request(new URL(HOME,self.registration.scope)) : request;
+    // O ID da estante é interpretado pelo editor. Todas as estantes usam o mesmo HTML.
+    const isEditor = pathname === new URL(EDITOR, self.registration.scope).pathname;
+    const page = isHome ? HOME : isEditor ? EDITOR : null;
+    const resource = page ? new Request(new URL(page,self.registration.scope)) : request;
     event.respondWith(fetchWithTimeout(resource,NAVIGATION_TIMEOUT_MS).then(response => {
       if (response.ok) {
         const copy = response.clone();
         caches.open(CACHE).then(cache => cache.put(resource,copy)).catch(() => {});
       }
       return response;
-    }).catch(async () => (isHome ? await caches.match(HOME) : await caches.match(request,{ignoreSearch:true})) || await caches.match(HOME) || Response.error()));
+    }).catch(async () =>
+      (page && await caches.match(page)) ||
+      await caches.match(request,{ignoreSearch:true}) ||
+      await caches.match(HOME) || Response.error()));
     return;
   }
   event.respondWith(caches.match(request).then(cached => {

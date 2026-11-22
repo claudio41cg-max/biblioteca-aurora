@@ -44,11 +44,6 @@ body[data-theme="noturno"] .cabinet{filter:brightness(var(--room-light,.8)) satu
 body:not([data-theme="classico"]):not([data-theme="noturno"]) .cabinet{filter:brightness(var(--room-light,1))}
 body[data-plants="off"] .cabinet-0,
 body[data-plants="off"] .cabinet-1{background-image:url('./assets/prateleira-ficcao.webp')}
-/* A lombada fotografada usa a imagem real; não imprime um segundo título por cima. */
-.book-spine[data-real-spine="true"]{background-size:100% 100%;background-position:center;filter:none}
-.book-spine[data-real-spine="true"] .spine-title,.book-spine[data-real-spine="true"] .spine-source{display:none}
-.book-spine[data-real-spine="true"]:after{background:none}
-.book-spine[data-source="pdf"][data-cover-derived="true"]{background-size:900% 100%;background-position:0 50%}
 @media(max-width:520px){
   .library-tools{gap:6px}
   .library-tools button{font-size:11px;padding:8px}
