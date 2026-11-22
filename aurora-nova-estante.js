@@ -196,12 +196,67 @@
     return save();
   }
   function renderNav(){nav.innerHTML='';tools.forEach(t=>{const b=document.createElement('button');b.type='button';b.className='tool-button'+(activeTool===t.id?' active':'');b.innerHTML='<span class="tool-icon">'+t.icon+'</span><span>'+t.label+'</span>';b.addEventListener('click',()=>selectTool(t.id));nav.append(b)})}
+  const frames=[
+    {name:'Nogueira',light:'#c89561',mid:'#815038',dark:'#41251c',rim:31},
+    {name:'Preto fosco',light:'#625e5c',mid:'#302e2e',dark:'#151415',rim:18},
+    {name:'Dourado',light:'#ffedbc',mid:'#b88a44',dark:'#6f4929',rim:38},
+    {name:'Marfim',light:'#fff9ed',mid:'#dbcfb7',dark:'#998871',rim:30},
+    {name:'Prata',light:'#f1f5fc',mid:'#93a1b2',dark:'#444e5e',rim:24}
+  ];
+  function framedPhoto(frame,photo){
+    const canvas=document.createElement('canvas');
+    const landscape=photo && photo.naturalWidth>photo.naturalHeight;
+    canvas.width=landscape?640:496;
+    canvas.height=landscape?496:640;
+    const {width,height}=canvas, ctx=canvas.getContext('2d');
+    const bevel=ctx.createLinearGradient(0,0,width,height);
+    for(const [stop,color] of [[0,frame.light],[.28,frame.mid],[.49,frame.light],[.51,frame.mid],[.82,frame.dark],[1,frame.mid]])bevel.addColorStop(stop,color);
+    ctx.fillStyle=bevel;
+    ctx.fillRect(0,0,width,height);
+    for(const [inset,color,line] of [[2,frame.dark,4],[6,frame.light,2],[frame.rim-6,frame.dark,5],[frame.rim-2,frame.light,3]]){
+      ctx.strokeStyle=color;ctx.lineWidth=line;
+      ctx.strokeRect(inset,inset,width-2*inset,height-2*inset);
+    }
+    ctx.fillStyle=photo?'#efe8db':'#383735';
+    ctx.fillRect(frame.rim,frame.rim,width-2*frame.rim,height-2*frame.rim);
+    if(photo){
+      const margin=frame.rim+12;
+      const ratio=Math.min((width-2*margin)/photo.naturalWidth,(height-2*margin)/photo.naturalHeight);
+      const w=photo.naturalWidth*ratio,h=photo.naturalHeight*ratio;
+      ctx.drawImage(photo,(width-w)/2,(height-h)/2,w,h);
+    }
+    return canvas;
+  }
+  function framePicker(frame){
+    const label=document.createElement('label');
+    label.className='tray-card photo-tray-card frame-picker';
+    const title=document.createElement('strong');
+    title.textContent=frame.name;
+    const input=document.createElement('input');
+    input.type='file';input.accept='image/*';input.className='photo-upload-input';
+    input.setAttribute('aria-label','Escolher foto para o porta-retrato '+frame.name);
+    input.onchange=async()=>{
+      const file=input.files[0];
+      if(!file)return;
+      const url=URL.createObjectURL(file);
+      try{
+        const photo=new Image();
+        photo.src=url;
+        await photo.decode();
+        const src=framedPhoto(frame,photo).toDataURL('image/jpeg',.88);
+        addDecor({name:'Porta-retrato '+frame.name,src,mount:'board'});
+      }catch{notify('Não foi possível abrir a foto. Tente uma imagem JPG ou PNG.')}
+      finally{URL.revokeObjectURL(url);input.value=''}
+    };
+    label.append(framedPhoto(frame),title,input);
+    return label;
+  }
   function addDecor(item){
     if(!state.sections){notify('Adicione uma prateleira antes de colocar um objeto');selectTool('secao');return}
     remember();const section=Math.max(0,Math.min(state.sections-1,targetSection));
     const count=state.objects.filter(entry=>entry.section===section).length;
-    const object={id:makeId(),name:item.name,src:item.src,mount:activeTool==='foto'?'wall':'board',section,x:Math.min(70,58+count*10),bottom:0,size:88,rotation:0};
-    state.objects.push(object);selectedObjectId=object.id;paint();renderTray();notify(item.name+' colocado na estante');
+    const object={id:makeId(),name:item.name,src:item.src,mount:item.mount||(activeTool==='foto'?'wall':'board'),section,x:Math.min(70,58+count*10),bottom:0,size:88,rotation:0};
+    state.objects.push(object);selectedObjectId=object.id;const saved=paint();renderTray();notify(saved?item.name+' colocado na estante':$('dockStatus').textContent);
   }
   function renderDecorTray(){
     targetSection=Math.max(0,Math.min(Math.max(0,state.sections-1),targetSection));
@@ -212,6 +267,7 @@
     const items=decorItems[activeTool]||[];
     items.forEach(item=>{const button=document.createElement('button');button.type='button';button.className='tray-card decor-tray-card';const image=document.createElement('img');image.src=item.src;image.alt='';image.loading='lazy';const title=document.createElement('strong');title.textContent=item.name;button.append(image,title);button.addEventListener('click',()=>addDecor(item));tray.append(button)});
     if(activeTool==='foto'){
+      tray.append(...frames.map(framePicker));
       const label=document.createElement('label');label.className='tray-card photo-tray-card';label.innerHTML='<span class="swatch">▧</span><strong>Escolher foto</strong>';
       const input=document.createElement('input');input.type='file';input.accept='image/png,image/jpeg,image/webp';input.className='photo-upload-input';input.setAttribute('aria-label','Escolher uma imagem para a estante');
       input.addEventListener('change',()=>{const file=input.files?.[0];if(!file)return;if(file.size>900000){notify('Escolha uma imagem de até 900 KB');input.value='';return}const reader=new FileReader();reader.onload=()=>addDecor({name:file.name.replace(/\.[^.]+$/,'').slice(0,36)||'Minha foto',src:String(reader.result)});reader.onerror=()=>notify('Não foi possível abrir essa imagem');reader.readAsDataURL(file)});
@@ -220,7 +276,20 @@
     if(!state.sections){const hint=document.createElement('span');hint.className='tray-help';hint.textContent='Crie uma prateleira primeiro na ferramenta “Adicionar seção”.';tray.append(hint)}
   }
   function renderTray(){
-    tray.innerHTML='';
+    const split=activeTool==='madeira'||activeTool==='fundo';
+    const same=tray.dataset.tool===activeTool;
+    const offsets=same?Array.from(tray.children,row=>row.scrollLeft):[];
+    tray.replaceChildren();
+    tray.dataset.tool=activeTool;
+    tray.classList.toggle('stacked-palette',split);
+    const materialRow=split?document.createElement('div'):tray;
+    const toneRow=split?document.createElement('div'):tray;
+    if(split){
+      materialRow.className='material-options';toneRow.className='tone-options';
+      for(const [row,name] of [[materialRow,'Materiais'],[toneRow,'Tons']]){
+        row.setAttribute('role','group');row.setAttribute('aria-label',name);tray.append(row);
+      }
+    }
     const items=palettes[activeTool];
     if(items){
       items.forEach(([label,value,style,themeWood,themeWallTone,themeShelfTone])=>{
@@ -252,7 +321,7 @@
           paint();renderTray();
           notify(activeTool==='madeira'?'Acabamento aplicado':activeTool==='tema'?'Tema aplicado à estante':'Textura da parede aplicada')
         });
-        tray.append(b)
+        materialRow.append(b)
       });
       const toneOptions=activeTool==='fundo'
         ?[['Noite','noite','#16151d'],['Azul','azul','#29448d'],['Verde','verde','#2b694d'],['Petróleo','petroleo','#28757d'],['Lilás','lilas','#71529c'],['Rosa','rosa','#c16f94'],['Âmbar','calor','#98643d']]
@@ -263,10 +332,12 @@
         const b=document.createElement('button');b.type='button';
         const toneKey=activeTool==='fundo'?'wallTone':'shelfTone';
         b.className='tray-card tone-card'+(state[toneKey]===value?' active':'');
+        b.setAttribute('aria-pressed',String(state[toneKey]===value));
         b.innerHTML='<span class="tone-swatch" style="--tone:'+color+'"></span><strong>'+label+'</strong>';
         b.addEventListener('click',()=>{remember();state[toneKey]=value;paint();renderTray();notify(activeTool==='fundo'?'Tom da parede aplicado':'Tom do material aplicado')});
-        tray.append(b)
+        toneRow.append(b)
       });
+      if(split){materialRow.scrollLeft=offsets[0]||0;toneRow.scrollLeft=offsets[1]||0}
     }
     else if(activeTool==='secao'){const b=document.createElement('button');b.type='button';b.className='tray-card';b.innerHTML='<span class="swatch" style="display:grid;place-items:center;font-size:26px;color:#e5bb7d">＋</span><strong>Adicionar prateleira</strong>';b.addEventListener('click',()=>{remember();if(state.sections<8){state.sections++;targetSection=state.sections-1;paint();notify('Prateleira adicionada')}else notify('Limite de 8 prateleiras atingido')});tray.append(b);if(state.sections>0){const r=document.createElement('button');r.type='button';r.className='tray-card';r.innerHTML='<span class="swatch" style="display:grid;place-items:center;font-size:24px;color:#df9c89">−</span><strong>Remover última</strong>';r.addEventListener('click',()=>{remember();state.sections=Math.max(0,state.sections-1);state.objects.forEach(item=>item.section=Math.min(item.section,Math.max(0,state.sections-1)));targetSection=Math.max(0,Math.min(targetSection,Math.max(0,state.sections-1)));paint();renderTray();notify('Prateleira removida')});tray.append(r)}}
     else if(activeTool==='luz'){const c=document.createElement('label');c.className='tray-card';c.innerHTML='<span class="swatch" style="background:radial-gradient(circle,#ffdc9a,#9c7140 32%,#30261e)">✦</span><strong>Brilho do ambiente</strong>';const range=document.createElement('input');range.type='range';range.min='35';range.max='120';range.value=state.light;range.setAttribute('aria-label','Brilho do ambiente');range.style.width='72px';range.addEventListener('input',()=>{state.light=+range.value;paint()});c.append(range);tray.append(c)}

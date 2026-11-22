@@ -71,3 +71,12 @@ button.shelf-object:active{cursor:grabbing}
 .object-size-controls button:focus-visible{outline:2px solid #ffe4b6;outline-offset:-3px;border-radius:50%}
 .object-size-controls button:active::before{background:#584630}
 .object-size-controls button:disabled{opacity:.55;cursor:default}
+
+.frame-picker canvas{width:auto;height:48px;filter:drop-shadow(0 2px 2px #0008)}
+.frame-picker:focus-within{outline:2px solid var(--gold);outline-offset:-3px}
+.tool-tray.stacked-palette{height:auto;display:grid;gap:4px;overflow:hidden;grid-template-columns:minmax(0,1fr)}
+.material-options,.tone-options{display:flex;gap:6px;overflow-x:auto;scrollbar-width:thin;overscroll-behavior-x:contain}
+.material-options .material-card{min-height:76px}
+.tone-options .tone-card{flex:0 0 48px;min-height:46px;padding:4px 2px;gap:2px;background:none;border-color:transparent}
+.tone-options .tone-swatch{width:22px;height:22px}
+.tone-options strong{font-size:10px}
