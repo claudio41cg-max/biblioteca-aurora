@@ -50,7 +50,8 @@
     decoracao:[
       {name:'Globo vintage',src:'./assets/customizador/globo-antigo.png'},
       {name:'Gato de bronze',src:'./assets/customizador/gato-de-bronze.webp'},
-      {name:'Busto clássico',src:'./assets/customizador/busto-classico.webp'}
+      {name:'Busto clássico',src:'./assets/customizador/busto-classico.webp'},
+      {name:'Corações dourados',src:'./assets/customizador/coracoes-dourados.webp'}
     ]
   };
   const palettes={
