@@ -370,7 +370,7 @@
       }else{
         book=await formats.readRecord('books',id);
         if(!book||book.format!=='epub')throw new Error('Este EPUB não foi encontrado neste aparelho.');
-        epub=await formats.openEpub(book.data);
+        epub=await formats.openEpub(book.data,{withArt:false});
       }
       $('bookTitle').textContent=window.AuroraTitles?.display(book.name)||book.name;
       if(book.format==='epub'&&isRichDad(book.name||book.title)){

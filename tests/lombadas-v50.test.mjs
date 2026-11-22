@@ -12,7 +12,7 @@ assert.match(shelf,/if\(item\.cover&&item\.source!=='demo'\)button\.dataset\.cov
 assert.match(spine,/dataset\.realSpine==='true'/);
 assert.match(epub,/const refs=nodes\(packageXML,'itemref'\)\.slice\(0,3\)/);
 assert.match(epub,/if\(illustrations\.length!==1/);
-assert.match(imported,/stored\.coverCheckedVersion!==book\.coverCheckedVersion/);
+assert.match(imported,/book\.editionArtVersion!==1/);
 assert.match(html,/aurora-lombadas\.js\?v=\d+/);
 
 const imageDraws=[];

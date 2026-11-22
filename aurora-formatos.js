@@ -71,7 +71,7 @@
     if(writer)ctx.fillText(writer,300,645,500);
     ctx.strokeStyle='#d8b78488';ctx.beginPath();ctx.moveTo(185,696);ctx.lineTo(415,696);ctx.stroke();
     ctx.font='18px Georgia,serif';ctx.fillStyle='#d8b784';
-    const labels={epub:'EPUB',txt:'TEXTO',online:'LIVRO ONLINE',demo:'DEMONSTRAÇÃO',audio:'AUDIOLIVRO'};
+    const labels={epub:'EPUB',txt:'TEXTO',online:'LIVRO ONLINE',demo:'DEMONSTRAÇÃO',audio:'AUDIOLIVRO',pdf:'PDF'};
     ctx.fillText('CAPA ILUSTRATIVA • '+(labels[String(format).toLowerCase()]||'LIVRO DIGITAL'),300,758);
     return canvas.toDataURL('image/png');
   }
@@ -112,7 +112,7 @@
     }
     return null;
   }
-  async function openEpub(data){
+  async function openEpub(data,{withArt=true}={}){
     if(!window.JSZip)throw new Error('O módulo EPUB ainda não carregou. Abra o aplicativo novamente.');
     const zip=await JSZip.loadAsync(data);
     // Algumas edições trazem nomes percent-encoded ou diferenças de maiúsculas no ZIP.
@@ -130,82 +130,102 @@
       type:item.getAttribute('media-type')||'',
       properties:item.getAttribute('properties')||''
     }]));
-    const metaCover=nodes(packageXML,'meta').find(item=>item.getAttribute('name')==='cover')?.getAttribute('content');
-    const images=[...manifest.entries()].filter(([,item])=>
-      (item.type.startsWith('image/')||/\.(?:jpe?g|png|webp|svg)$/i.test(item.path))&&entry(item.path));
-    const backMarker=/(?:back[\s_-]?cover|rear[\s_-]?cover|contracapa|contra[\s_-]?capa|capa[\s_-]?(?:verso|traseira)|cover[\s_-]?back)/i;
-    let coverEntry=images.find(([id,item])=>item.properties.split(/\s+/).includes('cover-image')||id===metaCover)?.[1];
-    if(!coverEntry)coverEntry=images.find(([id,item])=>!backMarker.test(id+' '+item.path)&&
-      (/cover|capa|front/i.test(id)||
-        /(?:^|\/)(?:cover|capa|front)[^/]*\.(?:jpe?g|png|webp|svg)$/i.test(item.path)))?.[1];
-    // EPUB 2 frequentemente aponta a capa por <guide><reference type="cover">.
-    if(!coverEntry){
-      const reference=nodes(packageXML,'reference').find(item=>/cover/i.test(item.getAttribute('type')||''));
-      const coverPath=reference&&sibling(opfPath,reference.getAttribute('href'));
-      const coverFile=coverPath&&entry(coverPath);
-      if(coverFile){
-        if(images.some(([,item])=>item.path===coverPath))coverEntry=images.find(([,item])=>item.path===coverPath)?.[1];
-        else if(/\.x?html?$/i.test(coverPath)){
-          const doc=new DOMParser().parseFromString(await coverFile.async('text'),'text/html');
-          const source=doc.querySelector('img')?.getAttribute('src')||'';
-          const path=source&&sibling(coverFile.name,source);
-          coverEntry=images.find(([,item])=>item.path===path)?.[1];
+    let cover='',back='',binding={};
+    if(withArt){
+      const metaCover=nodes(packageXML,'meta').find(item=>item.getAttribute('name')==='cover')?.getAttribute('content');
+      const images=[...manifest.entries()].filter(([,item])=>
+        (item.type.startsWith('image/')||/\.(?:jpe?g|png|webp|svg)$/i.test(item.path))&&entry(item.path));
+      const art=window.AuroraEditionArt;
+      const entries=[...manifest.entries()];
+      const role=(id,item)=>{
+        const roles=[art.face(id),art.face(item.path),art.face(item.properties)];
+        return roles.find(value=>value&&value!=='cover')||roles.find(Boolean);
+      };
+      const pathRole=path=>art.face(path);
+      const safeFront=item=>!['wrap','spine','back'].includes(pathRole(item.path));
+      const imageAt=path=>{
+        const file=entry(path);
+        if(!file)return null;
+        return images.find(([,item])=>entry(item.path)?.name===file.name)?.[1]||
+          (art.mime(file.name)?{path:file.name,type:art.mime(file.name)}:null);
+      };
+      async function pageImage(path,firstPage=false){
+        const direct=imageAt(path);
+        if(direct)return direct;
+        if(!/\.x?html?$/i.test(path)||!entry(path))return null;
+        const doc=xml(await entry(path).async('text'));
+        const body=byLocal(doc,'body')||doc.documentElement;
+        const illustrations=Array.from(body.getElementsByTagName('*')).filter(el=>['img','image','object'].includes(el.localName));
+        if(illustrations.length!==1||(firstPage&&body.textContent.trim().length>45))return null;
+        const node=illustrations[0];
+        const href=node.getAttribute('src')||node.getAttribute('href')||node.getAttribute('xlink:href')||node.getAttribute('data');
+        return href?imageAt(sibling(path,href)):null;
+      }
+      const references=nodes(packageXML,'reference').map(ref=>({
+        kind:art.face(ref.getAttribute('type'))||art.face(ref.getAttribute('title')),
+        path:sibling(opfPath,ref.getAttribute('href'))
+      }));
+      const nav=entries.find(([,item])=>item.properties.split(/\s+/).includes('nav'))?.[1];
+      if(nav&&entry(nav.path)){
+        const doc=xml(await entry(nav.path).async('text'));
+        for(const section of nodes(doc,'nav')){
+          if(!(section.getAttribute('epub:type')||'').split(/\s+/).includes('landmarks'))continue;
+          for(const link of nodes(section,'a'))references.push({
+            kind:art.face(link.getAttribute('epub:type'))||art.face(link.textContent),
+            path:sibling(nav.path,link.getAttribute('href'))
+          });
         }
       }
-    }
-    // Algumas conversões guardam a capa somente no primeiro XHTML, sem
-    // marcar cover-image no OPF. Reconhece a página visual quase sem texto,
-    // conferindo que a imagem realmente existe no ZIP.
-    if(!coverEntry){
-      const refs=nodes(packageXML,'itemref').slice(0,3);
-      for(let index=0;index<refs.length;index++){
-        const idref=refs[index].getAttribute('idref')||'';
-        const page=manifest.get(idref);
-        if(!page||!/xhtml|html/.test(page.type)||!entry(page.path))continue;
-        try{
-          const doc=xml(await entry(page.path).async('text'));
-          const body=byLocal(doc,'body')||doc.documentElement;
-          const visibleText=String(body?.textContent||'').replace(/\s+/g,' ').trim();
-          const illustrations=Array.from(body?.getElementsByTagName('*')||[])
-            .filter(el=>['img','image'].includes(el.localName));
-          const marked=/(?:^|[\/_.-])(cover|capa|front|titlepage)(?:[\/_.-]|$)/i.test(idref+' '+page.path);
-          if(illustrations.length!==1||(!marked&&(index!==0||visibleText.length>45)))continue;
-          const img=illustrations[0];
-          const source=img.getAttribute('src')||img.getAttribute('href')||
-            img.getAttribute('xlink:href')||'';
-          const path=source&&sibling(page.path,source);
-          const found=images.find(([,item])=>item.path.toLowerCase()===path.toLowerCase());
-          if(found){coverEntry=found[1];break;}
-        }catch(error){console.warn('Página de capa EPUB não reconhecida:',error);}
+      async function findArt(kind){
+        for(const ref of references){
+          if(ref.kind!==kind)continue;
+          const image=await pageImage(ref.path);
+          if(image)return image;
+        }
+        const explicit=images.find(([id,item])=>role(id,item)===kind);
+        if(explicit)return explicit[1];
+        for(const [id,item] of entries){
+          if(role(id,item)!==kind)continue;
+          const image=await pageImage(item.path);
+          if(image)return image;
+        }
+        const direct=[...filenames.values()].find(path=>art.mime(path)&&pathRole(path)===kind);
+        return direct?imageAt(direct):null;
       }
-    }
-    // Alguns EPUBs não registram a fotografia da capa no manifest, embora ela
-    // exista no ZIP. Só aceita nomes inequívocos, sem confundir contracapa.
-    if(!coverEntry){
-      const direct=Object.keys(zip.files).filter(path=>!zip.files[path].dir &&
-        /\.(?:jpe?g|png|webp)$/i.test(path) &&
-        /(?:^|[\/_.-])(?:cover|capa|front)(?:[\/_.-]|$)/i.test(path) &&
-        !backMarker.test(path)).sort((a,b)=>a.length-b.length)[0];
-      if(direct)coverEntry={path:direct,type:/\.png$/i.test(direct)?'image/png':/\.webp$/i.test(direct)?'image/webp':'image/jpeg'};
-    }
-    let cover='';
-    if(coverEntry&&entry(coverEntry.path)){
-      const bytes=await entry(coverEntry.path).async('uint8array');
-      const mime=coverEntry.type.startsWith('image/')?coverEntry.type:'image/jpeg';
-      cover=await blobToData(new Blob([bytes],{type:mime}));
-    }
-    // Uma contracapa é uma imagem própria da edição, nunca a última página
-    // de texto. Só usamos arquivos com identificação inequívoca no EPUB.
-    const backEntry=images.find(([id,item])=>
-      backMarker.test(id+' '+item.path) && item.path!==coverEntry?.path &&
-      /^image\/(?:jpeg|png|webp)$/i.test(item.type))?.[1];
-    let back='';
-    if(backEntry){
-      const backFile=entry(backEntry.path);
-      if(backFile && (!backFile._data?.uncompressedSize || backFile._data.uncompressedSize<=8e6)){
-        const bytes=await backFile.async('uint8array');
-        if(bytes.byteLength<=8e6){
-          back=await blobToData(new Blob([bytes],{type:backEntry.type}));
+      const marked=images.find(([id,item])=>(item.properties.split(/\s+/).includes('cover-image')||id===metaCover)&&safeFront(item)&&!['wrap','back','spine'].includes(art.face(id)));
+      const metaPage=manifest.get(metaCover);
+      let coverEntry=marked?.[1]||(metaPage&&safeFront(metaPage)?await pageImage(metaPage.path):null)||await findArt('cover');
+      const backEntry=await findArt('back'), spineEntry=await findArt('spine'), wrapEntry=await findArt('wrap');
+      if(!coverEntry){
+        const refs=nodes(packageXML,'itemref').slice(0,3);
+        for(const [index,ref] of refs.entries()){
+          const page=manifest.get(ref.getAttribute('idref'));
+          if(!page||!safeFront(page)||(index>0&&!/cover|capa|titlepage/i.test(page.path)))continue;
+          const image=await pageImage(page.path,index===0);
+          if(image&&safeFront(image)&&![backEntry,spineEntry,wrapEntry].some(other=>other?.path===image.path)){coverEntry=image;break;}
+        }
+      }
+      async function readArt(item){
+        if(!item)return '';
+        const file=entry(item.path);
+        if(!file||file._data?.uncompressedSize>32*1024*1024)return '';
+        try{
+          const bytes=await file.async('uint8array');
+          const src=await blobToData(new Blob([bytes],{type:art.mime(item.path)||item.type}));
+          await art.decode(src);
+          return src;
+        }catch{return '';}
+      }
+      cover=await readArt(coverEntry);back=await readArt(backEntry);
+      binding=await art.spineArt(await readArt(spineEntry));
+      if(wrapEntry&&(!cover||!back||!binding.spine)){
+        const spread=await readArt(wrapEntry);
+        if(spread){
+          const panel=(cover||back)?await art.decode(cover||back):null;
+          const rtl=byLocal(packageXML,'spine')?.getAttribute('page-progression-direction')==='rtl';
+          const faces=await art.splitWrap(spread,panel?panel.naturalWidth/panel.naturalHeight:0,rtl);
+          cover=cover||faces.cover||'';back=back||faces.back||'';
+          if(!binding.spine&&faces.spine)binding=faces;
         }
       }
     }
@@ -220,7 +240,7 @@
     return {zip,filenames,spine:spine.map(item=>({...item,path:entry(item.path).name})),title:byLocal(metadata,'title')?.textContent?.trim()||'',
       author:byLocal(metadata,'creator')?.textContent?.trim()||'',
       description:byLocal(metadata,'description')?.textContent?.trim()||'',
-      cover,back};
+      cover,back,spineImage:binding.spine||'',spineAspect:binding.spineAspect||0};
   }
   // Mantém a ordem original de texto e imagens, inclusive nas páginas de abertura.
   // Todas as imagens são lidas de dentro do próprio EPUB, sem requisições externas.
@@ -288,7 +308,7 @@
   const be32=(bytes,i)=>((bytes[i]*16777216)+(bytes[i+1]<<16)+(bytes[i+2]<<8)+bytes[i+3])>>>0;
   async function audioMetadata(data,filename){
     const bytes=new Uint8Array(data);
-    let cover='',title='',author='';
+    let cover='',back='',spine='',title='',author='',otherCover='';
     if(bytes.length>10&&String.fromCharCode(...bytes.slice(0,3))==='ID3'){
       const version=bytes[3];
       const end=10+((bytes[6]&127)<<21|(bytes[7]&127)<<14|(bytes[8]&127)<<7|(bytes[9]&127));
@@ -304,11 +324,20 @@
           let cursor=1;
           while(cursor<body.length&&body[cursor]!==0)cursor++;
           const mime=new TextDecoder('latin1').decode(body.subarray(1,cursor))||'image/jpeg';
-          cursor+=2; // fim do MIME e tipo de imagem
+          const pictureType=body[cursor+1];
+          cursor+=2;
+          const descriptionStart=cursor;
           const encoding=body[0],step=encoding===1||encoding===2?2:1;
           while(cursor+step<body.length&&(step===1?body[cursor]!==0:(body[cursor]!==0||body[cursor+1]!==0)))cursor+=step;
+          const role=window.AuroraEditionArt.face(decodeText(body.subarray(descriptionStart,cursor),encoding));
           cursor+=step;
-          if(cursor<body.length)cover=await blobToData(new Blob([body.subarray(cursor)],{type:mime}));
+          if(cursor<body.length&&mime.startsWith('image/')){
+            const image=await blobToData(new Blob([body.subarray(cursor)],{type:mime}));
+            if(pictureType===3)cover=image;
+            else if(pictureType===4)back=image;
+            else if(role==='spine')spine=image;
+            else if(pictureType===0&&!otherCover)otherCover=image;
+          }
         }
         offset+=10+size;
       }
@@ -326,7 +355,9 @@
         }
       }
     }
-    return {cover,title:title||cleanName(filename),author};
+    let binding={};
+    try{binding=await window.AuroraEditionArt.spineArt(spine);}catch{}
+    return {cover:cover||otherCover,back,...binding,title:title||cleanName(filename),author};
   }
   function database(){return new Promise((resolve,reject)=>{
     const request=indexedDB.open('aurora-pdf-library',2);
@@ -347,5 +378,17 @@
     const tx=db.transaction(store,'readwrite');tx.objectStore(store).put(item);
     tx.oncomplete=()=>{db.close();resolve();};tx.onerror=()=>{db.close();reject(tx.error);};
   }));}
-  window.AuroraFormats={openEpub,epubChapter,epubChapterContent,audioMetadata,database,readRecord,saveRecord,cleanName,blobToData,createEpubCover,createDigitalCover,catalogCover,catalogCoverURL};
+  // Aplica somente as faces, sobre a versão atual do registro e na mesma transação.
+  function updateBookArt(id,update){return database().then(db=>new Promise((resolve,reject)=>{
+    const tx=db.transaction('books','readwrite');
+    const store=tx.objectStore('books'),req=store.get(id);
+    let current;
+    req.onsuccess=()=>{
+      current=req.result;
+      if(current){update(current);store.put(current);}
+    };
+    tx.oncomplete=()=>{db.close();resolve(current);};
+    tx.onabort=()=>{db.close();reject(tx.error);};
+  }));}
+  window.AuroraFormats={updateBookArt,openEpub,epubChapter,epubChapterContent,audioMetadata,database,readRecord,saveRecord,cleanName,blobToData,createEpubCover,createDigitalCover,catalogCover,catalogCoverURL};
 })();

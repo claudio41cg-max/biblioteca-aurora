@@ -288,21 +288,11 @@ function initialize(){
     img.onerror=onerror;
     img.src=url;
   }
-  function paintPhoto(texture,url,token,spine=false){
+  function paintPhoto(texture,url,token){
     if(!url)return;
     loadImage(url,img=>{
       if(token!==modelGeneration)return;
-      const canvas=document.createElement('canvas');
-      canvas.width=spine?512:1024;
-      canvas.height=spine?1920:1440;
-      const ctx=canvas.getContext('2d',{alpha:false});
-      ctx.imageSmoothingEnabled=true;
-      ctx.imageSmoothingQuality='high';
-      ctx.fillStyle='#302016';
-      ctx.fillRect(0,0,canvas.width,canvas.height);
-      // Preenche a face correspondente. Fotos já recortadas da edição preservam a arte.
-      ctx.drawImage(img,0,0,canvas.width,canvas.height);
-      texture.image=canvas;
+      texture.image=img;
       texture.needsUpdate=true;
       queueRender();
     },()=>{
@@ -365,7 +355,7 @@ function initialize(){
     clearModel();
     const token=++modelGeneration;
     const height=3.13,width=height*clamp(Number(book.ratio)||.72,.59,.84);
-    const thickness=clamp(.25+(Number(book.total||180)/1000),.34,.72);
+    const thickness=book.spine && book.spineAspect ? clamp((height-.02)*book.spineAspect-.09,.12,1) : clamp(.25+(Number(book.total||180)/1000),.34,.72);
     shadowMesh.position.set(0,-height/2-.22,-thickness/2-.35);
     shadowMesh.scale.set(width*1.35,.52,1);
     const richDadOpening=isRichDadOpening(book);
@@ -420,7 +410,7 @@ function initialize(){
     loadOriginalFront(frontMaterial,book.cover,token,book.id,img=>
       matchEditionSurfaces(img,book,backSurface,spineTexture,coverBoard,trimBoard,(thickness+.09)/(height-.02)));
     paintPhoto(backSurface,book.back,token);
-    paintPhoto(spineTexture,book.spine,token,true);
+    paintPhoto(spineTexture,book.spine,token);
     group.rotation.set(rotation.x,rotation.y,0);
     queueRender();
   }

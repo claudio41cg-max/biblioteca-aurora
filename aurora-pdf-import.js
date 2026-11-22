@@ -42,7 +42,7 @@
     let database;
     try{
       report('Extraindo a capa original do PDF…');
-      const cover=await renderImage(pdf,1,950);
+      const faces=await window.AuroraPDFCovers.readEdition(pdf);
       const first=await pdf.getPage(1);
       const size=first.getViewport({scale:1});
       const metadata=await pdf.getMetadata().catch(()=>null);
@@ -52,14 +52,15 @@
       const known=window.AuroraBookInfo?.find(name);
       // Se uma contracapa estiver incluída no PDF, use a própria imagem.
       // Se não houver segurança, preserve o verso neutro e NÃO invente um.
-      let back='';
-      try {back=await window.AuroraPDFCovers?.extractBack(pdf,renderImage)||'';}
+      let back=faces.back||'';
+      try {if(!back)back=await window.AuroraPDFCovers?.extractBack(pdf,renderImage)||'';}
       catch(error){console.warn('Não foi possível verificar a contracapa:',error);}
-      const item={id:crypto.randomUUID(),name,data,cover,back,backChecked:true,
+      const {cover,coverSource}=faces.cover?{cover:faces.cover,coverSource:'original'}:await window.AuroraPDFCovers.front(pdf,name,known?.author||author);
+      const item={id:crypto.randomUUID(),name,data,cover,coverSource,back,spine:faces.spine||'',spineAspect:faces.spineAspect||0,editionArtVersion:1,backChecked:true,
         total:pdf.numPages,author:known?.author||(author.length<=120?author:''),
         description:subject.length>50?subject.slice(0,2800):'',
         created:Date.now(),page:0,category:chosenCategory,
-        ratio:Math.max(.59,Math.min(.84,size.width/size.height)),status:'quero-ler'};
+        ratio:faces.ratio||Math.max(.59,Math.min(.84,size.width/size.height)),status:'quero-ler'};
       report('Guardando o livro na estante principal…');
       database=await openDatabase();
       await new Promise((resolve,reject)=>{

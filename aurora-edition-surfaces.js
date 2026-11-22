@@ -159,7 +159,7 @@
       const measured = ctx.measureText(text).width;
       let lines = [text];
       let size = Math.min(maxSize, maxSize * available / Math.max(1, measured));
-      if (allowWrap && size < breadth * .23 && text.includes(' ')) {
+      if (allowWrap && size < Math.min(34, breadth * .18) && text.includes(' ')) {
         const words = text.split(/\s+/);
         let longest = measured;
         for (let split = 1; split < words.length; split++) {
@@ -170,7 +170,7 @@
             lines = pair;
           }
         }
-        size = Math.min(breadth * .34, maxSize * available / Math.max(1, longest));
+        size = Math.min(maxSize, breadth * .28, maxSize * available / Math.max(1, longest));
       }
       ctx.save();
       ctx.translate(breadth / 2, (start + end) / 2);
@@ -182,8 +182,8 @@
       lines.forEach((line, i) => ctx.fillText(line, 0, (i - (lines.length - 1) / 2) * size * 1.12));
       ctx.restore();
     }
-    letter(title, division + 33, length - 56, Math.min(88, breadth * .52), 'bold', ink(bottom), true);
-    if (author) letter(author, 20, division - 14, Math.min(50, breadth * .33), 'normal', ink(top));
+    letter(title, division + 33, length - 56, Math.min(59, breadth * .38), 'bold', ink(bottom), true);
+    if (author) letter(author, 20, division - 14, Math.min(40, breadth * .27), 'normal', ink(top));
     return canvas;
   }
   function generate(img,book,spineAspect){
@@ -278,9 +278,10 @@
     bookNode.querySelector('.volume-cover')?.style.setProperty('border-color',surfaces.accent);
     spineNode?.style.setProperty('border-color',surfaces.accent);
     backNode?.style.setProperty('border-color',surfaces.accent);
+    if(backNode)backNode.style.backgroundSize=book.back?'contain':'100% 100%';
     if(surfaces.back && backNode)backNode.style.backgroundImage='url('+JSON.stringify(surfaces.back.toDataURL('image/jpeg',.88))+')';
     if(spineNode){
-      spineNode.style.backgroundSize=surfaces.spine?'100% 100%':'';
+      spineNode.style.backgroundSize=book.spine?'contain':surfaces.spine?'100% 100%':'';
       if(surfaces.spine)spineNode.style.backgroundImage='url('+JSON.stringify(surfaces.spine.toDataURL('image/png'))+')';
     }
   }

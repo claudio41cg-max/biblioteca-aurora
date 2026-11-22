@@ -48,7 +48,7 @@
       }else if(book.format==='epub'&&window.AuroraFormats){
         const record=await window.AuroraFormats.readRecord('books',book.id);
         if(record?.data){
-          const epub=await window.AuroraFormats.openEpub(record.data);
+          const epub=await window.AuroraFormats.openEpub(record.data,{withArt:false});
           for(let i=0;i<Math.min(epub.spine.length,7);i++){
             const blocks=await window.AuroraFormats.epubChapterContent(epub,i);
             source=blocks.filter(item=>item.type==='text').map(item=>item.text).join(' ').trim();
@@ -202,13 +202,18 @@
     cssBook.style.setProperty('--half-depth',halfDepth+'px');
     cssBook.style.setProperty('--depth',(halfDepth*2)+'px');
     cssBook.style.width='min('+(65*ratio/.72).toFixed(1)+'vw,'+Math.round(326*ratio/.72)+'px)';
+    if(book.spine&&book.spineAspect){
+      const depth=clamp(cssBook.offsetHeight*book.spineAspect,8,140);
+      cssBook.style.setProperty('--half-depth',depth/2+'px');
+      cssBook.style.setProperty('--depth',depth+'px');
+    }
     cssBook.querySelector('.volume-back').style.backgroundImage=book.back?'url('+JSON.stringify(book.back)+')':'';
     const spineImage=book.spine||'';
     cssBook.querySelector('.volume-spine').style.backgroundImage=spineImage?'url('+JSON.stringify(spineImage)+')':'';
     // A textura usada no primeiro quadro é a mesma que seguirá no modelo WebGL.
     window.__auroraSelectedBook={id:book.id,name:book.name||book.title,
       title:displayTitle,author:book.author,description:book.description,
-      format:book.format,cover:book.cover,back:book.back,spine:spineImage,ratio,total:book.total};
+      format:book.format,cover:book.cover,back:book.back,spine:spineImage,spineAspect:book.spineAspect,ratio,total:book.total};
     cover.alt=(book.coverSource==='generated'?'Capa ilustrativa de ':'Capa da edição ')+displayTitle;
     cover.src=book.cover;
     window.dispatchEvent(new CustomEvent('aurora:book-selected',{detail:window.__auroraSelectedBook}));

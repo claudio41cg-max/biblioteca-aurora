@@ -42,6 +42,7 @@
           ratio:book.ratio||.72,
           total:book.total||0
         },{view:'spine',width:previewWidth,height:previewHeight});
+        if(button.dataset.realSpine==='true')continue;
         if(!imageURL||!button.isConnected){
           if(button.isConnected)button.dataset.shelfPreview='failed';
           continue;
@@ -52,7 +53,7 @@
         image.decoding='async';
         image.src=imageURL;
         try{await image.decode();}catch{}
-        if(!button.isConnected)continue;
+        if(!button.isConnected||button.dataset.realSpine==='true')continue;
         button.replaceChildren(image);
         button.style.backgroundImage='none';
         button.dataset.shelfPreview='ready';
