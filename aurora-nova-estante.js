@@ -11,6 +11,7 @@
   const shelfId=found?.id||(!isNew&&requestedId)||makeId();
   if(isNew||!requestedId)window.history.replaceState(null,'',location.pathname+'?id='+encodeURIComponent(shelfId));
   let state={...defaults,...found,id:shelfId,published:found?.published===true};
+  state.sections=Math.max(0,Math.min(8,Math.trunc(Number(state.sections)||0)));
   if(!Array.isArray(state.objects))state.objects=[];
   state.wall=({charcoal:'tijolos',navy:'ripas',botanical:'botanico',stone:'reboco',cream:'original'}[state.wall]||state.wall);
   state.wood=({oak:'carvalho',walnut:'nogueira',mahogany:'mogno',black:'metal',white:'marmore'}[state.wood]||state.wood);
@@ -138,6 +139,7 @@
     item.size=size;
     const object=scene.querySelector('.shelf-object.selected');
     if(object)window.AuroraShelfScene.position(object,item);
+    window.AuroraEstanteExemplares.layout();
     updateSizeControls();
     save();
   }
@@ -146,7 +148,10 @@
     const item=state.objects.find(entry=>entry.id===selectedObjectId);
     if(item&&action)resizeObject(item,action);
   });
-  new ResizeObserver(updateSizeControls).observe(scene);
+  new ResizeObserver(()=>{
+    updateSizeControls();
+    window.AuroraEstanteExemplares.layout();
+  }).observe(scene);
   function paint(){
     canvas.className='shelf-canvas wall wall-'+state.wall+' wood-'+state.wood;
     document.body.dataset.wall=state.wall;
@@ -158,11 +163,15 @@
     $('shelfNameLabel').textContent=state.name;
     $('shelfSummary').textContent=state.sections+' '+(state.sections===1?'prateleira':'prateleiras')+(state.published?'':' · rascunho');
     $('canvasLight').style.opacity=Math.max(.2,Math.min(1,state.light/85));
-    scene.replaceChildren();
+    // As fileiras continuam no mesmo lugar, inclusive quando já foram roladas.
+    while(scene.childElementCount>state.sections)scene.lastElementChild.remove();
     for(let i=0;i<state.sections;i++){
-      const section=window.AuroraShelfScene.section(state.objects,i,{editable:true,selectedId:selectedObjectId});
-      scene.append(section);
+      const options={editable:true,selectedId:selectedObjectId};
+      const section=scene.children[i];
+      if(section)section.querySelector('.shelf-object-layer').replaceWith(window.AuroraShelfScene.objects(state.objects,i,options));
+      else scene.append(window.AuroraShelfScene.section(state.objects,i,options));
     }
+    window.AuroraEstanteExemplares.render(state,scene,{editor:true});
     updateSizeControls();
     $('emptyHint').hidden=state.sections===0||!state.showHelp;
     return save();
@@ -327,6 +336,7 @@
       position.bottom=window.AuroraShelfScene.onBoard(item)?0:
         Math.max(0,Math.min(rect.height-button.offsetHeight,rect.bottom-moveEvent.clientY-grabFromBase))/rect.height*100;
       window.AuroraShelfScene.position(button,position);
+      window.AuroraEstanteExemplares.layout();
     };
     const up=endEvent=>{
       if(endEvent.pointerId!==event.pointerId)return;

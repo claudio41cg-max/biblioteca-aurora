@@ -13,7 +13,7 @@
 .wall-cream:before{background-image:radial-gradient(ellipse at top,#d6c7ab,#877765 60%,#39322b);opacity:.48}
 .wall-rose:before{background-image:radial-gradient(ellipse at 60% 5%,#7a4d50,transparent 55%),linear-gradient(130deg,#332327,#171315)}
 .studio .shelf-scene{min-height:100%}
-.studio .shelf-section{border:1px dashed #d5ad70aa;border-bottom:0;border-radius:9px 9px 0 0}
+.studio .shelf-section::before{content:"";position:absolute;inset:0;pointer-events:none;border:1px dashed #d5ad70aa;border-bottom:0;border-radius:9px 9px 0 0}
 button.shelf-object{pointer-events:auto;touch-action:none;cursor:grab}
 button.shelf-object:active{cursor:grabbing}
 .shelf-object.selected{outline:1px dashed #f0d19b;outline-offset:2px;border-radius:5px}

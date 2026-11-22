@@ -38,13 +38,6 @@ input[type=file]{display:none}
 .cabinet-3{background-image:url('./assets/prateleira-brasileiros.webp')}
 .cabinet:before{content:"";pointer-events:none;position:absolute;inset:0;background:linear-gradient(90deg,#0009,transparent 10%,transparent 90%,#0007),linear-gradient(180deg,#0008,transparent 40%)}
 .bookrow{position:relative;z-index:1;display:flex;align-items:flex-end;gap:2px;overflow-x:auto;overflow-y:hidden;padding:7px 8px 2px;min-height:171px;scrollbar-width:thin;scrollbar-color:#ad764a transparent}
-.book-spine{position:relative;display:block;flex:0 0 var(--book-width,46px);height:var(--book-height,166px);border:0;border-left:2px solid #22140e;border-right:2px solid #b68655;border-radius:3px 4px 4px 2px;background-color:#422c27;background-image:url('./assets/lombadas-couro.webp');background-repeat:no-repeat;background-size:800% 100%;background-position:var(--spine-pos,0%) center;box-shadow:inset 3px 0 5px #0008,inset -2px 0 4px #d6af7730,4px 4px 5px #000a;filter:saturate(.88);cursor:pointer;transition:transform .22s,filter .22s;transform:rotate(var(--tilt,0deg));color:#ffe8b8;padding:0;margin:0;text-align:center}
-.book-spine:hover,.book-spine:focus-visible{transform:translateY(-11px) rotate(0);filter:brightness(1.18);z-index:3;outline:2px solid #e8c48a;outline-offset:1px}
-.book-spine:after{content:"";pointer-events:none;position:absolute;inset:0;background:linear-gradient(90deg,#0007 0,transparent 20%,#fff5c012 70%,#0006 100%)}
-.spine-title{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;transform:rotate(180deg);width:100%;height:100%;overflow:hidden;padding:22px 5px 25px;font:bold clamp(10px,2.8vw,12px)/1.06 Georgia,serif;color:#ffe9bc;text-shadow:1px 2px 3px #000,0 0 5px #000}
-.book-spine[data-source="pdf"] .spine-title,.book-spine[data-source="txt"] .spine-title{color:#fff6d9}
-.spine-source{position:absolute;z-index:2;bottom:5px;left:50%;transform:translateX(-50%);font:8px system-ui,sans-serif;letter-spacing:.4px;color:#e9c388;background:#130d0b8a;padding:2px 3px;border-radius:3px}
-.spine-bookmark{position:absolute;z-index:2;top:2px;right:2px;color:#f8e5b3;font-size:10px;text-shadow:0 2px 2px #000}
 .shelf-lip{height:22px;position:relative;z-index:2;margin:0 -22px;background:linear-gradient(180deg,#c18a55 0%,#845029 28%,#4b2918 80%,#1c110c 100%);border-top:3px solid #d5a36a;border-bottom:2px solid #1c110e;box-shadow:0 7px 10px #000a}
 .footnote{font:12px/1.6 system-ui,sans-serif;text-align:center;color:#aaac9d;padding:6px 22px 36px;max-width:600px;margin:auto}
 /* O leitor TXT existente continua disponível, com progresso e narração. */
@@ -69,8 +62,6 @@ input[type=file]{display:none}
   .category{margin-top:18px;margin-bottom:27px}
   .cabinet{padding:19px 8px 0;min-height:214px;border-width:7px;border-bottom:0;border-top-width:10px;background-size:100% 100%}
   .bookrow{min-height:176px;padding:4px 8px 1px;gap:1px}
-  .book-spine{flex-basis:var(--book-width,42px)}
-  .spine-title{font-size:11px}
   .shelf-lip{margin:0 -15px;height:20px}
   .book-open{min-height:57vh;border-width:5px}
   .paper{font-size:13px;line-height:1.5;padding:13px}
@@ -105,105 +96,7 @@ input[type=file]{display:none}
 #overlay .txt-page-sound{margin-top:12px;font:14px Georgia,serif}
 @media(max-width:699px){#overlay .paper{width:100%;font-size:var(--txt-font-size,17px);padding:clamp(18px,5vw,31px)}#overlay .paper.right{display:none!important}}
 
-/* Livro físico individual: capa original na lateral, páginas e contato com a madeira.
-   Sem foto da lombada, a imagem usada vem da borda da capa do próprio PDF. */
 .bookrow{perspective:1050px;perspective-origin:50% 64%;padding-top:20px;min-height:197px}
-.book-spine{
-  transform-style:preserve-3d;
-  transform-origin:50% 100%;
-  backface-visibility:visible;
-  box-shadow:inset 4px 0 7px #090604b8,inset -3px 0 5px #fff2d32c,3px 7px 6px #000b;
-  transition:transform .38s cubic-bezier(.22,.8,.2,1),filter .32s,box-shadow .32s;
-}
-.book-spine::before{
-  content:"";position:absolute;pointer-events:none;z-index:-1;
-  left:-5px;right:-5px;bottom:-7px;height:8px;
-  border-radius:50%;background:#080503d9;filter:blur(4px);
-  transform:translateZ(-5px);
-}
-.book-spine[data-has-real-cover="true"]{
-  isolation:auto;
-  border-right:1px solid #241712;
-  filter:none;
-  transform:rotateY(-5deg) rotateZ(var(--tilt,0deg));
-}
-.book-spine[data-cover-derived="true"]{
-  background-size:900% 100%;
-  background-position:0 50%;
-}
-/* Não desenhar um nome que não consta na fotografia da edição. */
-.book-spine[data-has-real-cover="true"] .spine-source{display:none}
-/* O título continua legível mesmo quando a lombada vem de um recorte da capa. */
-.book-spine[data-cover-derived="true"] .spine-title{
-  display:flex;
-  color:#fff5dc;
-  font-family:Georgia,"Times New Roman",serif;
-  font-weight:700;
-  letter-spacing:.25px;
-  text-shadow:0 2px 3px #100905,0 0 7px #100905,1px 0 2px #100905;
-  background:linear-gradient(90deg,#10090570,transparent 24%,#10090535 78%,#10090585);
-}
-.book-spine[data-real-spine="true"] .spine-title{
-  color:#fff4da;
-  text-shadow:0 1px 3px #120b07,0 0 6px #120b07;
-}
-.shelf-book-cover{
-  display:block;position:absolute;pointer-events:none;
-  top:-1px;left:calc(100% - 1px);
-  height:calc(100% + 2px);width:var(--cover-width,120px);
-  transform-origin:0 50%;transform:rotateY(90deg);
-  background:#34271d;
-  border:2px solid #302015;border-left:3px solid #1f130e;
-  border-radius:2px 5px 5px 2px;
-  overflow:hidden;
-  box-shadow:inset 7px 0 9px #0007,6px 9px 15px #0009;
-  backface-visibility:hidden;
-}
-.shelf-book-cover img{display:block;width:100%;height:100%;object-fit:fill}
-.shelf-book-cover::after{
-  content:"";position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(90deg,#130b0845,transparent 16%,#fff8e70a 73%,#120c081a);
-}
-.shelf-book-pages{
-  display:block;position:absolute;pointer-events:none;
-  left:2px;top:2px;
-  width:calc(100% - 4px);height:calc(var(--cover-width,120px) - 6px);
-  transform-origin:center top;transform:rotateX(-90deg);
-  background:repeating-linear-gradient(90deg,#f6ebd6 0px,#e2d3ba 1px,#fcf4e5 2px,#c8b69b 3px);
-  border:1px solid #ab9471;
-  box-shadow:inset 0 7px 12px #7660444d;
-}
-@media(hover:hover) and (pointer:fine){
-  body:not(.arranging) .book-spine[data-has-real-cover="true"]:hover{
-    transform:translateY(-9px) translateZ(54px) rotateY(-58deg) rotateX(3deg);
-    box-shadow:inset 4px 0 7px #090604b8,18px 24px 23px #000d;
-    filter:none;z-index:20;
-  }
-}
-body:not(.arranging) .book-spine[data-has-real-cover="true"]:focus-visible{
-  transform:translateY(-9px) translateZ(54px) rotateY(-58deg) rotateX(3deg);
-  filter:none;z-index:20;
-}
 @media(max-width:550px){
   .bookrow{min-height:195px;padding-top:19px}
-  .book-spine[data-has-real-cover="true"]:active{transform:translateY(-5px) translateZ(14px) rotateY(-19deg)}
-}
-
-/* Lombadas importadas: preservar nitidez e identidade da capa no celular. */
-.book-spine[data-cover-derived="true"]{filter:none!important;image-rendering:auto;background-repeat:no-repeat!important;background-size:cover!important;background-position:center!important;backface-visibility:hidden}
-.book-spine[data-spine-crisp="true"]{background-size:100% 100%!important}
-.book-spine[data-spine-crisp="true"] .spine-title{background:none!important;text-shadow:none!important}
-
-.book-spine[data-real-spine="true"]{background-size:contain!important;background-position:center;background-repeat:no-repeat}
-
-/* A arte encolhe a partir da madeira. O espaço de toque acompanha o tamanho anterior. */
-:is(.bookrow,.personal-book-row) > .book-spine{
-  --shelf-book-scale:.94;
-  scale:var(--shelf-book-scale);
-  transform-origin:center bottom;
-}
-.book-spine > .shelf-book-hit-area{
-  position:absolute;inset:0;
-  transform-origin:center bottom;
-  transform:scale(calc(1 / var(--shelf-book-scale,1)));
 }

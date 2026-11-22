@@ -18,6 +18,11 @@
   perspective-origin:center 68%;
 }
 .personal-book-row[hidden] {display:none}
+.editor-book-row > .book-spine {
+  pointer-events:none;
+  user-select:none;
+}
+.editor-book-row:focus-visible {outline:2px solid #ffdf9c;outline-offset:-2px}
 .personal-book-row > .book-spine {
   flex:0 0 var(--book-width,42px);
   height:min(100%, calc(var(--book-height,166px) + var(--premium-height,0px)));

@@ -90,7 +90,7 @@
       console.warn('Lombada mantida no estilo anterior:',error);
     }
   }
-  const library=document.getElementById('library');
+  const library=document.getElementById('library') || document.getElementById('shelfScene');
   if(!library)return;
   let scheduled=false;
   function processAll(){

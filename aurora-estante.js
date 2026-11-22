@@ -22,11 +22,6 @@
   const safeRead = (key, fallback) => {
     try {return JSON.parse(localStorage.getItem(key) || '') || fallback;} catch {return fallback;}
   };
-  const saved = safeRead('aurora-books',{});
-  const txtCategories = safeRead('aurora-txt-categories',{});
-  const hiddenTitles = new Set(safeRead('aurora-hidden-books',[]));
-  // O mesmo acabamento realista vale para todas as categorias, preservando cada exemplar.
-  const texts = Object.assign({},saved);
   const knownCategories = new Map();
   categories.forEach(cat => cat.books.forEach(([title]) => knownCategories.set(normalize(title),cat.id)));
   const guessCategory = title => {
@@ -39,6 +34,40 @@
   };
   const getCategory = (category,title) => categories.some(c=>c.id===category) ? category : guessCategory(title);
   const hash = input => Array.from(input).reduce((sum,ch)=>((sum*31+ch.charCodeAt(0))|0),7)>>>0;
+  function readLocalBooks() {
+    const hidden=safeRead('aurora-hidden-books',[]);
+    return {
+      saved:safeRead('aurora-books',{}),
+      txtCategories:safeRead('aurora-txt-categories',{}),
+      hiddenTitles:new Set(Array.isArray(hidden)?hidden:[])
+    };
+  }
+  function localBooks(category,{saved,txtCategories,hiddenTitles}) {
+    const books=new Map(category.books
+      .filter(([name])=>!hiddenTitles.has(normalize(name)))
+      .map(([name,author])=>[normalize(name),{title:name,author,source:'demo'}]));
+    for(const name of Object.keys(saved)){
+      if(getCategory(txtCategories[name],name)===category.id)
+        books.set(normalize(name),{title:name,author:'Meu arquivo',source:'txt'});
+    }
+    return books.values();
+  }
+  // Só os campos necessários para desenhar a lombada. O arquivo do livro fica no IndexedDB.
+  function importedItem(book,progress) {
+    const source=book.format||'pdf';
+    const name=book.name||'Livro sem título';
+    const title=window.AuroraTitles?.display(window.AuroraBookInfo?.find(name)?.title||name)||name;
+    const author=book.author||'';
+    const coverSource=book.coverSource||'original';
+    let cover=book.cover||'';
+    if(coverSource==='generated'&&title!==name&&window.AuroraFormats?.createDigitalCover){
+      try { cover=window.AuroraFormats.createDigitalCover(title,author,source); }
+      catch(error){ console.warn('Não foi possível atualizar a capa ilustrativa.',error); }
+    }
+    return {id:book.id,name,title,author,source,cover,coverSource,
+      spine:book.spine||'',spineAspect:book.spineAspect||0,ratio:book.ratio||.72,total:book.total||0,
+      category:getCategory(book.category,name),bookmarked:Number.isInteger(progress?.bookmark)};
+  }
   function makeSpine(item) {
     const seed = hash(item.title);
     const displayTitle=window.AuroraTitles?.display(item.title)||item.title;
@@ -49,6 +78,7 @@
     button.dataset.rawTitle = item.title;
     button.dataset.author = item.author || '';
     button.dataset.source = item.source || 'demo';
+    if(item.id!=null)button.dataset.bookId=item.id;
     if(item.cover&&item.source!=='demo')button.dataset.coverSource=item.coverSource||'original';
     button.title = displayTitle + (item.source === 'demo' ? ' • livro demonstrativo' : ' • tocar para pegar');
     button.setAttribute('aria-label', 'Pegar ' + displayTitle);
@@ -159,15 +189,7 @@
       row.className='bookrow';
       row.id='shelf-'+category.id;
       row.setAttribute('aria-label','Livros de '+category.name);
-      const shelfBooks=new Map(category.books
-        .filter(([name])=>!hiddenTitles.has(normalize(name)))
-        .map(([name,author])=>[normalize(name),{title:name,author,source:'demo'}]));
-      Object.keys(saved).forEach(name=>{
-        if(getCategory(txtCategories[name],name)===category.id) {
-          shelfBooks.set(normalize(name),{title:name,author:'Meu arquivo',source:'txt'});
-        }
-      });
-      shelfBooks.forEach(book=>{
+      for (const book of localBooks(category,localState)){
         const openSharedTxt=()=>{location.href='./ler-epub.html?txt='+encodeURIComponent(book.title)+'&v=8';};
         const button=makeSpine(book);
         button.addEventListener('click',()=>{
@@ -186,7 +208,7 @@
           });
         });
         row.append(button);
-      });
+      }
       cabinet.append(row);
       const lip=document.createElement('div');
       lip.className='shelf-lip';
@@ -212,7 +234,11 @@
     hideTitle(title);
     return true;
   }
-  window.AuroraShelf={categories,normalize,guessCategory,getCategory,makeSpine,refreshCount,draw,hideTitle,removeTextBook};
+  window.AuroraShelf={categories,normalize,guessCategory,getCategory,makeSpine,importedItem,readLocalBooks,localBooks,refreshCount,draw,hideTitle,removeTextBook};
+  if(!$('library'))return;
+  const localState=readLocalBooks();
+  const {saved,txtCategories,hiddenTitles}=localState;
+  const texts=Object.assign({},saved);
 
   const importTrigger=$('importTrigger'),importMenu=$('importMenu'),importCategory=$('importCategory');
   function toggleMenu(open) {

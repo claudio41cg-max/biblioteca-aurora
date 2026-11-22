@@ -49,72 +49,144 @@
     // Mesmo uma prateleira totalmente decorada continua rolável para acessar os títulos.
     row.style.left = bestWidth >= 54 ? bestStart+'px' : '0';
     row.style.right = bestWidth >= 54 ? Math.max(0,bounds.width-bestStart-bestWidth)+'px' : '0';
+    if (row.classList.contains('editor-book-row')) row.tabIndex = row.scrollWidth > row.clientWidth ? 0 : -1;
   }
 
-  function draw() {
-    if (!active) return;
-    const {scene, key} = active;
-    const books = catalog();
-    const sections = [...scene.querySelectorAll('.shelf-section')];
-    if (!sections.length) return;
-    const rows = sections.map(section => {
-      let row = section.querySelector('.personal-book-row');
-      if (!row) {
-        row = element('div','personal-book-row');
-        section.insertBefore(row,section.querySelector('.shelf-board'));
+  function bookRow(section,index,editor) {
+    let row = section.querySelector('.personal-book-row');
+    if (!row) {
+      row = element('div','personal-book-row');
+      if (editor) {
+        row.classList.add('editor-book-row');
+        row.setAttribute('role','group');
+        row.setAttribute('aria-label','Livros da prateleira '+(index+1));
       }
-      return row;
-    });
-    const contents = rows.map(() => document.createDocumentFragment());
-    for (const item of read(key)) {
-      const book = books.get(item.key);
-      if (!book) continue;
-      const copy = book.button.cloneNode(true);
-      copy.dataset.personalBookKey = item.key;
-      copy.disabled = false;
-      copy.style.visibility = '';
-      copy.classList.remove('selected-book');
-      if (copy.dataset.lombada === 'pending') delete copy.dataset.lombada;
-      copy.addEventListener('click', () => {
-        const source = catalog().get(item.key)?.button;
-        if (!source) { schedule(); return; }
-        origin = {source, copy};
-        source.click();
-      });
-      // Ao diminuir as seções no editor, os livros continuam acessíveis na última.
-      contents[Math.min(item.section, sections.length-1)].append(copy);
+      section.insertBefore(row,section.querySelector('.shelf-board'));
     }
-    rows.forEach((row,i) => {
-      const offset = row.scrollLeft;
-      row.replaceChildren(contents[i]);
-      row.hidden = !row.childElementCount;
-      if (row.hidden) return;
-      placeRow(row);
-      row.scrollLeft = offset;
-      for (const copy of row.children) window.AuroraLombadas?.enhance?.(copy);
+    return row;
+  }
+
+  function makeCopy(book,key,editor) {
+    if (editor) {
+      const copy = window.AuroraEditorAcervo.makeSpine(book);
+      copy.setAttribute('role','img');
+      copy.setAttribute('aria-label',window.AuroraTitles?.display(book.title) || book.title);
+      copy.removeAttribute('title');
+      copy.tabIndex = -1;
+      return copy;
+    }
+    const copy = book.button.cloneNode(true);
+    copy.disabled = false;
+    copy.style.visibility = '';
+    copy.classList.remove('selected-book');
+    if (copy.dataset.lombada === 'pending') delete copy.dataset.lombada;
+    copy.addEventListener('click', () => {
+      const source = catalog().get(key)?.button;
+      if (!source) { schedule(); return; }
+      origin = {source, copy};
+      source.click();
     });
+    return copy;
+  }
+
+  const visualFields = ['title','author','source','cover','spine','coverSource','total','ratio','spineAspect','bookmarked'];
+  function draw() {
+    const {scene,editor,members,books,copies} = active;
+    const rows = [...scene.querySelectorAll('.shelf-section')].map((section,i) => bookRow(section,i,editor));
+    if (!rows.length) { copies.clear(); return; }
+    const contents = rows.map(() => []);
+    const keys = new Set();
+    for (const {key,section} of members) {
+      const book = books.get(key);
+      if (!book || keys.has(key)) continue;
+      keys.add(key);
+      let entry = copies.get(key);
+      const reuse = entry && (entry.book === book || (editor && visualFields.every(field => book[field] === entry.book[field])));
+      if (!reuse) {
+        const copy = makeCopy(book,key,editor);
+        copy.dataset.personalBookKey = key;
+        entry = {copy,book};
+        copies.set(key,entry);
+      } else entry.book = book;
+      // Uma seção removida pode ser recuperada ao desfazer. O vínculo original é preservado.
+      contents[Math.min(section,rows.length-1)].push(entry.copy);
+    }
+    for (const key of copies.keys()) if (!keys.has(key)) copies.delete(key);
+    rows.forEach((row,i) => {
+      const children = contents[i];
+      children.forEach((copy,index) => {
+        const atIndex = row.children[index];
+        if (atIndex !== copy) row.insertBefore(copy,atIndex || null);
+      });
+      while (row.childElementCount > children.length) row.lastElementChild.remove();
+      row.hidden = children.length === 0;
+      if (!row.hidden) {
+        placeRow(row);
+        if (!editor) children.forEach(copy => window.AuroraLombadas?.enhance?.(copy));
+      }
+    });
+  }
+
+  async function refresh() {
+    const view = active;
+    view.members = read(view.key);
+    if (view.editor) {
+      const request = ++view.request;
+      if (view.members.length) {
+        const current = () => active === view && view.request === request;
+        const progress = view.books.size ? undefined : partial => {
+          if (!current()) return;
+          view.books = partial;
+          draw();
+        };
+        try {
+          const books = await window.AuroraEditorAcervo.load(view.members.map(item => item.key),progress,view.books);
+          if (!current()) return;
+          view.books = books;
+        } catch (error) {
+          if (!current()) return;
+          console.warn('Não foi possível atualizar os livros da estante.',error);
+        }
+      } else view.books.clear();
+    } else view.books = catalog();
+    draw();
+    if (picker?.dialog.open) updatePicker();
   }
 
   function schedule() {
     if (!active || frame) return;
     frame = requestAnimationFrame(() => {
       frame = 0;
-      draw();
-      if (picker?.dialog.open) updatePicker();
+      void refresh();
     });
   }
 
-  function render(shelf,scene) {
+  // Mover um enfeite altera apenas o espaço livre. Mantém cada lombada e sua textura no DOM.
+  let layoutFrame = 0;
+  function layout() {
+    if (!active || layoutFrame) return;
+    layoutFrame = requestAnimationFrame(() => {
+      layoutFrame = 0;
+      active.scene.querySelectorAll('.personal-book-row:not([hidden])').forEach(placeRow);
+    });
+  }
+
+  function render(shelf,scene,{editor = false} = {}) {
     if (!shelf?.id || !scene) { clear(); return; }
     const key = prefix + encodeURIComponent(shelf.id);
-    if (active?.key !== key || active.scene !== scene) clear();
-    active = {shelf,scene,key};
-    draw();
+    if (active?.key === key && active.scene === scene && active.editor === editor) {
+      draw();
+      return;
+    }
+    clear();
+    active = {scene,key,editor,members:[],books:new Map(),copies:new Map(),request:0};
+    void refresh();
   }
 
   function clear() {
-    if (frame) cancelAnimationFrame(frame);
-    frame = 0;
+    cancelAnimationFrame(frame);
+    cancelAnimationFrame(layoutFrame);
+    frame = layoutFrame = 0;
     if (picker?.dialog.open) picker.dialog.close();
     active = null; origin = null;
   }
@@ -233,18 +305,25 @@
       if (navigator.locks) await navigator.locks.request(key,save);
       else save();
       if (active?.key !== key) return;
-      draw();
-      updatePicker();
+      await refresh();
+      if (active?.key !== key) return;
       picker.status.textContent = add ? '“'+title+'” na prateleira '+(section+1)+'.' : '“'+title+'” retirado desta estante.';
     } catch {
       if (active?.key === key) picker.status.textContent = 'Não foi possível salvar a alteração neste aparelho.';
     }
   }
 
-  window.addEventListener('resize', () => active?.scene.querySelectorAll('.personal-book-row:not([hidden])').forEach(placeRow));
-  window.addEventListener('storage', event => { if (event.key === active?.key || event.key === null) schedule(); });
+  window.addEventListener('resize',layout);
+  const storageKeys = new Set(['aurora-books','aurora-txt-categories','aurora-hidden-books','aurora-online-books-v1']);
+  window.addEventListener('storage', event => {
+    if (event.key === null || event.key === active?.key || (active?.editor && storageKeys.has(event.key))) schedule();
+  });
+  // IndexedDB não emite storage quando uma edição é importada ou retirada em outra aba.
+  window.addEventListener('focus', () => { if (active?.editor) schedule(); });
+  window.addEventListener('pageshow', event => { if (event.persisted && active?.editor) schedule(); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && active?.editor) schedule(); });
   for (const name of ['aurora:library-data','aurora:shelves-drawn','aurora:online-books-ready','aurora:book-cover-updated']) {
     document.addEventListener(name,schedule);
   }
-  window.AuroraEstanteExemplares = {render,openPicker,clear,originFor};
+  window.AuroraEstanteExemplares = {render,layout,openPicker,clear,originFor};
 })();

@@ -26,8 +26,10 @@
 
   const tasks=new Map();
   function needsEdition(book){
-    return ['epub','pdf','audio'].includes(book.format)&&(book.editionArtVersion!==1||
-      (book.format==='epub'&&book.coverSource==='generated'&&book.coverCheckedVersion!==52));
+    if(!['epub','pdf','audio'].includes(book.format))return false;
+    if(book.editionArtVersion!==1)return true;
+    if(book.coverSource==='generated'&&book.format==='epub')return book.coverCheckedVersion!==52;
+    return false;
   }
   async function recoverEdition(button,book){
     if(!needsEdition(book))return;
@@ -105,52 +107,24 @@
       db.close();
       const lastPages=new Map(progress.map(item=>[item.id,item]));
       const imported=books.map(book=>({
-        id:book.id,
+        ...shelf.importedItem(book,lastPages.get(book.id)),
         format:book.format||'pdf',
-        title:window.AuroraTitles?.display(window.AuroraBookInfo?.find(book.name)?.title||book.name)||book.name||'Livro sem título',
-        name:book.name||'Livro sem título',
-        author:book.author||'',
         country:book.country||'',
         year:book.year||'',
         description:book.description||'',
-        cover:book.cover||'',
-        coverSource:book.coverSource||'original',
         coverCheckedVersion:book.coverCheckedVersion||0,
         back:book.back||'',
         backChecked:book.backChecked===true,
         editionArtVersion:book.editionArtVersion||0,
-        spine:book.spine||'',
-        spineAspect:book.spineAspect||0,
-        ratio:book.ratio||.72,
-        total:book.total||0,
         status:book.status||'quero-ler',
-        category:shelf.getCategory(book.category,book.name),
-        created:book.created||0,
-        bookmarked:Number.isInteger(lastPages.get(book.id)?.bookmark)
+        created:book.created||0
       })).sort((a,b)=>a.created-b.created);
       const usedDemo=new Set();
       const recoverQueue=[];
       for(const book of imported){
         const row=document.getElementById('shelf-'+book.category);
         if(!row) continue;
-        // Capas ilustrativas antigas podem conter o nome bruto do arquivo.
-        // Recriar apenas essas capas; capas originais das edições são intocáveis.
-        if(book.coverSource==='generated'&&book.title!==book.name&&window.AuroraFormats?.createDigitalCover){
-          book.cover=window.AuroraFormats.createDigitalCover(book.title,book.author,book.format);
-        }
-        const button=shelf.makeSpine({
-          title:book.title,
-          author:book.author,
-          source:book.format||'pdf',
-          total:book.total,
-          cover:book.cover,
-          coverSource:book.coverSource,
-          spine:book.spine,
-          spineAspect:book.spineAspect,
-          ratio:book.ratio,
-          bookmarked:book.bookmarked
-        });
-        button.dataset.bookId=book.id;
+        const button=shelf.makeSpine(book);
         if(needsEdition(book)){
           recoverQueue.push({button,book});
         }
