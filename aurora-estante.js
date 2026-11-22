@@ -60,13 +60,13 @@
       [/cinquentatonsliberdade|fiftyshadesfreed/,'Cinquenta Tons de Liberdade'],
       [/iracema/,'Iracema']
     ].find(([pattern])=>pattern.test(normalize(displayTitle+' '+item.title)))?.[1]||'':'';
-    if(pilotTitle){button.setAttribute('data-shelf-3d-pilot','true');button.dataset.shelf3dTitle=pilotTitle;}
+    if(pilotTitle==='Iracema'&&!item.spine){button.setAttribute('data-shelf-3d-pilot','true');button.dataset.shelf3dTitle=pilotTitle;}
     const fiftyShadesPilot=['Cinquenta Tons de Cinza','Cinquenta Tons Mais Escuros','Cinquenta Tons de Liberdade'].includes(pilotTitle);
     const pilotScale=fiftyShadesPilot?.92:1;
     const bookHeight=Math.round((realPDF?160+seed%17:151+seed%24)*pilotScale);
     const estimatedWidth=Math.round((realPDF?Math.max(28,Math.min(62,27+Number(item.total||0)/27)):37+seed%13)*pilotScale);
     const naturalWidthBase=item.spineAspect?Math.max(22,Math.min(68,bookHeight*Number(item.spineAspect))):estimatedWidth;
-    const naturalWidth=Math.round(naturalWidthBase*(fiftyShadesPilot ? .85 : 1));
+    const naturalWidth=Math.round(naturalWidthBase*(fiftyShadesPilot && !item.spine ? .85 : 1));
     const format=Math.max(.59,Math.min(.84,Number(item.ratio)||.72));
     button.style.setProperty('--book-width',naturalWidth+'px');
     button.style.setProperty('--book-height',bookHeight+'px');

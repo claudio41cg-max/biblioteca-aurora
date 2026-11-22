@@ -15,8 +15,8 @@ assert.doesNotMatch(surfaces,/image\.naturalWidth\*\.12/);
 assert.doesNotMatch(spine,/tries<14/);
 assert.match(spine,/dataset\.realSpine==='true'/);
 assert.match(imported,/recoverQueue/);
-assert.match(imported,/stored\.coverCheckedVersion!==book\.coverCheckedVersion/);
-assert.match(imported,/if\(epub\.cover\)\{cover=epub\.cover;coverSource='original';\}/);
+assert.match(imported,/book\.editionArtVersion!==1/);
+assert.match(imported,/cover:epub\.cover,back:epub\.back,spine:epub\.spineImage/);
 assert.match(covers,/const palettes=\[/);
 assert.match(html,/aurora-lombadas\.js\?v=\d+/);
 
