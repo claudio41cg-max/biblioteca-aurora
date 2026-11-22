@@ -34,7 +34,7 @@ if(process.env.AURORA_BROWSER_TEST==='1'){
     browser=await chromium.launch({headless:true,executablePath:'/usr/bin/chromium',args:['--no-sandbox']});
     const context=await browser.newContext({viewport:{width:390,height:830}});
     const page=await context.newPage();
-    await page.route('https://cdn.jsdelivr.net/**',route=>route.abort());
+    await page.route('**/vendor/page-flip-2.0.7.browser.js',route=>route.abort());
     await page.goto(base+'/ler-epub.html');
     await page.evaluate(async()=>{
       const zip=new JSZip();
