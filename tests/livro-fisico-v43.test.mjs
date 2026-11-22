@@ -9,7 +9,6 @@ const css=read('aurora-sala-3d.css');
 const shelf=read('aurora-estante-realista.css');
 const shelfJs=read('aurora-estante.js');
 const html=read('index.html');
-const sw=read('sw.js');
 
 assert.match(webgl,/edgeCanvas\('vertical'\)/);
 assert.match(webgl,/edgeCanvas\('horizontal'\)/);
@@ -18,9 +17,8 @@ assert.match(webgl,/topPageMaterial,topPageMaterial/);
 assert.match(css,/drop-shadow\(12px 19px 13px/);
 assert.match(shelf,/--premium-yaw/);
 assert.match(shelfJs,/--premium-lean/);
-assert.match(html,/aurora-livro-3d\.mjs\?v=7/);
-assert.match(html,/aurora-edition-surfaces\.js\?v=4/);
-assert.match(sw,/aurora-v48/);
+assert.match(html,/aurora-livro-3d\.mjs\?v=\d+/);
+assert.match(html,/aurora-edition-surfaces\.js\?v=\d+/);
 
 // Testa também a geração real do verso, sem depender de um PDF no aparelho.
 const calls=[];

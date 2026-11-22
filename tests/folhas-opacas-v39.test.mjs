@@ -18,7 +18,7 @@ const sheetContext=()=>{
   };
   return context;
 };
-const document={createElement(tag){
+const document={body:{classList:{contains:()=>false}},createElement(tag){
   assert.equal(tag,'canvas');
   const context=sheetContext();
   const canvas={style:{},context,isConnected:true,setAttribute(){},getContext(_type,options){

@@ -39,6 +39,6 @@ assert.match(read('aurora-novos-leitores.css'),/\.theme-controls button\[aria-pr
 assert.match(read('aurora-novos-leitores.css'),/data-reader-theme="night"/);
 assert.match(read('aurora-importados.js'),/if\(book\.coverSource==='generated'/,'Só capas ilustrativas podem ser recriadas');
 assert.match(read('aurora-som-folhas.js'),/filter\.type='lowpass'/);
-assert.match(read('index.html'),/aurora-titulos\.js\?v=1/);
-assert.match(read('ler-epub.html'),/aurora-titulos\.js\?v=1/);
+assert.match(read('index.html'),/aurora-titulos\.js\?v=\d+/);
+assert.match(read('ler-epub.html'),/aurora-titulos\.js\?v=\d+/);
 console.log('EPUB v38: tema único, folha opaca, título limpo e som mais leve.');

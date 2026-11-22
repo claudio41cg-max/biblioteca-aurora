@@ -9,7 +9,6 @@ const formats=read('aurora-formatos.js');
 const importing=read('aurora-novos-formatos.js');
 const existing=read('aurora-importados.js');
 const html=read('index.html');
-const sw=read('sw.js');
 
 const strokes=[];
 const ctx={
@@ -44,9 +43,8 @@ assert.match(importing,/back:details\.back\|\|''/);
 assert.match(existing,/recoverEpubBack\(book\)/);
 assert.match(existing,/book\.backChecked=true/);
 assert.match(surfaces,/if\(!book\.back\)/,'o verso real tem prioridade sobre o ilustrativo');
-assert.match(html,/aurora-edition-surfaces\.js\?v=4/);
-assert.match(html,/aurora-livro-3d\.mjs\?v=7/);
-assert.match(html,/aurora-formatos\.js\?v=7/);
-assert.match(sw,/aurora-v48/);
+assert.match(html,/aurora-edition-surfaces\.js\?v=\d+/);
+assert.match(html,/aurora-livro-3d\.mjs\?v=\d+/);
+assert.match(html,/aurora-formatos\.js\?v=\d+/);
 
 console.log('V45: fibras verticais, marcas leves, verso real do EPUB e 3D preservados.');

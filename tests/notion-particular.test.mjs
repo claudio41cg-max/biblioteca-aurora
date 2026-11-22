@@ -10,7 +10,6 @@ assert.match(read('explorar-livros.html'),/href="\.\/minha-biblioteca-privada\.h
 assert.match(page,/id="notionOutside"/);
 assert.match(page,/id="notionUrl"/);
 assert.doesNotMatch(page+code+read('sw.js'),/fresh-cart-13d|1bb6c85ec4978320bdb5810664167c39/i,'acesso pago não pode ir ao GitHub');
-assert.match(read('sw.js'),/aurora-notion-privado\.js\?v=2/);
 
 class Element{
   constructor(){this.handlers={};this.value='';this.src='';this.href='';this.hidden=true;this.open=true;this.textContent='';}

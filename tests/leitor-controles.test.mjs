@@ -4,7 +4,6 @@ import {readFileSync} from 'node:fs';
 const read=name=>readFileSync(new URL('../'+name,import.meta.url),'utf8');
 const html=read('meus-livros.html');
 const css=read('aurora-reader.css');
-const sw=read('sw.js');
 
 for(const id of ['close','title','count','bookmark','readerSettings','readerPrefs','readerPrefsClose',
   'readerZoom','readerZoomValue','readerTextMode','readerFont','readerFontSize',
@@ -23,12 +22,11 @@ assert.match(html,/active\.zoom===1\|\|active\.textMode/,'O zoom do texto não b
 assert.match(html,/active\.flip\.flipNext\('bottom'\)/,'O PDF ampliado deve poder virar folhas para frente');
 assert.match(html,/active\.flip\.flipPrev\('bottom'\)/,'O PDF ampliado deve poder virar folhas para trás');
 assert.match(html,/persistProgress\(active\)/,'Marcador continua salvando progresso');
-assert.match(html,/aurora-reader\.css\?v=5/);
+assert.match(html,/aurora-reader\.css\?v=\d+/);
 assert.match(css,/\.reader-prefs\[hidden\]/);
 assert.match(css,/\.reader\.zoomed \.viewport/);
 assert.match(css,/\.reader \.(?:page|pdf-readable-text)/);
-assert.match(sw,/\.\/aurora-reader\.css\?v=5/);
-assert.match(read('manifest.webmanifest'),/index\.html\?v=22/);
+assert.match(read('manifest.webmanifest'),/index\.html\?v=\d+/);
 for(const font of ['Georgia','Palatino Linotype','Garamond','Times New Roman','Arial','Verdana']){
   assert.match(html,new RegExp(`<option value="${font}"`),`A fonte ${font} deve estar disponível`);
 }

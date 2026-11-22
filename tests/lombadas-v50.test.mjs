@@ -6,7 +6,6 @@ const spine=read('aurora-lombadas.js');
 const shelf=read('aurora-estante.js');
 const epub=read('aurora-formatos.js');
 const imported=read('aurora-importados.js');
-const worker=read('sw.js');
 const html=read('index.html');
 
 assert.match(shelf,/if\(item\.cover&&item\.source!=='demo'\)button\.dataset\.coverSource/);
@@ -17,9 +16,8 @@ assert.match(spine,/ctx\.drawImage\(model\.artwork,0,0,w,h\)/);
 assert.match(spine,/dataset\.realSpine==='true'/);
 assert.match(epub,/const refs=nodes\(packageXML,'itemref'\)\.slice\(0,3\)/);
 assert.match(epub,/if\(illustrations\.length!==1/);
-assert.match(imported,/coverCheckedVersion!==50/);
-assert.match(html,/aurora-lombadas\.js\?v=3/);
-assert.match(worker,/aurora-v51/);
+assert.match(imported,/stored\.coverCheckedVersion!==book\.coverCheckedVersion/);
+assert.match(html,/aurora-lombadas\.js\?v=\d+/);
 
 let artDraws=0;
 const ctx={

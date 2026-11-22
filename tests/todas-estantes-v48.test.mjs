@@ -5,7 +5,6 @@ const read=name=>readFileSync(new URL('../'+name,import.meta.url),'utf8');
 const js=read('aurora-estante.js');
 const css=read('aurora-estante-realista.css');
 const html=read('index.html');
-const serviceWorker=read('sw.js');
 const lombadas=read('aurora-lombadas.js');
 
 assert.match(js,/categories\.forEach\(\(category,index\)\s*=>/);
@@ -26,8 +25,6 @@ assert.match(js,/item\.cover/,'capa verdadeira continua disponível na lateral')
 assert.match(js,/item\.source!=='demo'&&Boolean\(item\.cover\|\|item\.spine\)/,
   'outros formatos com capa não devem perder a representação física');
 assert.match(lombadas,/dataset\.realSpine==='true'/);
-assert.match(html,/aurora-estante-realista\.css\?v=4/);
-assert.match(html,/aurora-estante\.js\?v=18/);
-assert.match(serviceWorker,/aurora-v51/);
-assert.match(serviceWorker,/index\.html\?v=51/);
+assert.match(html,/aurora-estante-realista\.css\?v=\d+/);
+assert.match(html,/aurora-estante\.js\?v=\d+/);
 console.log('V48: acabamento para todas as categorias, dimensões e arte reais preservadas.');

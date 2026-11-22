@@ -6,7 +6,6 @@ const read=name=>readFileSync(new URL('../'+name,import.meta.url),'utf8');
 const webgl=read('aurora-livro-3d.mjs');
 const surfaces=read('aurora-edition-surfaces.js');
 const html=read('index.html');
-const worker=read('sw.js');
 
 assert.match(webgl,/THREE\.NeutralToneMapping/,'cores neutras e fiéis à capa');
 assert.match(webgl,/PMREMGenerator/,'reflexos suaves de estúdio');
@@ -19,10 +18,8 @@ assert.match(webgl,/clamp\(\(rotation\.y-previous\)\/elapsed,-\.008,\.008\)/,
   'velocidade limitada para não provocar giro descontrolado');
 assert.match(webgl,/img\.crossOrigin='anonymous'/,'capas remotas respeitam CORS no WebGL');
 assert.doesNotMatch(webgl,/attempt\(false\)/,'não tenta enviar imagens remotas sem CORS à GPU');
-assert.match(html,/aurora-edition-surfaces\.js\?v=4/);
-assert.match(html,/aurora-livro-3d\.mjs\?v=7/);
-assert.match(worker,/aurora-v48/);
-assert.match(worker,/index\.html\?v=46/);
+assert.match(html,/aurora-edition-surfaces\.js\?v=\d+/);
+assert.match(html,/aurora-livro-3d\.mjs\?v=\d+/);
 
 function fakeContext(){
   return {

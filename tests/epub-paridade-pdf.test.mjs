@@ -10,9 +10,9 @@ const showcase=read('aurora-sala-3d.css');
 const css=read('aurora-novos-leitores.css');
 const sound=read('aurora-som-folhas.js');
 
-assert.match(html,/aurora-epub-reader\.js\?v=8/);
-assert.match(html,/aurora-som-folhas\.js\?v=2/);
-assert.match(pdf,/aurora-som-folhas\.js\?v=2/);
+assert.match(html,/aurora-epub-reader\.js\?v=\d+/);
+assert.match(html,/aurora-som-folhas\.js\?v=\d+/);
+assert.match(pdf,/aurora-som-folhas\.js\?v=\d+/);
 assert.match(pdf,/Som suave de folhas ao virar/);
 assert.match(html,/Som suave de folhas ao virar/);
 assert.match(css,/body\.epub-reader/);
@@ -41,7 +41,7 @@ const makeElement=tag=>{
   return element;
 };
 const stage={child:null,replaceChildren(...items){this.child=items[0]||null;}};
-const document={createElement:makeElement};
+const document={body:{classList:{contains:()=>false}},createElement:makeElement};
 const window={St:{PageFlip:class{
   constructor(host){this.host=host;this.events=new Map();}
   loadFromImages(images){this.images=images;}

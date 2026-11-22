@@ -41,7 +41,7 @@ const navigation={set href(value){redirected=value;},get href(){return redirecte
 const context={window:site,document:{getElementById:get,body:{classList:classes()},addEventListener:()=>{}},
   location:navigation,history:{state:{},pushState:()=>{},back:()=>{}},
   setTimeout:()=>1,clearTimeout:()=>{},cancelAnimationFrame:()=>{},requestAnimationFrame:callback=>callback(0),
-  CustomEvent:class{constructor(name,options){this.type=name;this.detail=options.detail;}},console};
+  Event,CustomEvent:class{constructor(name,options){this.type=name;this.detail=options.detail;}},console};
 vm.runInNewContext(read('aurora-sala-3d.js'),context);
 const button=element();
 const epub={id:'moreninha',format:'epub',name:'A Moreninha',author:'Joaquim Manuel de Macedo',cover:''};
