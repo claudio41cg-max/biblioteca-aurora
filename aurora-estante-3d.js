@@ -1,77 +1,72 @@
-/* Pré-renderiza apenas os três livros do piloto usando o mesmo modelo WebGL do visor. */
-(()=>{
+/* Prévia da estante com as artes dos exemplares guardados neste aparelho. */
+(() => {
   'use strict';
-  let importedBooks=window.AuroraImportedBooks||[];
-  let working=false;
+  if (new URLSearchParams(location.search).get('previa') !== 'estante-3d') return;
 
-  const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-
-  async function renderPilots(){
-    if(working||!importedBooks.length||!window.Aurora3D?.renderShelfPreview)return;
-    working=true;
-    try{
-      const buttons=Array.from(document.querySelectorAll(
-        '.book-spine[data-shelf-3d-pilot="true"]'
-      ));
-      for(const button of buttons){
-        if(!button.isConnected||button.dataset.shelfPreview==='ready')continue;
-        const coverNode=button.querySelector('.shelf-book-cover img');
-        const book=importedBooks.find(item=>String(item.id)===String(button.dataset.bookId))||{
-          id:button.dataset.bookId,
-          title:button.dataset.shelf3dTitle||button.dataset.rawTitle||'Livro',
-          name:button.dataset.shelf3dTitle||button.dataset.rawTitle||'Livro',
-          cover:coverNode?.currentSrc||coverNode?.src||'',
-          ratio:.72,total:0
-        };
-        if(!book.cover)continue;
-        const title=button.dataset.shelf3dTitle||book.title||book.name||'Livro';
-        const bounds=button.getBoundingClientRect();
-        const shelfRatio=Math.max(.12,Math.min(.4,(bounds.width||44)/(bounds.height||170)));
-        const previewHeight=Math.max(300,Math.min(780,Math.round((bounds.height||170)*3)));
-        const previewWidth=Math.max(100,Math.min(320,Math.round(previewHeight*shelfRatio)));
-        button.dataset.shelfPreview='loading';
-        const imageURL=await window.Aurora3D.renderShelfPreview({
-          id:book.id,
-          name:title,
-          title,
-          author:book.author||'',
-          description:book.description||'',
-          cover:book.cover,
-          back:book.back||'',
-          spine:book.spine||'',
-          ratio:book.ratio||.72,
-          total:book.total||0
-        },{view:'spine',width:previewWidth,height:previewHeight});
-        if(button.dataset.realSpine==='true')continue;
-        if(!imageURL||!button.isConnected){
-          if(button.isConnected)button.dataset.shelfPreview='failed';
-          continue;
-        }
-        const image=document.createElement('img');
-        image.className='shelf-3d-preview-image';
-        image.alt='Lombada em 3D: '+title;
-        image.decoding='async';
-        image.src=imageURL;
-        try{await image.decode();}catch{}
-        if(!button.isConnected||button.dataset.realSpine==='true')continue;
-        button.replaceChildren(image);
-        button.style.backgroundImage='none';
-        button.dataset.shelfPreview='ready';
-        button.title=title+' • tocar para pegar';
-        button.setAttribute('aria-label','Pegar '+title);
-        await delay(45);
-      }
-    }catch(error){
-      console.warn('Não foi possível montar as prévias 3D da estante:',error);
-    }finally{working=false;}
+  const poses = {
+    envelope: {yaw:1.36, pitch:.055, roll:0},
+    jane: {yaw:1.23, pitch:.07, roll:-.045}
+  };
+  function identify(title) {
+    const name = window.AuroraTitles.display(title).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+    if (/^(?:o )?envelope sobre a mesa(?:$|\s*[-–—:(\[]|\s+anderson abreu\b)/.test(name)) return 'envelope';
+    if (/^jane eyre(?:$|\s*[-–—:(\[]|\s+charlotte bronte\b)/.test(name)) return 'jane';
+    return '';
   }
 
-  document.addEventListener('aurora:library-data',event=>{
-    importedBooks=event.detail?.books||window.AuroraImportedBooks||[];
-    window.AuroraImportedBooks=importedBooks;
-    void renderPilots();
-  });
-  window.addEventListener('aurora:3d-ready',()=>void renderPilots());
-  window.addEventListener('aurora:book-closed',()=>void renderPilots());
-  if(window.Aurora3D?.renderShelfPreview)queueMicrotask(()=>void renderPilots());
+  let running = false, pending = false;
+  async function render(button, book, pose) {
+    const front = button.querySelector('.shelf-book-cover img');
+    const current = () => button.isConnected && button.querySelector('.shelf-book-cover img') === front;
+    if (!front || !book.cover) return;
+    button.dataset.shelfPose = pose;
+    if (button.dataset.shelfPreview === 'ready' && button.querySelector('.shelf-3d-preview-image')) return;
+    button.dataset.shelfPreview = 'css';
+    if (!window.Aurora3D?.renderShelfPreview || window.__auroraSelectedBook) return;
+    const src = await window.Aurora3D.renderShelfPreview(book, {
+      view:'volume',width:360,height:780,...poses[pose]
+    });
+    if (!src || !current()) return;
+    const image = new Image();
+    image.className = 'shelf-3d-preview-image';
+    image.alt = '';
+    image.decoding = 'async';
+    image.src = src;
+    await image.decode();
+    if (!current()) return;
+    button.style.setProperty('--preview-aspect', String(image.naturalWidth / image.naturalHeight));
+    button.append(image);
+    button.dataset.shelfPreview = 'ready';
+  }
+
+  let firstPosition = location.hash === '#previa';
+  async function refresh() {
+    pending = true;
+    if (running) return;
+    running = true;
+    try {
+      while (pending) {
+        pending = false;
+        const books = new Map((window.AuroraImportedBooks || []).map(book => [String(book.id),book]));
+        for (const button of document.querySelectorAll('#library .book-spine[data-book-id]')) {
+          const book = books.get(button.dataset.bookId);
+          if (!book) continue;
+          const pose = identify(book.title) || identify(book.name);
+          if (!pose) continue;
+          if (firstPosition) {
+            firstPosition = false;
+            button.scrollIntoView({block:'center',inline:'center',behavior:'instant'});
+          }
+          try { await render(button,book,pose); }
+          catch (error) { console.warn('Prévia do exemplar mantida em CSS:',error); }
+        }
+      }
+    } finally { running = false; }
+  }
+
+  document.addEventListener('aurora:library-data',refresh);
+  document.addEventListener('aurora:book-cover-updated',refresh);
+  window.addEventListener('aurora:3d-ready',refresh);
+  window.addEventListener('aurora:book-closed',() => queueMicrotask(refresh));
+  void refresh();
 })();
