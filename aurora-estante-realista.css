@@ -100,38 +100,46 @@
 }
 @media(prefers-reduced-motion:reduce){
   .category.shelf-premium .book-spine{transition:none}
-}/* Nos três títulos do piloto, a lombada renderizada em alta resolução
-   ocupa as mesmas dimensões dos outros volumes da prateleira. */
-.category.shelf-premium .book-spine[data-shelf-3d-pilot="true"][data-shelf-preview="ready"]{
-  border:0!important;
-  border-radius:0!important;
-  background-color:transparent!important;
-  background-image:none!important;
-  box-shadow:none!important;
 }
-.category.shelf-premium .book-spine[data-shelf-3d-pilot="true"][data-shelf-preview="ready"]::before,
-.category.shelf-premium .book-spine[data-shelf-3d-pilot="true"][data-shelf-preview="ready"]::after{
-  display:none!important;
-  content:none!important;
+
+/* Posições dos dois exemplares da prévia. A inclinação do volume WebGL
+   já está na imagem; a base do botão situa o livro sobre a madeira. */
+.category.shelf-premium .book-spine[data-shelf-pose="envelope"]{
+  --pose-height:calc(var(--book-height) - 5px);
+  --pose-lift:-3px;--pose-depth:-8px;--pose-yaw:-12deg;--pose-lean:0deg;
 }
-.category.shelf-premium .book-spine[data-shelf-3d-pilot="true"] .shelf-3d-preview-image{
-  position:absolute;
-  inset:0;
-  display:block;
-  width:100%;
-  height:100%;
-  object-fit:fill;
-  image-rendering:auto;
+.category.shelf-premium .book-spine[data-shelf-pose="jane"]{
+  --pose-height:calc(var(--book-height) + 15px);
+  --pose-lift:0px;--pose-depth:5px;--pose-yaw:-20deg;--pose-lean:2.6deg;
+}
+.category.shelf-premium .book-spine[data-shelf-pose]{
+  height:var(--pose-height);
+  transform-origin:center bottom;
+}
+.category.shelf-premium .book-spine[data-shelf-preview="css"]{
+  margin-right:calc(var(--cover-width) * .16);
+  transform:translateY(var(--pose-lift)) translateZ(var(--pose-depth)) rotateZ(var(--pose-lean)) rotateY(var(--pose-yaw));
+}
+.category.shelf-premium .book-spine[data-shelf-preview="ready"]{
+  flex:0 0 calc(var(--pose-height) * var(--preview-aspect));padding:0;
+  border:0;border-radius:0;background:transparent!important;box-shadow:none;
+  transform:translateY(var(--pose-lift)) translateZ(var(--pose-depth));
+}
+.category.shelf-premium .book-spine[data-shelf-preview="ready"]::after,
+.category.shelf-premium .book-spine[data-shelf-preview="ready"] > .shelf-book-cover,
+.category.shelf-premium .book-spine[data-shelf-preview="ready"] > .shelf-book-pages,
+.category.shelf-premium .book-spine[data-shelf-preview="ready"] > .spine-title{
+  display:none;
+}
+.category.shelf-premium .book-spine[data-shelf-preview="ready"]::before{
+  left:2%;right:0;bottom:-2px;height:4px;filter:blur(2px);
+  background:rgba(13,8,6,.7);transform:none;
+}
+.shelf-3d-preview-image{
+  display:block;width:100%;height:100%;object-fit:contain;object-position:center bottom;
   pointer-events:none;
 }
-body:not(.arranging) .category.shelf-premium .book-spine[data-shelf-3d-pilot="true"][data-shelf-preview="ready"]:hover,
-body:not(.arranging) .category.shelf-premium .book-spine[data-shelf-3d-pilot="true"][data-shelf-preview="ready"]:focus-visible{
-  transform:translateY(-13px) translateZ(34px) rotateY(var(--premium-yaw,-7deg)) rotateZ(calc(var(--tilt,0deg) + var(--premium-lean,0deg)))!important;
-  filter:brightness(1.12)!important;
-  z-index:20;
-}
-@media(max-width:550px){
-  body:not(.arranging) .category.shelf-premium .book-spine[data-shelf-3d-pilot="true"][data-shelf-preview="ready"]:active{
-    transform:translateY(-5px) translateZ(14px) rotateY(var(--premium-yaw,-7deg)) rotateZ(calc(var(--tilt,0deg) + var(--premium-lean,0deg)))!important;
-  }
+body:not(.arranging) .category.shelf-premium .book-spine[data-shelf-preview="ready"]:is(:hover,:active,:focus-visible){
+  transform:translateY(calc(var(--pose-lift) - 4px)) translateZ(var(--pose-depth));
+  background:transparent!important;box-shadow:none;filter:none;
 }
