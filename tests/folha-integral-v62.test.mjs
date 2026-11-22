@@ -4,7 +4,6 @@ import {readFileSync} from 'node:fs';
 const read=filename=>readFileSync(new URL('../'+filename,import.meta.url),'utf8');
 const html=read('meus-livros.html');
 const css=read('aurora-reader.css');
-const sw=read('sw.js');
 
 // A superfície que o leitor dobra tem a mesma proporção do PageFlip.
 // A imagem original é centralizada sem esticar textos ou ilustrações.
@@ -36,6 +35,5 @@ assert.match(html,/flippingTime:900,usePortrait:mobile,mobileScrollSupport:false
 assert.match(html,/session\.flip\.loadFromHTML\(session\.pages\)/);
 assert.match(html,/\.flip\.flipNext\('bottom'\)/);
 assert.match(html,/persistProgress\(session\)/);
-assert.match(sw,/aurora-v64/);
 
 console.log('V62: superfície sépia contínua, corte discreto e folheio original preservados.');

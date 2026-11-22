@@ -18,7 +18,7 @@ const elements={
 const $=id=>elements[id];
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
 const readingPrefs={size:16};
-const applyReaderZoom=new Function('$','clamp','readingPrefs',zoomSource+';return applyReaderZoom;')($,clamp,readingPrefs);
+const applyReaderZoom=new Function('$','clamp','readingPrefs','queueReaderVolumeAlign',zoomSource+';return applyReaderZoom;')($,clamp,readingPrefs,()=>{});
 
 const session={zoom:1,textMode:true};
 applyReaderZoom(session,1.8);

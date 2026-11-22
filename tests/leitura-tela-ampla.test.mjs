@@ -27,6 +27,6 @@ assert.match(textJs,/AuroraShelfViewer\.open\(button/,'TXT preserva o livro 3D')
 assert.match(online,/<details class="online-reader-options"/);
 assert.match(onlineCss,/\.online-reader-page \.online-paper\{height:100%;min-height:0;overflow-y:auto/,'Texto online não fica cortado na folha');
 assert.match(onlineJs,/AuroraPageSound\?\.play\(\)/,'Texto online tem som de folha');
-assert.match(online,/aurora-leitura-online\.js\?v=6/);
+assert.match(online,/aurora-leitura-online\.js\?v=\d+/);
 
 console.log('Leitura de tela ampla: EPUB, TXT, online e 3D preservados.');

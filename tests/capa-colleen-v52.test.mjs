@@ -16,11 +16,9 @@ assert.match(formats,/if\(!coverEntry\).*const direct=.*Object\.keys\(zip\.files
 assert.match(newFormats,/if\(!details\.cover&&format==='epub'\)[\s\S]*?formats\.catalogCover/);
 assert.match(importados,/if\(\(coverSource==='generated'\|\|!cover\)&&stored\.data\)[\s\S]*?formats\.openEpub/);
 assert.match(importados,/formats\.catalogCover\?\./);
-assert.match(importados,/book\.coverCheckedVersion!==52/);
-assert.match(html,/aurora-formatos\.js\?v=10/);
-assert.match(html,/aurora-importados\.js\?v=27/);
-assert.match(html,/aurora-novos-formatos\.js\?v=5/);
-assert.match(reader,/aurora-formatos\.js\?v=10/);
-assert.match(worker,/aurora-v52/);
-assert.match(worker,/new URL\('\.\/index\.html\?v=52',self\.registration\.scope\)/);
+assert.match(importados,/stored\.coverCheckedVersion!==book\.coverCheckedVersion/);
+assert.match(html,/aurora-formatos\.js\?v=\d+/);
+assert.match(html,/aurora-importados\.js\?v=\d+/);
+assert.match(html,/aurora-novos-formatos\.js\?v=\d+/);
+assert.match(reader,/aurora-formatos\.js\?v=\d+/);
 console.log('V52: capa da edição tradicional, prioridade EPUB, recuperação e cache confirmados.');

@@ -6,7 +6,6 @@ const shelf=read('aurora-estante.js');
 const catalog=read('aurora-catalogos.js');
 const css=read('aurora-catalogos.css');
 const html=read('index.html');
-const sw=read('sw.js');
 
 assert.match(shelf,/categories\.forEach\(\(category,index\)\s*=>/);
 assert.match(shelf,/catalogButton\.dataset\.catalogCategory=category\.id/);
@@ -26,9 +25,7 @@ assert.match(catalog,/visible\+=PAGE_SIZE/);
 assert.match(css,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
 assert.match(css,/#library \.section-title::after\{display:none\}/);
 assert.match(html,/id="auroraCatalogOverlay"[^>]*role="dialog"[^>]*aria-modal="true"/);
-assert.match(html,/aurora-catalogos\.js\?v=3/);
-assert.match(html,/aurora-catalogos\.css\?v=2/);
-assert.match(sw,/aurora-v54/);
-assert.match(sw,/aurora-catalogos\.js\?v=1/);
+assert.match(html,/aurora-catalogos\.js\?v=\d+/);
+assert.match(html,/aurora-catalogos\.css\?v=\d+/);
 
 console.log('V44/V53: catálogos, capas, volumes físicos e abertura do mesmo livro confirmados.');

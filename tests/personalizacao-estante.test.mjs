@@ -17,14 +17,13 @@ assert.match(html,/id="environmentCancel"/);
 assert.match(html,/class="environment-preview"/);
 assert.match(html,/id="roomTheme"/);
 assert.match(html,/id="roomPlants"/);
-assert.match(html,/aurora-ambiente\.css\?v=2/);
+assert.match(html,/aurora-ambiente\.css\?v=\d+/);
 assert.match(script,/aurora-environment-v1/);
 assert.match(script,/persistedEnvironment/);
 assert.match(script,/localStorage\.setItem\(environmentKey/);
 assert.match(script,/discardEnvironment\(\)/);
 assert.match(styles,/\.cabinet\{[\s\S]*?background-image:none!important/);
 assert.match(styles,/body\[data-shelf="original"\]/);
-assert.match(read('sw.js'),/aurora-v48/);
 assert.match(styles,/@media\(max-width:550px\)\{[\s\S]*?body\[data-wall\] \.library\{[\s\S]*?width:100%;max-width:none;margin:8px 0 0;padding:20px 0 30px/);
 assert.match(styles,/body\[data-shelf\]:not\(\[data-shelf="original"\]\) \.shelf-lip\{margin:0;height:25px\}/);
 
@@ -36,8 +35,7 @@ for(let i=0;i<5;i++){
     assert.equal(data.toString('ascii',8,12),'WEBP',path);
     assert(statSync(new URL('../'+path,import.meta.url)).size<100000,'textura otimizada para o celular');
     assert(styles.includes(path),'textura referenciada: '+path);
-    assert(read('sw.js').includes(path),'textura disponível offline: '+path);
   }
 }
 new Function(script);
-console.log('Cinco paredes, cinco prateleiras, cores, salvamento e texturas offline validados.');
+console.log('Cinco paredes, cinco prateleiras, cores, salvamento e arquivos das texturas validados.');

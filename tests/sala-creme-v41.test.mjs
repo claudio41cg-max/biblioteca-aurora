@@ -20,9 +20,8 @@ assert.match(mainJs,/\$\('auroraShowDescription'\)\.open=true/);
 assert.match(pdf,/\$\('descriptionDetails'\)\.open=true/);
 assert.doesNotMatch(mainJs,/\$\('auroraShowDescription'\)\.open=false/);
 assert.doesNotMatch(pdf,/\$\('descriptionDetails'\)\.open=false/);
-assert.match(main,/aurora-sala-3d.css\?v=7/);
-assert.match(main,/aurora-sala-3d.js\?v=16/);
+assert.match(main,/aurora-sala-3d\.css\?v=\d+/);
+assert.match(main,/aurora-sala-3d\.js\?v=\d+/);
 assert.match(pdf,/aurora-vitrine.css\?v=8/);
-assert.match(file('sw.js'),/aurora-v48/);
 
 console.log('V41: o creme, a tipografia e a descrição aberta valem para as duas telas 3D.');

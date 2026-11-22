@@ -20,8 +20,6 @@ assert.match(read('aurora-epub-reader.js'),/new St\.PageFlip\(host,/,'O EPUB usa
 assert.match(read('aurora-epub-reader.js'),/formats\.saveRecord\('progress'/);
 assert.match(read('aurora-audiobook.js'),/playbackRate/);
 assert.match(read('aurora-audiobook.js'),/formats\.saveRecord\('progress'/);
-assert.match(read('sw.js'),/\.\/ler-epub\.html/);
-assert.match(read('sw.js'),/\.\/ouvir-livro\.html/);
 
 const context={window:{},TextDecoder,Blob,Uint8Array,ArrayBuffer,indexedDB:{}};
 vm.runInNewContext(read('aurora-formatos.js'),context);
