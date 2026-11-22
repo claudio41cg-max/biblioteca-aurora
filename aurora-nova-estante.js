@@ -47,7 +47,10 @@
     flores:[{name:'Jiboia luxuosa',src:'./assets/customizador/folhagem-pendente.png'}],
     vasos:[{name:'Vaso marfim com jiboia',src:'./assets/customizador/folhagem-pendente.png'}],
     velas:[{name:'Par de velas marfim',src:'./assets/customizador/velas-marfim.png'}],
-    decoracao:[{name:'Globo vintage',src:'./assets/customizador/globo-antigo.png'}]
+    decoracao:[
+      {name:'Globo vintage',src:'./assets/customizador/globo-antigo.png'},
+      {name:'Gato de bronze',src:'./assets/customizador/gato-de-bronze.webp'}
+    ]
   };
   const palettes={
     tema:[
