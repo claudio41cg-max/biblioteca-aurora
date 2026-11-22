@@ -213,7 +213,7 @@
     // A textura usada no primeiro quadro é a mesma que seguirá no modelo WebGL.
     window.__auroraSelectedBook={id:book.id,name:book.name||book.title,
       title:displayTitle,author:book.author,description:book.description,
-      format:book.format,cover:book.cover,back:book.back,spine:spineImage,spineAspect:book.spineAspect,ratio,total:book.total};
+      format:book.format,cover:book.cover,coverSource:book.coverSource,back:book.back,spine:spineImage,spineAspect:book.spineAspect,ratio,total:book.total};
     cover.alt=(book.coverSource==='generated'?'Capa ilustrativa de ':'Capa da edição ')+displayTitle;
     cover.src=book.cover;
     window.dispatchEvent(new CustomEvent('aurora:book-selected',{detail:window.__auroraSelectedBook}));
@@ -227,6 +227,7 @@
         cover.alt='Capa ilustrativa de '+displayTitle;
         cover.src=book.cover;
         window.__auroraSelectedBook.cover=book.cover;
+        window.__auroraSelectedBook.coverSource=book.coverSource;
       }
       scene.classList.remove('cover-loading');
       scene.classList.add('aurora-force-css');

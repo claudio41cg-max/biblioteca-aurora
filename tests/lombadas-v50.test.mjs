@@ -16,7 +16,7 @@ assert.match(imported,/book\.editionArtVersion!==1/);
 assert.match(html,/aurora-lombadas\.js\?v=\d+/);
 
 const imageDraws=[];
-const lettering=[];
+const lettering=[],outlines=[];
 const ctx={
   drawImage(...args){imageDraws.push(args);},
   getImageData(){
@@ -27,7 +27,7 @@ const ctx={
   createLinearGradient(){return {addColorStop(){}};},
   fillRect(){},scale(){},beginPath(){},moveTo(){},lineTo(){},closePath(){},
   fill(){},translate(){},rotate(){},save(){},restore(){},
-  measureText(v){return {width:String(v).length*6};},fillText(text){lettering.push(text);}
+  measureText(v){return {width:String(v).length*6};},strokeText(text){outlines.push(text);},fillText(text){lettering.push(text);}
 };
 const makeBook=(src,coverSource)=>({
   dataset:{coverDerived:'true',coverSource,rawTitle:'Livro: subtítulo',author:'Nome da autora'},
@@ -61,9 +61,13 @@ vm.runInNewContext(spine,{document,window,Image,MutationObserver,
 await new Promise(resolve=>setTimeout(resolve,30));
 assert.equal(original.dataset.spineCrisp,'true');
 assert.equal(generated.dataset.spineCrisp,'true');
-assert.deepEqual(lettering,['Livro','Nome da autora','Livro','Nome da autora']);
-assert.equal(imageDraws.length,2);
-assert.ok(imageDraws.every(args=>args[7]===32 && args[8]===144),
-  'a capa só é desenhada no amostrador de cores');
+assert.deepEqual(lettering,['Livro','Livro','Nome da autora']);
+assert.deepEqual(outlines,['Livro'],'o título sobre a ilustração tem contorno');
+const [crop]=imageDraws.filter(args=>args[8]===1000);
+assert.equal(crop[0].src,'data:image/png;base64,ORIGINAL');
+assert.equal(crop[3]/crop[4],46/170,'o recorte segue a proporção física da lombada');
+assert.equal(crop[1],(700-crop[3])/2,'faixa central da edição');
+assert.equal(imageDraws.filter(args=>args[7]===32&&args[8]===144).length,2);
+assert.equal(imageDraws.length,3,'a capa ilustrativa não é reimpressa sobre o título');
 assert.equal(real.style.backgroundImage,undefined,'a lombada fotografada permanece intacta');
 console.log('V50: título e autoria na lombada, prioridade das fotos originais e EPUBs verificados.');

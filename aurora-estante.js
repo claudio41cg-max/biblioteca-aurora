@@ -60,7 +60,6 @@
       [/cinquentatonsliberdade|fiftyshadesfreed/,'Cinquenta Tons de Liberdade'],
       [/iracema/,'Iracema']
     ].find(([pattern])=>pattern.test(normalize(displayTitle+' '+item.title)))?.[1]||'':'';
-    if(pilotTitle==='Iracema'&&!item.spine){button.setAttribute('data-shelf-3d-pilot','true');button.dataset.shelf3dTitle=pilotTitle;}
     const fiftyShadesPilot=['Cinquenta Tons de Cinza','Cinquenta Tons Mais Escuros','Cinquenta Tons de Liberdade'].includes(pilotTitle);
     const pilotScale=fiftyShadesPilot?.92:1;
     const bookHeight=Math.round((realPDF?160+seed%17:151+seed%24)*pilotScale);
