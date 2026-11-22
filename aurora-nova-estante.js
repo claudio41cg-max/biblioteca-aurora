@@ -44,14 +44,28 @@
     {id:'livro',label:'Livro',icon:'▣'}
   ];
   const decorItems={
-    flores:[{name:'Jiboia luxuosa',src:'./assets/customizador/folhagem-pendente.png'}],
-    vasos:[{name:'Vaso marfim com jiboia',src:'./assets/customizador/folhagem-pendente.png'}],
-    velas:[{name:'Par de velas marfim',src:'./assets/customizador/velas-marfim.png'}],
+    flores:[
+      {name:'Jiboia luxuosa',src:'./assets/customizador/folhagem-pendente.png'},
+      {name:'Vaso de rosas',src:'./assets/customizador/rosas.webp'},
+      {name:'Hortênsias',src:'./assets/customizador/hortensias.webp'}
+    ],
+    vasos:[
+      {name:'Vaso marfim com jiboia',src:'./assets/customizador/folhagem-pendente.png'},
+      {name:'Costela-de-adão',src:'./assets/customizador/costela-de-adao.webp'},
+      {name:'Vaso de folhas secas',src:'./assets/customizador/palmeiras-secas.webp'}
+    ],
+    velas:[
+      {name:'Par de velas marfim',src:'./assets/customizador/velas-marfim.png'},
+      {name:'Velas na bandeja dourada',src:'./assets/customizador/velas-bandeja.webp'}
+    ],
     decoracao:[
       {name:'Globo vintage',src:'./assets/customizador/globo-antigo.png'},
       {name:'Gato de bronze',src:'./assets/customizador/gato-de-bronze.webp'},
       {name:'Busto clássico',src:'./assets/customizador/busto-classico.webp'},
-      {name:'Corações dourados',src:'./assets/customizador/coracoes-dourados.webp'}
+      {name:'Corações dourados',src:'./assets/customizador/coracoes-dourados.webp'},
+      {name:'Aquário',src:'./assets/customizador/aquario.webp'},
+      {name:'Abajur de latão',src:'./assets/customizador/abajur.webp'},
+      {name:'Abóbora',src:'./assets/customizador/abobora.webp'}
     ]
   };
   const palettes={
