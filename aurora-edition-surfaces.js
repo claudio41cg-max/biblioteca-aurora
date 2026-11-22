@@ -103,8 +103,8 @@
       return smooth.map((value,k)=>value*.83+mean[k]*.17);
     });
   }
-  // Compõe a lombada com duas cores da edição. A foto da capa continua na face frontal.
-  function spineCanvas(rows, book, width = 512, height = 1920, aspect = .17) {
+  // Compõe a faixa da capa diretamente na resolução final, tanto na estante quanto no visor.
+  function spineCanvas(rows, book, width = 512, height = 1920, aspect = .17, coverImage = null) {
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
@@ -134,10 +134,28 @@
     const title = fullTitle.split(/:\s+/)[0] || fullTitle;
     const author = String(book.author || '').trim();
     const division = author ? 275 : 85;
+    const illustrated = coverImage && book.coverSource !== 'generated';
     ctx.fillStyle = 'rgb(' + bottom.join(',') + ')';
     ctx.fillRect(0, 0, breadth, length);
-    ctx.fillStyle = 'rgb(' + top.join(',') + ')';
-    ctx.fillRect(0, 0, breadth, division);
+    if (illustrated) {
+      const sourceWidth = coverImage.naturalWidth, sourceHeight = coverImage.naturalHeight;
+      const cropWidth = Math.min(sourceWidth, sourceHeight * aspect);
+      const cropHeight = Math.min(sourceHeight, sourceWidth / aspect);
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(coverImage, (sourceWidth - cropWidth) / 2, (sourceHeight - cropHeight) / 2,
+        cropWidth, cropHeight, 0, 0, breadth, length);
+    } else if (rows) {
+      // Sem fotografia, o tecido acompanha as cores da capa ilustrativa do exemplar.
+      const cloth = ctx.createLinearGradient(0, 0, 0, length);
+      rows.forEach((rgb, i) => cloth.addColorStop(i / (rows.length - 1), 'rgb(' + rgb.map(Math.round).join(',') + ')'));
+      ctx.fillStyle = cloth;
+      ctx.fillRect(0, 0, breadth, length);
+      ctx.fillStyle = 'rgba(255,245,216,.065)';
+      for (let x=2; x<breadth; x+=5) ctx.fillRect(x,0,1,length);
+    } else {
+      ctx.fillStyle = 'rgb(' + top.join(',') + ')';
+      ctx.fillRect(0, 0, breadth, division);
+    }
 
     const curve = ctx.createLinearGradient(0, 0, breadth, 0);
     curve.addColorStop(0, 'rgba(0,0,0,.29)');
@@ -147,11 +165,17 @@
     curve.addColorStop(1, 'rgba(0,0,0,.24)');
     ctx.fillStyle = curve;
     ctx.fillRect(0, 0, breadth, length);
-    ctx.fillStyle = ink(bottom);
-    ctx.globalAlpha = .50;
-    ctx.fillRect(breadth * .18, division + 7, breadth * .64, 2.5);
-    ctx.fillRect(breadth * .18, length - 39, breadth * .64, 2.5);
-    ctx.globalAlpha = 1;
+    if (!illustrated) {
+      ctx.fillStyle = ink(bottom);
+      ctx.globalAlpha = .50;
+      const trim = Array.from(title).reduce((sum, char) => sum + char.codePointAt(0), 0) % 3;
+      const inset = breadth * (.16 + trim * .05);
+      for (const y of [division + 7, length - 39]) {
+        ctx.fillRect(inset, y, breadth - inset * 2, 2.5);
+        if (trim === 1) ctx.fillRect(inset, y + 6, breadth - inset * 2, 1.5);
+      }
+      ctx.globalAlpha = 1;
+    }
 
     function letter(text, start, end, maxSize, style, color, allowWrap = false) {
       const available = end - start;
@@ -179,11 +203,24 @@
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillStyle = color;
-      lines.forEach((line, i) => ctx.fillText(line, 0, (i - (lines.length - 1) / 2) * size * 1.12));
+      if (illustrated) {
+        ctx.lineJoin = 'round';
+        ctx.lineWidth = size * .12;
+        ctx.strokeStyle = color === '#100f0d' ? 'rgba(255,248,233,.8)' : 'rgba(19,13,12,.85)';
+      }
+      lines.forEach((line, i) => {
+        const y = (i - (lines.length - 1) / 2) * size * 1.12;
+        if (illustrated) ctx.strokeText(line, 0, y);
+        ctx.fillText(line, 0, y);
+      });
       ctx.restore();
     }
-    letter(title, division + 33, length - 56, Math.min(59, breadth * .38), 'bold', ink(bottom), true);
-    if (author) letter(author, 20, division - 14, Math.min(40, breadth * .27), 'normal', ink(top));
+    if (illustrated) {
+      letter(title, 85, length - 85, Math.min(64, breadth * .38), 'bold', ink(bandColor(12,36)), true);
+    } else {
+      letter(title, division + 33, length - 56, Math.min(59, breadth * .38), 'bold', ink(bottom), true);
+      if (author) letter(author, 20, division - 14, Math.min(40, breadth * .27), 'normal', ink(top));
+    }
     return canvas;
   }
   function generate(img,book,spineAspect){
@@ -257,7 +294,7 @@
       ctx.fillText('Contracapa ilustrativa • edição digital',52,666);
     }
     if(!book.spine){
-      spine=spineCanvas(sampleProfile(img), book, 512, 1920, spineAspect);
+      spine=spineCanvas(sampleProfile(img), book, 512, 1920, spineAspect, img);
     }
     return {back,spine,edge:`rgb(${edge.join(',')})`,accent:`rgb(${base.join(',')})`};
   }

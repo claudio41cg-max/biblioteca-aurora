@@ -190,7 +190,8 @@ body:not(.arranging) .book-spine[data-has-real-cover="true"]:focus-visible{
 }
 
 /* Lombadas importadas: preservar nitidez e identidade da capa no celular. */
-.book-spine[data-cover-derived="true"],.book-spine[data-spine-crisp="true"]{filter:none!important;image-rendering:auto;background-repeat:no-repeat!important;background-size:100% 100%!important;backface-visibility:hidden}
+.book-spine[data-cover-derived="true"]{filter:none!important;image-rendering:auto;background-repeat:no-repeat!important;background-size:cover!important;background-position:center!important;backface-visibility:hidden}
+.book-spine[data-spine-crisp="true"]{background-size:100% 100%!important}
 .book-spine[data-spine-crisp="true"] .spine-title{background:none!important;text-shadow:none!important}
 
 .book-spine[data-real-spine="true"]{background-size:contain!important;background-position:center;background-repeat:no-repeat}

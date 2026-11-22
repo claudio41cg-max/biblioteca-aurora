@@ -1,4 +1,4 @@
-/* Lombadas da estante com a mesma composição tipográfica do visor 3D. */
+/* Arte da edição em alta resolução na estante e no visor 3D. */
 (() => {
   'use strict';
   const hash=value=>Array.from(String(value||'')).reduce((seed,char)=>(Math.imul(seed,31)+char.charCodeAt(0))>>>0,7);
@@ -16,25 +16,10 @@
     const useDark=dark>light;
     return {rows:profile,ink:useDark?'#261810':'#fff5dc',dark:useDark,origin:'cover'};
   }
-  const colorCache=new Map(),artCache=new Map(),LIMIT=45;
+  const artCache=new Map(),LIMIT=45;
   function remember(cache,key,value){
     if(cache.size>=LIMIT)cache.delete(cache.keys().next().value);
     cache.set(key,value);return value;
-  }
-  async function getRows(src){
-    const cached=colorCache.get(src);
-    if(cached)return cached;
-    const image=new Image();
-    image.decoding='async';
-    image.crossOrigin='anonymous';
-    image.src=src;
-    try{
-      await image.decode();
-      const rows=window.AuroraEditionSurfaces.sampleProfile(image);
-      return remember(colorCache,src,rows);
-    }catch{
-      return null;
-    }
   }
   function fitLegacyTitle(button){
     const node=button.querySelector('.spine-title');
@@ -58,18 +43,31 @@
     const titleNode=button.querySelector('.spine-title');
     const title=titleNode?.textContent?.trim()||button.dataset.rawTitle||'';
     const author=button.dataset.author || window.AuroraBookInfo?.find(title)?.author || '';
-    const key=JSON.stringify([w,h,title,author]);
+    const coverSource=button.dataset.coverSource;
+    const dpr=Math.min(5,Math.max(4,window.devicePixelRatio||1),2048/h);
+    const key=JSON.stringify([w,h,dpr,title,author,coverSource]);
+    const stillCurrent=()=>button.isConnected && button.dataset.realSpine!=='true' &&
+      button.dataset.coverSource===coverSource && button.querySelector('.shelf-book-cover img')?.getAttribute('src')===cover;
     try{
       let art=artCache.get(key);
       if(art?.cover!==cover){
-        const rows=await getRows(cover);
-        const dpr=Math.min(5,Math.max(3,window.devicePixelRatio||1),2048/h);
-        const canvas=window.AuroraEditionSurfaces.spineCanvas(rows,{title,author},
-          Math.round(w*dpr),Math.round(h*dpr),w/h);
+        const image=new Image();
+        image.decoding='async';
+        image.crossOrigin='anonymous';
+        image.src=cover;
+        await image.decode();
+        if(!stillCurrent())return;
+        const surfaces=window.AuroraEditionSurfaces;
+        const canvas=surfaces.spineCanvas(surfaces.sampleProfile(image),{title,author,coverSource},
+          Math.round(w*dpr),Math.round(h*dpr),w/h,image);
         art=remember(artCache,key,{cover,url:canvas.toDataURL('image/webp',.97)});
       }
-      if(!button.isConnected||button.dataset.realSpine==='true'||
-          button.querySelector('.shelf-book-cover img')?.getAttribute('src')!==cover)return;
+      if(!stillCurrent())return;
+      if(button.offsetWidth!==w||button.offsetHeight!==h){
+        delete button.dataset.lombada;
+        schedule();
+        return;
+      }
       button.style.backgroundImage='url('+JSON.stringify(art.url)+')';
       button.style.backgroundSize='100% 100%';
       button.style.backgroundPosition='center';
@@ -81,7 +79,13 @@
       }
       button.dataset.lombada='1';
     }catch(error){
-      delete button.dataset.lombada;
+      if(!stillCurrent())return;
+      button.dataset.lombada='photo';
+      delete button.dataset.spineCrisp;
+      button.style.backgroundImage='url('+JSON.stringify(cover)+')';
+      if(titleNode){
+        titleNode.style.color='';titleNode.style.background='';titleNode.style.textShadow='';
+      }
       fitLegacyTitle(button);
       console.warn('Lombada mantida no estilo anterior:',error);
     }
@@ -113,7 +117,7 @@
       }
     }
     schedule();
-  }).observe(library,{attributes:true,subtree:true,attributeFilter:['src','data-cover-derived']});
+  }).observe(library,{attributes:true,subtree:true,attributeFilter:['src','data-cover-derived','data-cover-source','data-real-spine']});
   document.addEventListener('aurora:shelves-drawn',schedule);
   document.addEventListener('aurora:library-data',schedule);
   window.addEventListener('resize',()=>{

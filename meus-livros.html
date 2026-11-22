@@ -183,7 +183,7 @@
   <script src="./aurora-formatos.js?v=11"></script>
   <script src="./aurora-pdf-covers.js?v=2"></script>
   <!-- Carrega o mesmo Canvas de papel usado pelo livro 3D ANTES do leitor PDF. -->
-  <script src="./aurora-edition-surfaces.js?v=11"></script>
+  <script src="./aurora-edition-surfaces.js?v=12"></script>
   <script>
   (async () => {
     'use strict';
@@ -298,7 +298,7 @@
         id:b.id,name:b.name || 'Livro sem título',author:b.author||'',isbn:b.isbn||'',
         country:b.country||'',year:b.year||'',
         description:b.description||'',
-        cover:b.cover || '',customCover:!!b.customCover,spine:b.spine||'',
+        cover:b.cover || '',coverSource:b.coverSource,customCover:!!b.customCover,spine:b.spine||'',
         format:b.format||'pdf',editionArtVersion:b.editionArtVersion||0,spineAspect:Number(b.spineAspect)||0,back:b.back||'',backChecked:!!b.backChecked,
         ratio:Number(b.ratio)||.72,status:b.status||'quero-ler',
         total:b.total || 0,created:b.created || 0,
@@ -407,7 +407,7 @@
       $('book3d').classList.remove('opening');
       rotation = {x:-5,y:-22};
       updateRotation();
-      window.__auroraSelectedBook={id:book.id,name:book.name,title:known?.title||book.name,author:known?.author||book.author,cover:book.cover,back:book.back,spine:book.spine,spineAspect:book.spineAspect,ratio:book.ratio,total:book.total};
+      window.__auroraSelectedBook={id:book.id,name:book.name,title:known?.title||book.name,author:known?.author||book.author,cover:book.cover,coverSource:book.coverSource,back:book.back,spine:book.spine,spineAspect:book.spineAspect,ratio:book.ratio,total:book.total};
       window.dispatchEvent(new CustomEvent('aurora:book-selected',{detail:window.__auroraSelectedBook}));
       document.body.style.overflow = 'hidden';
       if(!book.cover) void recoverOriginalCover(id);

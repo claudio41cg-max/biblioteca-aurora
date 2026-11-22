@@ -37,7 +37,7 @@ const ctx={
   createLinearGradient(){return {addColorStop(){}};},
   drawImage(){},getImageData(){return {data:new Uint8ClampedArray(32*144*4).fill(125)};},
   fillRect(){},scale(){},beginPath(){},moveTo(){},lineTo(){},closePath(){},fill(){},
-  translate(){},rotate(){},save(){},restore(){},measureText(t){return {width:String(t).length*7};},fillText(){}
+  translate(){},rotate(){},save(){},restore(){},measureText(t){return {width:String(t).length*7};},strokeText(){},fillText(){}
 };
 const document={
   getElementById:id=>id==='library'?library:null,
