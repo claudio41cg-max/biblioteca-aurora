@@ -50,6 +50,7 @@
 
     <button class="config-done" type="button" onclick="location.href='./index.html'">Voltar para a estante</button>
   </main>
+  <script src="./aurora-estantes-salvas.js?v=1"></script>
   <script>
     (() => {
       const key = 'aurora-perfil-nome';
@@ -71,10 +72,13 @@
           status.textContent = 'Não foi possível salvar neste aparelho.';
         }
       });
-      const listKey='aurora-estantes-personalizadas-v1';
       const list=document.getElementById('savedShelves');
       const listHeading=document.getElementById('savedShelvesHeading');
-      const readShelves=()=>{try{return JSON.parse(localStorage.getItem(listKey)||'[]')}catch(_){return []}};
+      function readShelves(){
+        try {
+          return window.AuroraEstantesSalvas.read().filter(shelf=>shelf?.id);
+        } catch { return []; }
+      }
       const savedShelves=readShelves();
       listHeading.hidden=!savedShelves.length;
       list.hidden=!savedShelves.length;
@@ -83,6 +87,7 @@
         button.className='config-option';button.type='button';
         button.innerHTML='<span class="config-option-icon" aria-hidden="true">▤</span><span class="config-option-text"><strong></strong><small>Continuar montando esta estante</small></span><span class="config-arrow" aria-hidden="true">›</span>';
         button.querySelector('strong').textContent=shelf.name||'Minha estante';
+        button.querySelector('small').textContent=shelf.published ? 'Na biblioteca · Editar estante' : 'Rascunho · Continuar montando';
         button.addEventListener('click',()=>location.href='./nova-estante.html?id='+encodeURIComponent(shelf.id));
         list.append(button);
       });

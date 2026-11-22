@@ -1,30 +1,30 @@
 /* Superfícies fotografadas e personalização da estante. Não altera o leitor nem os livros. */
-body[data-wall="tijolos"]{--aurora-wall-image:url('./assets/ambientes/parede-0.webp')}
-body[data-wall="ripas"]{--aurora-wall-image:url('./assets/ambientes/parede-1.webp')}
-body[data-wall="reboco"]{--aurora-wall-image:url('./assets/ambientes/parede-2.webp')}
-body[data-wall="botanico"]{--aurora-wall-image:url('./assets/ambientes/parede-3.webp')}
-body[data-wall="rose"]{--aurora-wall-image:url('./assets/ambientes/parede-4.webp')}
-body[data-wall="original"]{--aurora-wall-image:linear-gradient(140deg,#16322c,#101d1a)}
-body[data-wall-tone="noite"]{--aurora-wall-wash:#070912b8}
-body[data-wall-tone="azul"]{--aurora-wall-wash:#233c8b88}
-body[data-wall-tone="verde"]{--aurora-wall-wash:#20544088}
-body[data-wall-tone="petroleo"]{--aurora-wall-wash:#15565d91}
-body[data-wall-tone="lilas"]{--aurora-wall-wash:#71568a8c}
-body[data-wall-tone="rosa"]{--aurora-wall-wash:#c3668c7a}
-body[data-wall-tone="calor"]{--aurora-wall-wash:#89523574}
-body[data-shelf="nogueira"]{--aurora-shelf-image:url('./assets/ambientes/prateleira-0.webp');--aurora-shelf-top:#aa7853}
-body[data-shelf="carvalho"]{--aurora-shelf-image:url('./assets/ambientes/prateleira-1.webp');--aurora-shelf-top:#ebbd7d}
-body[data-shelf="mogno"]{--aurora-shelf-image:url('./assets/ambientes/prateleira-2.webp');--aurora-shelf-top:#c79062}
-body[data-shelf="marmore"]{--aurora-shelf-image:url('./assets/ambientes/prateleira-3.webp');--aurora-shelf-top:#f7e9d6}
-body[data-shelf="metal"]{--aurora-shelf-image:url('./assets/ambientes/prateleira-4.webp');--aurora-shelf-top:#8b9398}
-body[data-shelf="original"]{--aurora-shelf-image:url('./assets/prateleira-romances.webp');--aurora-shelf-top:#c18a55}
-body[data-shelf-tone="natural"]{--aurora-shelf-wash:#ffffff00}
-body[data-shelf-tone="noite"]{--aurora-shelf-wash:#10131ab8}
-body[data-shelf-tone="azul"]{--aurora-shelf-wash:#253c89ad}
-body[data-shelf-tone="verde"]{--aurora-shelf-wash:#1a654ca8}
-body[data-shelf-tone="lilas"]{--aurora-shelf-wash:#795aa2a6}
-body[data-shelf-tone="rosa"]{--aurora-shelf-wash:#bc618ba6}
-body[data-shelf-tone="calor"]{--aurora-shelf-wash:#9b592ba3}
+:is(body, .shelf-canvas, .shelf-material-sample)[data-wall="tijolos"]{--aurora-wall-image:url('./assets/ambientes/parede-0.webp')}
+:is(body, .shelf-canvas, .shelf-material-sample)[data-wall="ripas"]{--aurora-wall-image:url('./assets/ambientes/parede-1.webp')}
+:is(body, .shelf-canvas, .shelf-material-sample)[data-wall="reboco"]{--aurora-wall-image:url('./assets/ambientes/parede-2.webp')}
+:is(body, .shelf-canvas, .shelf-material-sample)[data-wall="botanico"]{--aurora-wall-image:url('./assets/ambientes/parede-3.webp')}
+:is(body, .shelf-canvas, .shelf-material-sample)[data-wall="rose"]{--aurora-wall-image:url('./assets/ambientes/parede-4.webp')}
+:is(body, .shelf-canvas, .shelf-material-sample)[data-wall="original"]{--aurora-wall-image:linear-gradient(140deg,#16322c,#101d1a)}
+:is(body, .shelf-canvas, .shelf-material-sample)[data-wall-tone="noite"]{--aurora-wall-wash:#070912b8}
+:is(body, .shelf-canvas, .shelf-material-sample)[data-wall-tone="azul"]{--aurora-wall-wash:#233c8b88}
+:is(body, .shelf-canvas, .shelf-material-sample)[data-wall-tone="verde"]{--aurora-wall-wash:#20544088}
+:is(body, .shelf-canvas, .shelf-material-sample)[data-wall-tone="petroleo"]{--aurora-wall-wash:#15565d91}
+:is(body, .shelf-canvas, .shelf-material-sample)[data-wall-tone="lilas"]{--aurora-wall-wash:#71568a8c}
+:is(body, .shelf-canvas, .shelf-material-sample)[data-wall-tone="rosa"]{--aurora-wall-wash:#c3668c7a}
+:is(body, .shelf-canvas, .shelf-material-sample)[data-wall-tone="calor"]{--aurora-wall-wash:#89523574}
+:is(body, .shelf-canvas, .shelf-material-sample)[data-shelf="nogueira"]{--aurora-shelf-image:url('./assets/ambientes/prateleira-0.webp');--aurora-shelf-top:#aa7853}
+:is(body, .shelf-canvas, .shelf-material-sample)[data-shelf="carvalho"]{--aurora-shelf-image:url('./assets/ambientes/prateleira-1.webp');--aurora-shelf-top:#ebbd7d}
+:is(body, .shelf-canvas, .shelf-material-sample)[data-shelf="mogno"]{--aurora-shelf-image:url('./assets/ambientes/prateleira-2.webp');--aurora-shelf-top:#c79062}
+:is(body, .shelf-canvas, .shelf-material-sample)[data-shelf="marmore"]{--aurora-shelf-image:url('./assets/ambientes/prateleira-3.webp');--aurora-shelf-top:#f7e9d6}
+:is(body, .shelf-canvas, .shelf-material-sample)[data-shelf="metal"]{--aurora-shelf-image:url('./assets/ambientes/prateleira-4.webp');--aurora-shelf-top:#8b9398}
+:is(body, .shelf-canvas, .shelf-material-sample)[data-shelf="original"]{--aurora-shelf-image:url('./assets/prateleira-romances.webp');--aurora-shelf-top:#c18a55}
+:is(body, .shelf-canvas, .shelf-material-sample)[data-shelf-tone="natural"]{--aurora-shelf-wash:#ffffff00}
+:is(body, .shelf-canvas, .shelf-material-sample)[data-shelf-tone="noite"]{--aurora-shelf-wash:#10131ab8}
+:is(body, .shelf-canvas, .shelf-material-sample)[data-shelf-tone="azul"]{--aurora-shelf-wash:#253c89ad}
+:is(body, .shelf-canvas, .shelf-material-sample)[data-shelf-tone="verde"]{--aurora-shelf-wash:#1a654ca8}
+:is(body, .shelf-canvas, .shelf-material-sample)[data-shelf-tone="lilas"]{--aurora-shelf-wash:#795aa2a6}
+:is(body, .shelf-canvas, .shelf-material-sample)[data-shelf-tone="rosa"]{--aurora-shelf-wash:#bc618ba6}
+:is(body, .shelf-canvas, .shelf-material-sample)[data-shelf-tone="calor"]{--aurora-shelf-wash:#9b592ba3}
 
 /* A foto da parede continua por trás de todas as prateleiras, como num cômodo real. */
 body[data-wall] .library{
