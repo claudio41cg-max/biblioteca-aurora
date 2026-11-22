@@ -70,7 +70,123 @@
       edge.style.backgroundSize='100% 100%';
     });
   }
-  function generate(img,book){
+  // Faz a amostragem da capa INTEIRA. A faixa esquerda sozinha costuma ser
+  // preta ou branca e faz livros de coleções diferentes parecerem iguais.
+  function sampleProfile(image){
+    const canvas=document.createElement('canvas');
+    canvas.width=32;canvas.height=144;
+    const ctx=canvas.getContext('2d',{willReadFrequently:true});
+    if(!ctx)throw new Error('Canvas indisponível');
+    ctx.drawImage(image,0,0,image.naturalWidth,image.naturalHeight,0,0,32,144);
+    const pixels=ctx.getImageData(0,0,32,144).data;
+    const profile=[];
+    for(let row=0;row<48;row++){
+      const sum=[0,0,0];let total=0;
+      for(let y=row*3;y<row*3+3;y++)for(let x=0;x<32;x++){
+        const p=(y*32+x)*4;
+        if(pixels[p+3]<40)continue;
+        const rgb=[pixels[p],pixels[p+1],pixels[p+2]];
+        const max=Math.max(...rgb),min=Math.min(...rgb);
+        const saturation=(max-min)/255;
+        // Dá mais peso ao tom do tecido/ilustração do que às letras brancas.
+        // A região central também conta, mesmo quando a borda é toda preta.
+        const weight=(1+saturation*2)*(max>245 && saturation<.10 ? .35 : 1);
+        for(let k=0;k<3;k++)sum[k]+=rgb[k]*weight;
+        total+=weight;
+      }
+      profile.push(total?sum.map(value=>value/total):[225,211,185]);
+    }
+    const mean=profile.reduce((sum,color)=>sum.map((value,k)=>value+color[k]/profile.length),[0,0,0]);
+    return profile.map((color,index)=>{
+      const neighbors=[-2,-1,0,1,2].map(offset=>profile[Math.max(0,Math.min(47,index+offset))]);
+      const smooth=[0,1,2].map(k=>neighbors.reduce((sum,row)=>sum+row[k],0)/neighbors.length);
+      return smooth.map((value,k)=>value*.83+mean[k]*.17);
+    });
+  }
+  // Compõe a lombada com duas cores da edição. A foto da capa continua na face frontal.
+  function spineCanvas(rows, book, width = 512, height = 1920, aspect = .17) {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d', {alpha: false});
+    const length = 1000;
+    const breadth = length * aspect;
+    ctx.scale(width / breadth, height / length);
+
+    function bandColor(start, end) {
+      const colors = rows.slice(start, end);
+      return [0, 1, 2].map(channel => Math.round(
+        colors.reduce((sum, color) => sum + color[channel], 0) / colors.length
+      ));
+    }
+    const top = rows ? bandColor(3, 16) : [44, 46, 45];
+    const bottom = rows ? bandColor(30, 46) : [64, 57, 69];
+    function ink(rgb) {
+      const linear = rgb.map(value => {
+        const c = value / 255;
+        return c <= .04045 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4;
+      });
+      const luminance = .2126 * linear[0] + .7152 * linear[1] + .0722 * linear[2];
+      return luminance > .18 ? '#100f0d' : '#fffbed';
+    }
+
+    const fullTitle = String(book.title || book.name || 'Livro').replace(/[_]+/g, ' ').trim();
+    const title = fullTitle.split(/:\s+/)[0] || fullTitle;
+    const author = String(book.author || '').trim();
+    const division = author ? 275 : 85;
+    ctx.fillStyle = 'rgb(' + bottom.join(',') + ')';
+    ctx.fillRect(0, 0, breadth, length);
+    ctx.fillStyle = 'rgb(' + top.join(',') + ')';
+    ctx.fillRect(0, 0, breadth, division);
+
+    const curve = ctx.createLinearGradient(0, 0, breadth, 0);
+    curve.addColorStop(0, 'rgba(0,0,0,.29)');
+    curve.addColorStop(.12, 'rgba(255,255,255,.06)');
+    curve.addColorStop(.42, 'rgba(255,255,255,.025)');
+    curve.addColorStop(.86, 'rgba(0,0,0,.04)');
+    curve.addColorStop(1, 'rgba(0,0,0,.24)');
+    ctx.fillStyle = curve;
+    ctx.fillRect(0, 0, breadth, length);
+    ctx.fillStyle = ink(bottom);
+    ctx.globalAlpha = .50;
+    ctx.fillRect(breadth * .18, division + 7, breadth * .64, 2.5);
+    ctx.fillRect(breadth * .18, length - 39, breadth * .64, 2.5);
+    ctx.globalAlpha = 1;
+
+    function letter(text, start, end, maxSize, style, color, allowWrap = false) {
+      const available = end - start;
+      ctx.font = style + ' ' + maxSize + 'px Georgia, serif';
+      const measured = ctx.measureText(text).width;
+      let lines = [text];
+      let size = Math.min(maxSize, maxSize * available / Math.max(1, measured));
+      if (allowWrap && size < breadth * .23 && text.includes(' ')) {
+        const words = text.split(/\s+/);
+        let longest = measured;
+        for (let split = 1; split < words.length; split++) {
+          const pair = [words.slice(0, split).join(' '), words.slice(split).join(' ')];
+          const width = Math.max(...pair.map(line => ctx.measureText(line).width));
+          if (width < longest) {
+            longest = width;
+            lines = pair;
+          }
+        }
+        size = Math.min(breadth * .34, maxSize * available / Math.max(1, longest));
+      }
+      ctx.save();
+      ctx.translate(breadth / 2, (start + end) / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.font = style + ' ' + size + 'px Georgia, serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = color;
+      lines.forEach((line, i) => ctx.fillText(line, 0, (i - (lines.length - 1) / 2) * size * 1.12));
+      ctx.restore();
+    }
+    letter(title, division + 33, length - 56, Math.min(88, breadth * .52), 'bold', ink(bottom), true);
+    if (author) letter(author, 20, division - 14, Math.min(50, breadth * .33), 'normal', ink(top));
+    return canvas;
+  }
+  function generate(img,book,spineAspect){
     if(!img?.naturalWidth || !img?.naturalHeight)return null;
     const sampler=document.createElement('canvas');
     sampler.width=48;sampler.height=48;
@@ -140,52 +256,43 @@
       ctx.fillStyle='#e6d3b7';ctx.font='14px Georgia,serif';
       ctx.fillText('Contracapa ilustrativa • edição digital',52,666);
     }
-    const normalizedTitle=String(book.title||book.name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
     if(!book.spine){
-      spine=document.createElement('canvas');spine.width=512;spine.height=1920;
-      const ctx=spine.getContext('2d',{alpha:false});
-      ctx.scale(2,2);
-      ctx.imageSmoothingQuality='high';
-      // Sem lombada original: prolonga a arte central da capa para a lateral.
-      // Evita a faixa esquerda quase sempre preta e a aparência de couro antigo.
-      const cropWidth=Math.max(1,Math.min(img.naturalWidth,img.naturalHeight*.27));
-      const cropX=Math.max(0,(img.naturalWidth-cropWidth)*.5);
-      ctx.drawImage(img,cropX,0,cropWidth,img.naturalHeight,0,0,256,960);
-      const shade=ctx.createLinearGradient(0,0,256,0);
-      shade.addColorStop(0,'#000b');shade.addColorStop(.23,'#0006');
-      shade.addColorStop(.57,'#0003');shade.addColorStop(1,'#000c');
-      ctx.fillStyle=shade;ctx.fillRect(0,0,256,960);
-      ctx.save();ctx.translate(128,480);ctx.rotate(-Math.PI/2);
-      ctx.font='bold 42px Georgia,serif';ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.lineWidth=12;ctx.strokeStyle='rgba(0,0,0,.85)';
-      const name=String(book.title||book.name||'Livro').replace(/[-_]+/g,' ').slice(0,65);
-      ctx.strokeText(name,0,0,815);ctx.fillStyle='#fff8e9';ctx.fillText(name,0,0,815);
-      ctx.restore();
+      spine=spineCanvas(sampleProfile(img), book, 512, 1920, spineAspect);
     }
     return {back,spine,edge:`rgb(${edge.join(',')})`,accent:`rgb(${base.join(',')})`};
   }
   function applyCSS(book,img){
     const bookNode=document.getElementById('book3d');
     if(!bookNode)return;
-    const surfaces=generate(img,book);
+    const spineNode=bookNode.querySelector('.volume-spine');
+    const aspect=spineNode?.offsetWidth / spineNode?.offsetHeight || undefined;
+    let surfaces;
+    try{
+      surfaces=generate(img,book,aspect);
+    }catch(error){
+      if(error.name!=='SecurityError')throw error;
+      surfaces={spine:book.spine?null:spineCanvas(null,book,512,1920,aspect),accent:'#403945'};
+    }
     if(!surfaces)return;
     const backNode=bookNode.querySelector('.volume-back');
-    const spineNode=bookNode.querySelector('.volume-spine');
     bookNode.querySelector('.volume-cover')?.style.setProperty('border-color',surfaces.accent);
     spineNode?.style.setProperty('border-color',surfaces.accent);
     backNode?.style.setProperty('border-color',surfaces.accent);
     if(surfaces.back && backNode)backNode.style.backgroundImage='url('+JSON.stringify(surfaces.back.toDataURL('image/jpeg',.88))+')';
-    if(surfaces.spine && spineNode)spineNode.style.backgroundImage='url('+JSON.stringify(surfaces.spine.toDataURL('image/jpeg',.9))+')';
+    if(spineNode){
+      spineNode.style.backgroundSize=surfaces.spine?'100% 100%':'';
+      if(surfaces.spine)spineNode.style.backgroundImage='url('+JSON.stringify(surfaces.spine.toDataURL('image/png'))+')';
+    }
   }
   const cover=document.getElementById('cover3d');
   function paintSelected(){
     applyPaperEdges();
     const book=window.__auroraSelectedBook;
-    if(!book?.cover || !cover?.naturalWidth || cover.src!==book.cover)return;
+    if(!book?.cover || !cover?.naturalWidth || (cover.getAttribute('src')!==book.cover && cover.src!==book.cover))return;
     try{applyCSS(book,cover);}catch(error){console.warn('Acabamento do livro indisponível:',error);}
   }
   cover?.addEventListener('load',paintSelected);
   window.addEventListener('aurora:book-selected',paintSelected);
-  window.AuroraEditionSurfaces={generate,applyCSS,paperEdgeCanvas,applyPaperEdges};
+  window.AuroraEditionSurfaces={generate,applyCSS,paperEdgeCanvas,applyPaperEdges,sampleProfile,spineCanvas};
   paintSelected();
 })();

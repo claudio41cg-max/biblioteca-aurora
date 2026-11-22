@@ -6,24 +6,19 @@ const spine=read('aurora-lombadas.js');
 const shelf=read('aurora-estante.js');
 const epub=read('aurora-formatos.js');
 const imported=read('aurora-importados.js');
-const worker=read('sw.js');
 const html=read('index.html');
 
 assert.match(shelf,/if\(item\.cover&&item\.source!=='demo'\)button\.dataset\.coverSource/);
-assert.match(spine,/function coverDetail\(image\)/);
-assert.match(spine,/model\.artwork=coverDetail\(image\)/);
-assert.match(spine,/if\(model\.artwork&&!illustrative\)/);
-assert.match(spine,/ctx\.drawImage\(model\.artwork,0,0,w,h\)/);
 assert.match(spine,/dataset\.realSpine==='true'/);
 assert.match(epub,/const refs=nodes\(packageXML,'itemref'\)\.slice\(0,3\)/);
 assert.match(epub,/if\(illustrations\.length!==1/);
-assert.match(imported,/coverCheckedVersion!==50/);
-assert.match(html,/aurora-lombadas\.js\?v=3/);
-assert.match(worker,/aurora-v51/);
+assert.match(imported,/stored\.coverCheckedVersion!==book\.coverCheckedVersion/);
+assert.match(html,/aurora-lombadas\.js\?v=\d+/);
 
-let artDraws=0;
+const imageDraws=[];
+const lettering=[];
 const ctx={
-  drawImage(image){if(image?.width===56)artDraws++;},
+  drawImage(...args){imageDraws.push(args);},
   getImageData(){
     const data=new Uint8ClampedArray(32*144*4);
     for(let n=0;n<data.length;n+=4)data.set([42,102,170,255],n);
@@ -32,12 +27,12 @@ const ctx={
   createLinearGradient(){return {addColorStop(){}};},
   fillRect(){},scale(){},beginPath(){},moveTo(){},lineTo(){},closePath(){},
   fill(){},translate(){},rotate(){},save(){},restore(){},
-  measureText(v){return {width:String(v).length*6};},fillText(){}
+  measureText(v){return {width:String(v).length*6};},fillText(text){lettering.push(text);}
 };
 const makeBook=(src,coverSource)=>({
-  dataset:{coverDerived:'true',coverSource,rawTitle:'Livro'},
+  dataset:{coverDerived:'true',coverSource,rawTitle:'Livro: subtítulo',author:'Nome da autora'},
   style:{},offsetWidth:46,offsetHeight:170,isConnected:true,
-  title:{textContent:'Livro',style:{}},
+  title:{textContent:'Livro: subtítulo',style:{}},
   querySelector(sel){if(sel==='.spine-title')return this.title;
     if(sel==='.shelf-book-cover img')return {getAttribute:()=>src};
     return null;}
@@ -48,23 +43,27 @@ const real={dataset:{realSpine:'true'},style:{},offsetWidth:46,offsetHeight:170,
   querySelector:()=>null};
 const buttons=[original,generated,real];
 const document={
-  getElementById:()=>({querySelectorAll:()=>buttons.filter(book=>!book.dataset.lombada)}),
+  getElementById:id=>id==='library'?{querySelectorAll:()=>buttons.filter(book=>!book.dataset.lombada)}:null,
   createElement:()=>({getContext:()=>ctx,toDataURL:()=> 'data:image/webp;base64,ART'}),
   addEventListener(){}
 };
 const window={devicePixelRatio:2,addEventListener(){}};
-class Image{naturalWidth=700;naturalHeight=1000;
+class Image{async decode(){} naturalWidth=700;naturalHeight=1000;
   set src(value){this._src=value;queueMicrotask(()=>this.onload?.());}
   get src(){return this._src;}
 }
 class MutationObserver{observe(){}}
+vm.runInNewContext(read('aurora-edition-surfaces.js'),{document,window,console});
 vm.runInNewContext(spine,{document,window,Image,MutationObserver,
   requestAnimationFrame:fn=>queueMicrotask(fn),
   getComputedStyle:()=>({fontSize:'11px'}),location:{href:'https://exemplo.com/',origin:'https://exemplo.com'},
   console,Uint8ClampedArray});
 await new Promise(resolve=>setTimeout(resolve,30));
-assert.equal(original.dataset.spineMode,'arte-da-capa');
-assert.equal(generated.dataset.spineMode,'cores-ilustrativas');
-assert.equal(artDraws,1,'a textura com detalhes da capa deve aparecer apenas no livro real');
+assert.equal(original.dataset.spineCrisp,'true');
+assert.equal(generated.dataset.spineCrisp,'true');
+assert.deepEqual(lettering,['Livro','Nome da autora','Livro','Nome da autora']);
+assert.equal(imageDraws.length,2);
+assert.ok(imageDraws.every(args=>args[7]===32 && args[8]===144),
+  'a capa só é desenhada no amostrador de cores');
 assert.equal(real.style.backgroundImage,undefined,'a lombada fotografada permanece intacta');
-console.log('V50: acabamento fotográfico, prioridades originais e EPUBs verificados.');
+console.log('V50: título e autoria na lombada, prioridade das fotos originais e EPUBs verificados.');

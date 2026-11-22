@@ -5,22 +5,20 @@ import vm from 'node:vm';
 const read=file=>readFileSync(new URL('../'+file,import.meta.url),'utf8');
 const spine=read('aurora-lombadas.js');
 const imported=read('aurora-importados.js');
+const surfaces=read('aurora-edition-surfaces.js');
 const covers=read('aurora-formatos.js');
 const html=read('index.html');
-const worker=read('sw.js');
 
-assert.match(spine,/canvas\.width=32;canvas\.height=144/);
-assert.match(spine,/ctx\.drawImage\(image,0,0,image\.naturalWidth,image\.naturalHeight/);
-assert.doesNotMatch(spine,/image\.naturalWidth\*\.12/);
+assert.match(surfaces,/canvas\.width=32;canvas\.height=144/);
+assert.match(surfaces,/ctx\.drawImage\(image,0,0,image\.naturalWidth,image\.naturalHeight/);
+assert.doesNotMatch(surfaces,/image\.naturalWidth\*\.12/);
 assert.doesNotMatch(spine,/tries<14/);
-assert.match(spine,/art\.type==='photo'/);
 assert.match(spine,/dataset\.realSpine==='true'/);
 assert.match(imported,/recoverQueue/);
-assert.match(imported,/coverCheckedVersion!==50/);
+assert.match(imported,/stored\.coverCheckedVersion!==book\.coverCheckedVersion/);
 assert.match(imported,/if\(epub\.cover\)\{cover=epub\.cover;coverSource='original';\}/);
 assert.match(covers,/const palettes=\[/);
-assert.match(html,/aurora-lombadas\.js\?v=3/);
-assert.match(worker,/aurora-v51/);
+assert.match(html,/aurora-lombadas\.js\?v=\d+/);
 
 let image;
 const ctx={
@@ -40,12 +38,13 @@ const ctx={
   measureText(value){return {width:String(value).length*6};},fillText(){}
 };
 const document={
-  getElementById:()=>({querySelectorAll:()=>[]}),
+  getElementById:id=>id==='library'?{querySelectorAll:()=>[]}:null,
   createElement:()=>({getContext:()=>ctx}),
   addEventListener(){}
 };
 const window={devicePixelRatio:2,addEventListener(){}};
 class MutationObserver{observe(){}}
+vm.runInNewContext(surfaces,{document,window,console});
 vm.runInNewContext(spine,{document,window,MutationObserver,
   requestAnimationFrame:callback=>callback(),console,Uint8ClampedArray});
 const api=window.AuroraLombadas;

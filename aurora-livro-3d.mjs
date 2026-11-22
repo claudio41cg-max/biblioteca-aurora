@@ -260,8 +260,8 @@ function initialize(){
     return canvas;
   }
   // Usa exatamente as mesmas superfícies da versão CSS de compatibilidade.
-  function matchEditionSurfaces(img,book,backTexture,spineTexture,boardMaterial,trimMaterial){
-    const surfaces=window.AuroraEditionSurfaces?.generate(img,book);
+  function matchEditionSurfaces(img,book,backTexture,spineTexture,boardMaterial,trimMaterial,spineAspect){
+    const surfaces=window.AuroraEditionSurfaces?.generate(img,book,spineAspect);
     if(!surfaces)return;
     boardMaterial.color.setStyle(surfaces.edge);
     trimMaterial.color.setStyle(surfaces.accent);
@@ -418,7 +418,7 @@ function initialize(){
     });
 
     loadOriginalFront(frontMaterial,book.cover,token,book.id,img=>
-      matchEditionSurfaces(img,book,backSurface,spineTexture,coverBoard,trimBoard));
+      matchEditionSurfaces(img,book,backSurface,spineTexture,coverBoard,trimBoard,(thickness+.09)/(height-.02)));
     paintPhoto(backSurface,book.back,token);
     paintPhoto(spineTexture,book.spine,token,true);
     group.rotation.set(rotation.x,rotation.y,0);

@@ -181,7 +181,7 @@
   <script src="./aurora-sinopses.js?v=2"></script>
   <script src="./aurora-pdf-covers.js?v=1"></script>
   <!-- Carrega o mesmo Canvas de papel usado pelo livro 3D ANTES do leitor PDF. -->
-  <script src="./aurora-edition-surfaces.js?v=9"></script>
+  <script src="./aurora-edition-surfaces.js?v=10"></script>
   <script>
   (async () => {
     'use strict';
@@ -405,7 +405,7 @@
       $('book3d').classList.remove('opening');
       rotation = {x:-5,y:-22};
       updateRotation();
-      window.__auroraSelectedBook={id:book.id,name:book.name,cover:book.cover,back:book.back,spine:book.spine,ratio:book.ratio,total:book.total};
+      window.__auroraSelectedBook={id:book.id,name:book.name,title:known?.title||book.name,author:known?.author||book.author,cover:book.cover,back:book.back,spine:book.spine,ratio:book.ratio,total:book.total};
       window.dispatchEvent(new CustomEvent('aurora:book-selected',{detail:window.__auroraSelectedBook}));
       document.body.style.overflow = 'hidden';
       if(!book.cover) void recoverOriginalCover(id);
@@ -1144,6 +1144,6 @@
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
   })();
   </script>
-  <script type="module" src="./aurora-livro-3d.mjs?v=18"></script>
+  <script type="module" src="./aurora-livro-3d.mjs?v=19"></script>
 </body>
 </html>

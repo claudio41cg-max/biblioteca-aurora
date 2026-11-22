@@ -7,14 +7,12 @@ const script=read('aurora-lombadas.js'),html=read('index.html'),worker=read('sw.
 const shelf=read('aurora-estante.js');
 assert.match(shelf,/dataset\.realSpine='true'/);
 assert.match(shelf,/dataset\.coverDerived='true'/);
-assert.match(html,/aurora-lombadas\.js\?v=3/);
-assert.match(worker,/aurora-v51/);
-assert.match(worker,/index\.html\?v=47/);
-assert.match(worker,/aurora-lombadas\.js\?v=3/);
+assert.match(html,/aurora-lombadas\.js\?v=\d+/);
 assert.match(worker,/Promise\.allSettled/);
 assert.match(worker,/NAVIGATION_TIMEOUT_MS/);
 assert.match(script,/devicePixelRatio/);
-assert.match(script,/getImageData/);
+const surfaces=read('aurora-edition-surfaces.js');
+assert.match(surfaces,/getImageData/);
 assert.match(script,/backgroundSize='100% 100%'/);
 assert.match(script,/dataset\.realSpine==='true'/);
 assert.match(script,/crossOrigin='anonymous'/);
@@ -48,10 +46,12 @@ const document={
 };
 const window={devicePixelRatio:2,addEventListener(){}};
 class Image{
+  async decode(){}
   naturalWidth=720;naturalHeight=1100;
   set src(value){Promise.resolve().then(()=>this.onload?.());}
 }
 class MutationObserver{observe(){}}
+vm.runInNewContext(surfaces,{window,document,console});
 vm.runInNewContext(script,{
   document,window,Image,MutationObserver,
   requestAnimationFrame:fn=>Promise.resolve().then(fn),
