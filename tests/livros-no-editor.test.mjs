@@ -10,17 +10,18 @@ const importedKey='arquivo:epub-1';
 const initialMembers=[{key:importedKey,section:1},{key:'demo:Dom Casmurro',section:0}];
 const storageKey='aurora-estante-exemplares-v1:romances';
 
-async function openEditor(t,contextOptions={}){
+async function openEditor(t,contextOptions={},members=initialMembers){
   const directory=process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES;
   const require=createRequire(directory ? join(directory,'runtime-test.cjs') : import.meta.url);
   const {chromium}=require('playwright');
   const browser=await chromium.launch({executablePath:'/usr/bin/chromium',args:['--no-sandbox']});
   t.after(()=>browser.close());
-  const page=await browser.newPage({viewport:{width:390,height:844},serviceWorkers:'block',...contextOptions});
+  const context=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block',...contextOptions});
+  const page=await context.newPage();
   // O editor deve funcionar com os scripts e o acervo do aparelho.
   const origin='http://127.0.0.1';
   const root=fileURLToPath(new URL('..',import.meta.url));
-  await page.route('**/*',route=>{
+  await context.route('**/*',route=>{
     const url=new URL(route.request().url());
     return url.origin===origin ? route.fulfill({path:join(root,url.pathname)}) : route.abort();
   });
@@ -29,7 +30,7 @@ async function openEditor(t,contextOptions={}){
     await AuroraFormats.saveRecord('books',{id:'epub-1',format:'epub',name:'Mar de Inverno',author:'Ana'});
     AuroraEstantesSalvas.save({id:'romances',name:'Romances',sections:2,objects:[]},true);
     localStorage.setItem(storageKey,JSON.stringify(initialMembers));
-  },{initialMembers,storageKey});
+  },{initialMembers:members,storageKey});
   const sections=page.locator('#shelfScene .shelf-section');
   const sample=sections.nth(0).getByRole('button',{name:'Ajustar medidas de Dom Casmurro',exact:true});
   const imported=sections.nth(1).getByRole('button',{name:'Ajustar medidas de Mar de Inverno',exact:true});
@@ -191,4 +192,169 @@ test('editar a aparência conserva as medidas antigas, os demais vínculos e a l
   assert.deepEqual(await stored(),[{...initialMembers[0],etiqueta:'Favorito'},members[1]]);
   assert.deepEqual(await bookRecord(),before);
   assert.deepEqual(await page.evaluate(()=>AuroraFormats.readRecord('progress','epub-1')),progress);
+});
+
+test('a pilha acompanha a base, recarrega os apoios e rejeita referências inválidas',browserOnly,async t=>{
+  const baseKey='demo:A Moreninha',middleKey='demo:Senhora',elsewhere='demo:Dom Casmurro';
+  const stack=[baseKey,middleKey,importedKey];
+  const members=[...stack.map(key=>({key,section:1,height:'bolso',width:'fino',pose:{orientation:'horizontal'}})),
+    {key:elsewhere,section:0,pose:{orientation:'horizontal'}}];
+  const {page,imported}=await openEditor(t,{},members);
+  const book=key=>page.locator('#shelfScene [data-personal-book-key="'+key+'"]');
+  const stored=()=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)),storageKey);
+  const attach=(top,base)=>page.evaluate(async({top,base})=>{
+    const editor=AuroraEstanteExemplares;
+    const pose=editor.stackPose(top,base);
+    if(!pose)throw new Error('Os livros deitados deveriam poder formar a pilha');
+    await editor.savePose(top,pose);
+  },{top,base});
+  const contact=async()=>{
+    const [base,middle,top]=await Promise.all(stack.map(key=>book(key).boundingBox()));
+    for(const [lower,upper] of [[base,middle],[middle,top]]){
+      assert.ok(Math.abs(lower.y-(upper.y+upper.height))<1.1,'a base do livro toca o de baixo');
+      assert.ok(Math.min(lower.x+lower.width,upper.x+upper.width)>Math.max(lower.x,upper.x),'os volumes se apoiam na horizontal');
+    }
+    return top.x;
+  };
+  await attach(middleKey,baseKey);
+  await attach(importedKey,middleKey);
+  const beforeX=await contact();
+  await page.evaluate(async key=>{
+    const editor=AuroraEstanteExemplares;
+    await editor.savePose(key,{...editor.getPose(key),x:.65,y:0});
+  },baseKey);
+  assert.ok(Math.abs((await contact())-beforeX)>5,'mover a base desloca também o topo');
+  const valid=await stored();
+  assert.equal(valid.find(entry=>entry.key===middleKey).pose.stackOn,baseKey);
+  assert.equal(valid.find(entry=>entry.key===importedKey).pose.stackOn,middleKey);
+
+  const targets=await page.evaluate(key=>AuroraEstanteExemplares.stackTargets(key).map(entry=>entry.key),baseKey);
+  assert.ok(![baseKey,middleKey,importedKey,elsewhere].some(key=>targets.includes(key)),'uma base não pode se apoiar em si mesma, em descendentes ou em outra seção');
+  for(const invalid of [importedKey,elsewhere,'arquivo:ausente']){
+    await assert.rejects(page.evaluate(({key,invalid})=>{
+      const editor=AuroraEstanteExemplares;
+      return editor.savePose(key,{...editor.getPose(key),stackOn:invalid});
+    },{key:baseKey,invalid}));
+  }
+  assert.deepEqual(await stored(),valid,'uma tentativa inválida não altera a pilha anterior');
+  await page.reload();
+  await imported.waitFor();
+  await contact();
+
+  await page.evaluate(async key=>{
+    const editor=AuroraEstanteExemplares;
+    await editor.savePose(key,{...editor.getPose(key),orientation:'vertical',angle:50});
+  },importedKey);
+  const tilt=(await stored()).find(entry=>entry.key===importedKey).pose;
+  assert.equal(tilt.angle,50);
+  assert.equal(tilt.stackOn,middleKey);
+  await page.reload();
+  await imported.waitFor();
+  assert.equal(await imported.getAttribute('data-shelf-orientation'),'vertical');
+  assert.equal(await imported.getAttribute('data-shelf-stack-on'),middleKey);
+  assert.equal(await imported.evaluate(el=>parseFloat(getComputedStyle(el).getPropertyValue('--pose-angle'))),50);
+  await contact();
+
+  await imported.press('Enter');
+  const panel=page.getByRole('dialog');
+  await panel.getByRole('button',{name:'Redefinir'}).click();
+  await panel.getByRole('button',{name:'Pronto'}).click();
+  await panel.waitFor({state:'hidden'});
+  assert.equal(await imported.getAttribute('data-shelf-stack-on'),null);
+  const restored=await stored();
+  assert.equal(restored.find(entry=>entry.key===importedKey).pose?.stackOn,undefined);
+  assert.deepEqual(restored.filter(entry=>entry.key!==importedKey),valid.filter(entry=>entry.key!==importedKey));
+
+  // Referências inválidas também podem chegar por um backup antigo ou incompleto.
+  const broken=structuredClone(valid);
+  broken.find(entry=>entry.key===baseKey).pose.stackOn=middleKey;
+  broken.find(entry=>entry.key===importedKey).pose.stackOn='arquivo:ausente';
+  await page.evaluate(({storageKey,broken})=>localStorage.setItem(storageKey,JSON.stringify(broken)),{storageKey,broken});
+  await page.reload();
+  await imported.waitFor();
+  const cyclic=(await book(baseKey).getAttribute('data-shelf-stack-on'))===middleKey &&
+    (await book(middleKey).getAttribute('data-shelf-stack-on'))===baseKey;
+  assert.equal(cyclic,false,'a estante não desenha um ciclo de apoios');
+  assert.equal(await imported.getAttribute('data-shelf-stack-on'),null);
+  assert.deepEqual(await stored(),broken,'abrir o backup não reescreve seus dados');
+});
+
+test('o giro 3D é uma prévia até confirmar e redefinir recupera a lombada anterior',browserOnly,async t=>{
+  const {page,imported}=await openEditor(t);
+  const dialog=page.getByRole('dialog');
+  const yaw=dialog.getByRole('slider',{name:'Giro 3D'});
+  const art=await page.evaluate(async()=>{
+    const canvas=document.createElement('canvas');
+    const ctx=canvas.getContext('2d');
+    const panel=color=>{ctx.fillStyle=color;ctx.fillRect(0,0,canvas.width,canvas.height);return canvas.toDataURL();};
+    const faces={cover:panel('#26745a'),spine:panel('#b9834f'),back:panel('#452365')};
+    const book=await AuroraFormats.readRecord('books','epub-1');
+    await AuroraFormats.saveRecord('books',{...book,...faces,coverSource:'original'});
+    return faces;
+  });
+  await page.reload();
+  await imported.waitFor();
+  const turn=degrees=>yaw.evaluate((slider,value)=>{
+    slider.value=String(value);
+    slider.dispatchEvent(new Event('input',{bubbles:true}));
+  },degrees);
+  const stored=()=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)),storageKey);
+  await imported.press('Enter');
+  const volume=imported.locator(':scope > .shelf-volume');
+  await turn(45);
+  await volume.locator('[data-volume-face="spine"]:not([hidden])').waitFor();
+  await volume.locator('[data-volume-face="cover"]:not([hidden])').waitFor();
+  assert.equal(await volume.locator('[data-volume-face="spine"] img').getAttribute('src'),art.spine);
+  assert.equal(await volume.locator('[data-volume-face="cover"] img').getAttribute('src'),art.cover);
+  assert.equal(await imported.getAttribute('data-shelf-yaw'),'45');
+  assert.deepEqual(await stored(),initialMembers);
+  await dialog.press('Escape');
+  await page.locator('#shelfScene [data-personal-book-key="arquivo:epub-1"]:not([data-shelf-yaw])').waitFor();
+
+  await imported.press('Enter');
+  await turn(270);
+  await dialog.getByRole('button',{name:'Pronto'}).click();
+  await dialog.waitFor({state:'hidden'});
+  assert.equal((await stored()).find(entry=>entry.key===importedKey).pose.yaw,270);
+  await page.reload();
+  await imported.waitFor();
+  assert.equal(await imported.getAttribute('data-shelf-yaw'),'270');
+  await volume.locator('[data-volume-face="back"]:not([hidden])').waitFor();
+  assert.equal(await volume.locator('[data-volume-face="back"] img').getAttribute('src'),art.back);
+  await imported.press('Enter');
+  assert.equal(await yaw.inputValue(),'270');
+  await dialog.getByRole('button',{name:'Redefinir'}).click();
+  assert.equal(await imported.getAttribute('data-shelf-yaw'),null);
+  await dialog.getByRole('button',{name:'Pronto'}).click();
+  await dialog.waitFor({state:'hidden'});
+  assert.deepEqual(await stored(),initialMembers);
+});
+
+test('uma segunda gravação não ocupa a base que outra aba acabou de usar',browserOnly,async t=>{
+  const base='demo:A Moreninha',firstSaved='demo:Senhora';
+  // O concorrente vem primeiro no registro. A ordem da lista não lhe dá preferência.
+  const members=[importedKey,firstSaved,base].map(key=>({key,section:1,pose:{orientation:'horizontal'}}));
+  members.push(initialMembers[1]);
+  const {page}=await openEditor(t,{},members);
+  const other=await page.context().newPage();
+  await other.goto(page.url());
+  await other.locator('[data-personal-book-key="arquivo:epub-1"]').waitFor();
+  const propose=(tab,key)=>tab.evaluate(({key,base})=>{
+    const editor=AuroraEstanteExemplares,pose=editor.stackPose(key,base);
+    if(!pose||!editor.previewPose(key,pose))throw new Error('A base deveria estar livre na prévia');
+    return pose;
+  },{key,base});
+  const stale=await propose(page,importedKey);
+  const winning=await propose(other,firstSaved);
+  const save=(tab,key,pose)=>tab.evaluate(({key,pose})=>AuroraEstanteExemplares.savePose(key,pose),{key,pose});
+  await save(other,firstSaved,winning);
+  await page.waitForFunction(({storageKey,firstSaved,base})=>{
+    const members=JSON.parse(localStorage.getItem(storageKey));
+    return members.find(entry=>entry.key===firstSaved)?.pose?.stackOn===base;
+  },{storageKey,firstSaved,base});
+  const stored=()=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)),storageKey);
+  const afterFirst=await stored();
+  assert.equal(afterFirst.find(entry=>entry.key===firstSaved).pose.stackOn,base);
+  await assert.rejects(save(page,importedKey,stale));
+  assert.deepEqual(await stored(),afterFirst,'a prévia antiga não desloca o ocupante nem altera outro vínculo');
 });

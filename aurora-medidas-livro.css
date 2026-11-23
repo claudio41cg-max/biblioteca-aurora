@@ -13,6 +13,11 @@
   flex:none;
   height:100dvh;
 }
+#canvas.medidas-previa-em-foco {
+  translate:0 var(--medidas-elevar-cena);
+  z-index:1;
+}
+.studio:has(> #canvas.medidas-previa-em-foco) > :is(.studio-top,.studio-actions) {visibility:hidden;}
 
 #bookSizeDialog {
   --medidas-ouro:#e3c28d;
@@ -195,6 +200,65 @@
 .medidas-camadas {gap:6px;}
 .medidas-camadas button {min-height:32px;padding-block:4px;color:#e2d4bf;}
 .medidas-camadas button span,.medidas-ferramentas button > span {color:var(--medidas-ouro);}
+.medidas-giro {
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  align-items:center;
+  padding:7px 9px 0;
+  border:1px solid #55514a;
+  border-radius:8px;
+  background:#282829;
+}
+.medidas-giro label,.medidas-pilha-opcoes > label,.medidas-pilha-opcoes legend {
+  color:#f5ead8;
+  font-size:13px;
+  font-weight:600;
+}
+#medidas-giro-leitura {justify-self:end;font-size:12px;color:#dfc79e;font-variant-numeric:tabular-nums;}
+#medidas-giro {
+  grid-column:1/-1;
+  width:100%;
+  min-width:0;
+  height:36px;
+  margin:0;
+  accent-color:var(--medidas-ouro);
+  cursor:ew-resize;
+  touch-action:pan-y;
+}
+#bookSizeDialog :is(#medidas-giro,#medidas-apoio,.medidas-pilha-opcoes input):focus-visible {
+  outline:2px solid #ffe2a1;
+  outline-offset:1px;
+}
+.medidas-pilha-acoes {display:flex;gap:5px;}
+.medidas-pilha-acoes button {flex:1;}
+.medidas-pilha-acoes [aria-expanded=true] {border-color:#b79461;color:#ffe4b2;}
+.medidas-pilha-opcoes {
+  display:grid;
+  gap:5px;
+  padding:8px 10px;
+  border:1px solid #665844;
+  border-radius:10px;
+  background:#262626;
+}
+.medidas-pilha-opcoes[hidden],.medidas-pilha-acoes button[hidden] {display:none;}
+#medidas-apoio {
+  box-sizing:border-box;
+  min-width:0;
+  width:100%;
+  min-height:40px;
+  padding:0 6px;
+  border:1px solid #615b50;
+  border-radius:6px;
+  background:#302e2b;
+  font:inherit;
+  color:#fbecd5;
+}
+.medidas-pilha-opcoes fieldset {display:flex;gap:14px;min-width:0;margin:0;padding:2px 0 0;border:0;}
+.medidas-pilha-opcoes legend {padding:0;}
+.medidas-pilha-opcoes fieldset label {display:flex;align-items:center;gap:4px;min-height:34px;cursor:pointer;}
+.medidas-pilha-opcoes input {width:16px;height:16px;margin:0;accent-color:var(--medidas-ouro);}
+.medidas-pilha-aviso {margin:0;color:#e4cfac;font-size:12px;line-height:1.35;}
+.medidas-pilha-aviso:empty {display:none;}
 #medidas-arrasto,.medidas-mover-barra {display:none;}
 #bookSizeDialog[open][data-moving] {
   display:grid;
@@ -262,6 +326,7 @@
   .medidas-status {grid-column:1/-1;}
   .medidas-posicao {grid-template-columns:1fr 1fr;gap:4px 8px;}
   .medidas-camadas {grid-column:1/-1;}
+  .medidas-giro,.medidas-pilha-opcoes,.medidas-pilha-acoes {grid-column:1/-1;}
   .medidas-posicao button {min-height:28px;}
   #bookSizeDialog[data-moving] .medidas-mover-barra {flex-direction:row;justify-content:space-between;}
 }

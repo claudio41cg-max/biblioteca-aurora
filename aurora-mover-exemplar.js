@@ -29,6 +29,33 @@
       if (pose) preview(pose);
     }
 
+    // Encaixa só ao soltar perto do topo de um apoio. O restante da tábua permite movimento livre.
+    function snapToBook() {
+      const {orientation} = getDraft();
+      const supports = renderer.stackTargets(key,orientation);
+      if (!supports.length) return;
+      const candidates = new Set(supports.map(support => support.key));
+      const box = livro.getBoundingClientRect();
+      let closest, distance = Infinity;
+      for (const other of livro.closest('.shelf-section').querySelectorAll('[data-personal-book-key]')) {
+        const baseKey = other.dataset.personalBookKey;
+        if (!candidates.has(baseKey)) continue;
+        const base = other.getBoundingClientRect();
+        const overlap = Math.min(box.right,base.right) - Math.max(box.left,base.left);
+        if (overlap < Math.min(box.width,base.width) * .5) continue;
+        const gap = Math.abs(box.bottom-base.top);
+        const tolerance = Math.min(14,Math.max(6,base.height*.4));
+        if (gap <= tolerance && gap < distance) {
+          closest = baseKey;
+          distance = gap;
+        }
+      }
+      if (closest) {
+        const pose = renderer.stackPose(key,closest,orientation);
+        if (pose) preview(pose);
+      }
+    }
+
     area.addEventListener('pointerdown', event => {
       if (drag || event.button !== 0 || !event.isPrimary) return;
       const box = livro.getBoundingClientRect();
@@ -52,6 +79,7 @@
     area.addEventListener('pointerup', event => {
       if (drag?.id !== event.pointerId) return;
       updateDrag(event);
+      if (drag.moved) snapToBook();
       end(false);
     },options);
     for (const type of ['pointercancel','lostpointercapture']) {

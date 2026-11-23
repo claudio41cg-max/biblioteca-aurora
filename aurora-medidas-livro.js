@@ -9,6 +9,7 @@
     height:[['original','Original'],['bolso','Bolso','17,5 cm'],['brochura','Brochura','21,6 cm'],['capa-dura','Capa dura','22,9 cm'],['grande','Grande','27,9 cm']],
     width:[['original','Original'],['fino','Fino'],['medio','Médio'],['grande','Grande']]
   };
+  const yawFaces = {0:'Lombada',90:'Capa',180:'Corte das páginas',270:'Contracapa',360:'Lombada'};
   const api = () => window.AuroraEstanteExemplares;
   let sheet, session, press;
 
@@ -24,11 +25,19 @@
   }
 
   function showChoice() {
-    for (const input of sheet.querySelectorAll('input')) input.checked = session.draft[input.name] === input.value;
+    for (const input of sheet.querySelectorAll('.medidas-opcoes input')) input.checked = session.draft[input.name] === input.value;
     const pose = session.pose;
+    const yaw = pose.yaw ?? (pose.face === 'cover' ? 90 : 0);
+    const slider = sheet.querySelector('#medidas-giro');
+    slider.value = yaw;
+    slider.setAttribute('aria-valuetext',yaw+' graus'+(yawFaces[yaw] ? ', '+yawFaces[yaw] : ''));
+    sheet.querySelector('#medidas-giro-leitura').textContent = yaw+'°'+(yawFaces[yaw] ? ' · '+yawFaces[yaw] : '');
     for (const button of sheet.querySelectorAll('[data-field]')) {
-      button.setAttribute('aria-pressed',String(button.value === pose[button.dataset.field]));
+      const selected = button.dataset.field === 'face' && pose.yaw != null ?
+        yaw % 360 === (button.value === 'cover' ? 90 : 0) : button.value === pose[button.dataset.field];
+      button.setAttribute('aria-pressed',String(selected));
     }
+    sheet.querySelector('[data-action=unstack]').hidden = !pose.stackOn;
     sheet.querySelector('.medidas-escala').textContent = Math.round(pose.scale * 100)+'%';
     sheet.querySelector('[data-action=smaller]').disabled = pose.scale <= .5;
     sheet.querySelector('[data-action=larger]').disabled = pose.scale >= 1.5;
@@ -40,23 +49,40 @@
     const pose = kind === 'pose';
     const updated = pose ? api().previewPose(session.key, next) : api().previewSize(session.key, next);
     if (!updated) {
-      sheet.querySelector('[role=status]').textContent = 'Este livro saiu da estante.';
-      sheet.querySelector('.medidas-pronto').disabled = true;
-      return;
+      const missing = !api().getSize(session.key);
+      sheet.querySelector('.medidas-status').textContent = missing ? 'Este livro saiu da estante.' : 'Este ajuste precisa de mais espaço ou de um apoio livre na pilha.';
+      sheet.querySelector('.medidas-pronto').disabled = missing;
+      showChoice();
+      return false;
     }
     if (pose) session.pose = next;
     else session.draft = next;
-    sheet.querySelector('[role=status]').textContent = '';
+    sheet.querySelector('.medidas-status').textContent = '';
     showChoice();
     if (!sheet.hasAttribute('data-moving')) revealBook();
+    return true;
   }
 
   function revealBook() {
     if (!session || !sheet.open || !session.button.isConnected) return;
-    const target = session.button.getBoundingClientRect();
-    const roomTop = Math.max(0, canvas.getBoundingClientRect().top) + 6;
+    let target = session.button.getBoundingClientRect();
+    let canvasTop = canvas.getBoundingClientRect().top;
     const panel = sheet.hasAttribute('data-moving') ? sheet.querySelector('.medidas-mover-barra') : sheet;
     const roomBottom = panel.getBoundingClientRect().top - 14;
+    // Na primeira fileira, o cabeçalho pode ocupar o espaço necessário para ver o livro todo.
+    const extra = Math.min(canvasTop, Math.ceil(target.height + canvasTop + 6 - roomBottom));
+    if (extra > 0) {
+      session.lift = (session.lift || 0) + Math.max(extra,canvasTop-6);
+      canvas.style.setProperty('--medidas-elevar-cena', -session.lift+'px');
+      canvas.classList.add('medidas-previa-em-foco');
+      canvasTop = canvas.getBoundingClientRect().top;
+      target = session.button.getBoundingClientRect();
+    }
+    const roomTop = Math.max(0,canvasTop) + 6;
+    if (target.top < roomTop && target.height <= roomBottom-roomTop && canvas.scrollTop > 0) {
+      canvas.scrollTop += Math.floor(target.top-roomTop);
+      return;
+    }
     if (roomBottom <= roomTop || target.bottom <= roomBottom || target.top <= roomTop) return;
     const overlap = Math.ceil(Math.min(target.bottom - roomBottom, target.top - roomTop));
     if (!canvas.classList.contains('medidas-em-edicao')) {
@@ -67,7 +93,64 @@
     canvas.scrollTop += overlap;
   }
 
+  function restoreCanvasTop() {
+    session.lift = 0;
+    canvas.classList.remove('medidas-previa-em-foco');
+    canvas.style.removeProperty('--medidas-elevar-cena');
+  }
+
+  function closeStackOptions() {
+    sheet.querySelector('#medidas-pilha-opcoes').hidden = true;
+    sheet.querySelector('[data-action=stack]').setAttribute('aria-expanded','false');
+  }
+
+  function openStackOptions() {
+    const form = sheet.querySelector('#medidas-pilha-opcoes');
+    if (!form.hidden) { closeStackOptions(); return; }
+    const base = form.querySelector('select');
+    const targets = new Map();
+    for (const orientation of ['horizontal','vertical']) {
+      for (const book of api().stackTargets(session.key,orientation)) targets.set(book.key,book.title);
+    }
+    const placeholder = new Option('Escolha um livro','');
+    placeholder.disabled = true;
+    base.replaceChildren(placeholder);
+    for (const [key,title] of targets) base.add(new Option(title,key));
+    const current = session.pose.stackOn;
+    base.value = current || '';
+    base.disabled = !targets.size;
+    for (const radio of form.querySelectorAll('input')) {
+      radio.checked = radio.value === (current ? session.pose.orientation : 'horizontal');
+      radio.disabled = !targets.size;
+    }
+    form.querySelector('.medidas-pilha-aviso').textContent = !targets.size ?
+      'Nenhum apoio disponível. Deite um livro nesta prateleira e deixe o topo dele livre, com espaço acima.' : '';
+    form.hidden = false;
+    sheet.querySelector('[data-action=stack]').setAttribute('aria-expanded','true');
+    if (targets.size) base.focus({preventScroll:true});
+    const scroller = sheet.querySelector('.medidas-conteudo');
+    scroller.scrollTop += Math.max(0,form.getBoundingClientRect().bottom-scroller.getBoundingClientRect().bottom+4);
+  }
+
+  function chooseSupport() {
+    const form = sheet.querySelector('#medidas-pilha-opcoes');
+    const base = form.querySelector('select');
+    const orientation = form.querySelector('input:checked')?.value;
+    const message = form.querySelector('.medidas-pilha-aviso');
+    if (!base.value || !orientation) {
+      message.textContent = base.value ? 'Escolha a posição do livro sobre a base.' : 'Escolha o livro de apoio.';
+      return;
+    }
+    const next = api().stackPose(session.key,base.value,orientation);
+    if (!next) {
+      message.textContent = 'Esta posição não cabe sobre a base escolhida. Tente outra posição ou outro apoio.';
+      return;
+    }
+    if (preview(next,'pose')) message.textContent = 'Apoiado em '+base.selectedOptions[0].textContent+'.';
+  }
+
   function startMove() {
+    closeStackOptions();
     session.moveStart = {...session.pose};
     sheet.setAttribute('data-moving','');
     sheet.setAttribute('aria-labelledby','medidas-mover-titulo medidas-title');
@@ -77,6 +160,7 @@
     window.AuroraMoverExemplar.ativar({
       area, livro:session.button, getDraft:() => session.pose, preview:next => preview(next,'pose')
     });
+    restoreCanvasTop();
     canvas.scrollTop = session.scroll;
     revealBook();
     area.focus({preventScroll:true});
@@ -95,8 +179,14 @@
 
   function editPose(button) {
     const {action,field} = button.dataset;
-    if (field === 'orientation') return preview({...session.pose,orientation:button.value,angle:0},'pose');
-    if (field === 'face') return preview({...session.pose,face:button.value},'pose');
+    if (field === 'orientation') {
+      closeStackOptions();
+      return preview({...session.pose,orientation:button.value,angle:0},'pose');
+    }
+    if (field === 'face') {
+      const yaw = session.pose.yaw == null ? null : button.value === 'cover' ? 90 : 0;
+      return preview({...session.pose,face:button.value,yaw},'pose');
+    }
     const {scale,angle} = session.pose;
     switch (action) {
       case 'smaller':
@@ -106,6 +196,14 @@
       case 'front':
       case 'back': return preview(api().layerPose(session.key,action),'pose');
       case 'move': return startMove();
+      case 'stack': return openStackOptions();
+      case 'unstack':
+        if (preview(api().unstackPose(session.key),'pose')) {
+          closeStackOptions();
+          sheet.querySelector('[data-action=stack]').focus({preventScroll:true});
+          sheet.querySelector('.medidas-status').textContent = 'Livro retirado da pilha.';
+        }
+        break;
     }
   }
 
@@ -144,9 +242,27 @@
             <button type="button" data-field="face" value="cover">Capa</button>
           </div>
         </div>
+        <div class="medidas-giro">
+          <label for="medidas-giro">Giro 3D</label><span id="medidas-giro-leitura" aria-hidden="true"></span>
+          <input id="medidas-giro" type="range" min="0" max="360" step="1" value="0">
+        </div>
         <div class="medidas-camadas" role="group" aria-label="Camada do livro">
           <button type="button" data-action="front"><span aria-hidden="true">▴</span> Para frente</button>
           <button type="button" data-action="back"><span aria-hidden="true">▾</span> Para trás</button>
+        </div>
+        <div class="medidas-pilha-acoes">
+          <button type="button" data-action="stack" aria-expanded="false" aria-controls="medidas-pilha-opcoes">Empilhar</button>
+          <button type="button" data-action="unstack" hidden>Retirar da pilha</button>
+        </div>
+        <div class="medidas-pilha-opcoes" id="medidas-pilha-opcoes" hidden>
+          <label for="medidas-apoio">Livro de apoio</label>
+          <select id="medidas-apoio"></select>
+          <fieldset>
+            <legend>Posição sobre a base</legend>
+            <label><input type="radio" name="apoio-orientacao" value="horizontal"> Deitado</label>
+            <label><input type="radio" name="apoio-orientacao" value="vertical"> Em pé</label>
+          </fieldset>
+          <p class="medidas-pilha-aviso" aria-live="polite"></p>
         </div>
       </div>
       </div>
@@ -154,7 +270,7 @@
       <footer><button class="medidas-redefinir" type="button">Redefinir</button><button class="medidas-pronto" type="button">Pronto</button></footer>
       <div id="medidas-arrasto" role="group" tabindex="0" aria-describedby="medidas-mover-instrucao"></div>
       <div class="medidas-mover-barra">
-        <div><strong id="medidas-mover-titulo">Arraste o livro na prateleira</strong><small id="medidas-mover-instrucao">Pelo teclado, use as setas.</small></div>
+        <div><strong id="medidas-mover-titulo">Arraste o livro na prateleira</strong><small id="medidas-mover-instrucao">Solte sobre um livro deitado para empilhar. Pelo teclado, use as setas.</small></div>
         <div><button type="button" data-mover="cancel">Voltar</button><button type="button" data-mover="done">Usar posição</button></div>
       </div>`;
 
@@ -186,8 +302,12 @@
       dialog.querySelector('.medidas-paineis').append(panel);
     }
     dialog.addEventListener('change', event => {
-      if (event.target.matches('input[type=radio]')) preview({...session.draft, [event.target.name]:event.target.value});
+      if (event.target.matches('.medidas-opcoes input')) preview({...session.draft, [event.target.name]:event.target.value});
     });
+    dialog.querySelector('#medidas-giro').addEventListener('input', event => {
+      preview({...session.pose,yaw:event.target.valueAsNumber},'pose');
+    });
+    dialog.querySelector('#medidas-pilha-opcoes').addEventListener('change',chooseSupport);
     dialog.querySelector('.medidas-posicao').addEventListener('click', event => {
       const button = event.target.closest('button');
       if (button && !session.saving) editPose(button);
@@ -208,22 +328,25 @@
     });
     dialog.querySelector('.medidas-fechar').addEventListener('click', () => dialog.close());
     dialog.querySelector('.medidas-redefinir').addEventListener('click', () => {
+      closeStackOptions();
       preview({height:'original',width:'original'});
       preview(api().defaultPose(),'pose');
     });
     dialog.querySelector('.medidas-pronto').addEventListener('click', async () => {
       if (!session || session.saving) return;
       session.saving = true;
-      for (const control of dialog.querySelectorAll('button, input')) control.disabled = true;
+      const controls = [...dialog.querySelectorAll('button:not(:disabled), input:not(:disabled), select:not(:disabled)')];
+      for (const control of controls) control.disabled = true;
       try {
         await api().saveAppearance(session.key, {...session.draft}, {...session.pose});
         session.saved = true;
         dialog.close();
-      } catch {
-        dialog.querySelector('[role=status]').textContent = 'Não foi possível salvar. Tente novamente.';
+      } catch (error) {
+        dialog.querySelector('.medidas-status').textContent = error?.code === 'STACK_INVALID' ?
+          error.message : 'Não foi possível salvar. Tente novamente.';
       } finally {
         session.saving = false;
-        for (const control of dialog.querySelectorAll('button, input')) control.disabled = false;
+        for (const control of controls) control.disabled = false;
         showChoice();
       }
     });
@@ -264,6 +387,7 @@
       }
       canvas.classList.remove('medidas-em-edicao');
       canvas.style.removeProperty('--medidas-altura-cena');
+      restoreCanvasTop();
       canvas.scrollTop = session.scroll;
       session.button.focus({preventScroll:true});
       session = null;
@@ -292,7 +416,8 @@
     sheet.style.setProperty('--medidas-posicao', style.backgroundPosition);
     sheet.style.setProperty('--medidas-textura', style.backgroundSize);
     sheet.toggleAttribute('data-sem-capa', !cover);
-    sheet.querySelector('[role=status]').textContent = '';
+    sheet.querySelector('.medidas-status').textContent = '';
+    closeStackOptions();
     sheet.querySelector('.medidas-pronto').disabled = false;
     setTab('height');
     showChoice();
