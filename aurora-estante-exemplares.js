@@ -69,6 +69,7 @@
       if (layer.childElementCount) layoutPoses(layer);
       else layer.remove();
     }
+    supportStacks(row);
     row.classList.toggle('books-behind',Boolean(section.querySelector('[data-placement="back"]')));
     if (row.classList.contains('editor-book-row')) row.tabIndex = row.scrollWidth > row.clientWidth ? 0 : -1;
   }
@@ -83,6 +84,10 @@
         row.setAttribute('aria-label','Livros da prateleira '+(index+1));
       }
       section.insertBefore(row,section.querySelector('.shelf-board'));
+    }
+    if (!row.dataset.stackScroll) {
+      row.dataset.stackScroll = '1';
+      row.addEventListener('scroll',() => { if (active?.stacks?.children.size) layout(); },{passive:true});
     }
     return row;
   }
@@ -164,7 +169,7 @@
     return true;
   }
 
-  const defaults = Object.freeze({scale:1,angle:0,orientation:'vertical',face:'spine',x:null,y:null,layer:0});
+  const defaults = Object.freeze({scale:1,angle:0,orientation:'vertical',face:'spine',x:null,y:null,layer:0,yaw:null,stackOn:null});
   const defaultPose = () => ({...defaults});
   const limit = (value,min,max) => Math.min(max,Math.max(min,value));
   const poses = new WeakMap();
@@ -174,7 +179,9 @@
   function moveToLayer(copy,row) {
     const pose = poses.get(copy);
     let slot = slots.get(copy);
-    if (pose?.x == null && pose?.y == null && !pose?.layer) {
+    const key = copy.dataset.personalBookKey;
+    const inStack = active.stacks.parents.has(key) || active.stacks.children.has(key);
+    if (pose?.x == null && pose?.y == null && !pose?.layer && !inStack) {
       if (slot) {
         slot.replaceWith(copy);
         slots.delete(copy);
@@ -195,13 +202,14 @@
       slot = element('span','book-placement-slot');
       slot.setAttribute('aria-hidden','true');
       const originalWidth = copy.offsetWidth;
-      const adjusted = pose.angle || pose.scale !== 1 || pose.orientation === 'horizontal' || pose.face === 'cover';
+      const adjusted = pose.yaw != null || pose.angle || pose.scale !== 1 || pose.orientation === 'horizontal' || pose.face === 'cover';
       const width = originalWidth + (adjusted ? parseFloat(copy.style.getPropertyValue('--pose-space')) || 0 : 0);
       slot.style.flexBasis = width+'px';
-      if (pose.face === 'spine' && !copy.dataset.shelfWidth) copy.style.setProperty('--placed-spine-width',originalWidth+'px');
+      if (pose.face === 'spine' && pose.yaw == null && !copy.dataset.shelfWidth) copy.style.setProperty('--placed-spine-width',originalWidth+'px');
       copy.before(slot);
       slots.set(copy,slot);
     }
+    slot.hidden = active.stacks.parents.has(key);
     if (copy.parentElement !== layer) layer.append(copy);
   }
 
@@ -215,6 +223,8 @@
       orientation:pose.orientation === 'horizontal' ? 'horizontal' : 'vertical',
       face:pose.face === 'cover' ? 'cover' : 'spine',
       x:fraction(pose.x),y:fraction(pose.y),
+      yaw:Number.isFinite(pose.yaw) ? ((pose.yaw % 360)+360)%360 : null,
+      stackOn:typeof pose.stackOn === 'string' && pose.stackOn ? pose.stackOn : null,
       layer:Number.isSafeInteger(pose.layer) ? limit(pose.layer,-1000000,1000000) : 0
     };
   }
@@ -224,7 +234,176 @@
     return member ? poseOf(member.pose) : null;
   }
 
+  // Uma base tem um único livro diretamente apoiado. Outros podem ser apoiados no topo.
+  function stackGraph(records,key,pose) {
+    const nodes = new Map(), parents = new Map(), children = new Map();
+    for (const member of records) if (isMember(member) && !nodes.has(member.key)) {
+      nodes.set(member.key,{section:member.section,pose:member.key === key && pose ? pose : poseOf(member.pose)});
+    }
+    for (const [child,node] of nodes) {
+      const parent = node.pose.stackOn, base = nodes.get(parent);
+      if (!base || child === parent || base.section !== node.section ||
+          base.pose.orientation !== 'horizontal' || base.pose.angle || children.has(parent)) continue;
+      parents.set(child,parent);
+      children.set(parent,child);
+    }
+    // Vínculos importados ou antigos podem conter ciclos. Não desenhe um apoio circular.
+    const checked = new Set();
+    for (const child of parents.keys()) {
+      const path = new Set();
+      let cursor = child;
+      while (parents.has(cursor) && !checked.has(cursor) && !path.has(cursor)) {
+        path.add(cursor);
+        cursor = parents.get(cursor);
+      }
+      if (path.has(cursor)) {
+        const first = cursor;
+        do {
+          const parent = parents.get(cursor);
+          parents.delete(cursor);
+          children.delete(parent);
+          cursor = parent;
+        } while (cursor !== first);
+      }
+      for (const visited of path) checked.add(visited);
+    }
+    return {nodes,parents,children};
+  }
+
+  function refreshStacks() {
+    const edit = active.posePreview;
+    active.stacks = stackGraph(active.members.filter(member => active.books.has(member.key)),edit?.key,edit?.pose);
+  }
+
+  function stackError(text) {
+    const error = new Error(text);
+    error.code = 'STACK_INVALID';
+    return error;
+  }
+
+  function validateSupport(records,key,pose) {
+    const before = stackGraph(records), graph = stackGraph(records,key,pose);
+    const occupant = before.children.get(pose.stackOn);
+    if (pose.stackOn && ((occupant && occupant !== key) || graph.parents.get(key) !== pose.stackOn))
+      throw stackError('Escolha uma base deitada, sem inclinação e com o topo livre nesta prateleira.');
+    if (before.children.has(key) && graph.children.get(key) !== before.children.get(key))
+      throw stackError('Retire primeiro o livro apoiado nesta base para mudar a orientação dela.');
+  }
+
+  function stackTargets(key,orientation='horizontal') {
+    if (!active?.editor || !active.stacks || !['vertical','horizontal'].includes(orientation)) return [];
+    const {nodes,parents,children} = active.stacks;
+    const node = nodes.get(key);
+    if (!node || (children.has(key) && orientation !== 'horizontal')) return [];
+    const results = [];
+    // O próprio exemplar e os livros acima dele não podem virar sua base.
+    const above = new Set();
+    for (let cursor=key;cursor!=null;cursor=children.get(cursor)) above.add(cursor);
+    for (const [candidate,base] of nodes) {
+      if (base.section !== node.section || above.has(candidate) || base.pose.orientation !== 'horizontal' || base.pose.angle) continue;
+      if (children.has(candidate) && parents.get(key) !== candidate) continue;
+      results.push({key:candidate,title:active.books.get(candidate).title});
+    }
+    return results;
+  }
+
+  function stackPose(key,baseKey,orientation='horizontal') {
+    if (!stackTargets(key,orientation).some(base => base.key === baseKey)) return null;
+    const pose = active.posePreview?.key === key ? active.posePreview.pose : getPose(key);
+    return {...pose,angle:pose.orientation === orientation ? pose.angle : 0,orientation,stackOn:baseKey,y:0};
+  }
+
+  function unstackPose(key) {
+    const start = dragOrigin(key);
+    if (!start) return null;
+    const pose = {...start.pose,stackOn:null,y:0};
+    const copy = active.copies.get(key).copy, row = laneOf(copy), section = row.parentElement;
+    const plank = section.getBoundingClientRect(), left = plank.left+5, right = plank.right-5;
+    const angle = (pose.angle + (pose.orientation === 'horizontal' ? 90 : 0))*Math.PI/180;
+    const cos = Math.abs(Math.cos(angle)), sin = Math.abs(Math.sin(angle));
+    const w = cos*copy.offsetWidth+sin*copy.offsetHeight, h = sin*copy.offsetWidth+cos*copy.offsetHeight;
+    const scale = Math.min(.94*pose.scale,(right-left)/w,(row.offsetHeight-1)/h);
+    const width = w*scale;
+    const exclude = new Set();
+    for (let cursor=key;cursor!=null;cursor=active.stacks.children.get(cursor)) exclude.add(cursor);
+    const floor = row.getBoundingClientRect().bottom-1;
+    const occupied = [];
+    for (const object of section.querySelectorAll('.shelf-object,[data-personal-book-key]')) {
+      if (exclude.has(object.dataset.personalBookKey)) continue;
+      const rect = object.getBoundingClientRect();
+      if (rect.bottom <= floor-h*scale || rect.top >= floor) continue;
+      const clip = object.closest('.personal-book-row')?.getBoundingClientRect() || plank;
+      const a = Math.max(left,rect.left,clip.left), b = Math.min(right,rect.right,clip.right);
+      if (b > a) occupied.push([a-3,b+3]);
+    }
+    occupied.sort((a,b)=>a[0]-b[0]);
+    let space = left, nearest = null, distance = Infinity;
+    const original = copy.getBoundingClientRect().left;
+    for (const [a,b] of [...occupied,[right,right]]) {
+      if (a-space >= width) {
+        const x = limit(original,space,a-width);
+        if (Math.abs(x-original)<distance) { nearest=x; distance=Math.abs(x-original); }
+      }
+      space = Math.max(space,b);
+    }
+    if (nearest == null) return {...pose,x:null,y:null,layer:0};
+    return {...pose,x:(nearest-left)/Math.max(1,right-left-width)};
+  }
+
+  function supportStacks(row) {
+    const {parents,children} = active.stacks;
+    if (!children.size) return;
+    const section = row.parentElement, surface = row.getBoundingClientRect().bottom - 1;
+    const plank = section.getBoundingClientRect();
+    for (const root of children.keys()) {
+      if (parents.has(root)) continue;
+      const base = active.copies.get(root)?.copy;
+      if (!base?.isConnected || base.closest('.shelf-section') !== section) continue;
+      const pile = [];
+      let height = 0, width = 0;
+      for (let key=root;key!=null;key=children.get(key)) {
+        const book = active.copies.get(key)?.copy;
+        if (!book?.isConnected || book.closest('.shelf-section') !== section) break;
+        const box = book.getBoundingClientRect();
+        pile.push(book);
+        height += box.height;
+        width = Math.max(box.width,width);
+      }
+      if (pile.length < 2 || !height) continue;
+      const space = poses.get(base)?.x == null ? row.getBoundingClientRect() : plank;
+      const fit = Math.min(1,(row.offsetHeight-1)/height,(space.width-10)/Math.max(1,width));
+      const originalBase = base.getBoundingClientRect();
+      const halfWidth = width*fit/2;
+      const center = limit(originalBase.left+originalBase.width/2,space.left+5+halfWidth,space.right-5-halfWidth);
+      let bottom = surface;
+      for (const book of pile) {
+        const style = book.style;
+        if (fit < 1) style.setProperty('--pose-scale',String(parseFloat(style.getPropertyValue('--pose-scale'))*fit));
+        const box = book.getBoundingClientRect();
+        const dx = parseFloat(style.getPropertyValue('--pose-dx'))+center-box.left-box.width/2;
+        const dy = parseFloat(style.getPropertyValue('--pose-dy'))+bottom-box.bottom;
+        style.setProperty('--pose-dx',dx+'px');
+        style.setProperty('--pose-dy',dy+'px');
+        const support = parents.get(book.dataset.personalBookKey);
+        if (support) book.dataset.shelfStackOn = support;
+        bottom -= box.height;
+      }
+    }
+  }
+
+  function displayedYaw(pose) {
+    return pose.yaw ?? (pose.orientation === 'horizontal' && pose.face === 'spine' ? 0 : null);
+  }
+
   function applyPose(copy,pose) {
+    delete copy.dataset.shelfStackOn;
+    if (pose.yaw != null) copy.dataset.shelfYaw = String(pose.yaw);
+    else delete copy.dataset.shelfYaw;
+    if (displayedYaw(pose) != null) window.AuroraVolumeEstante?.prepare(copy,active.books.get(copy.dataset.personalBookKey));
+    else if (copy.hasAttribute('data-volume-estante')) {
+      window.AuroraVolumeEstante?.layout(copy,0,0,0,null,false);
+      copy.style.removeProperty('--pose-volume-width');
+    }
     if (Object.keys(defaults).every(field => pose[field] === defaults[field])) {
       if (!poses.delete(copy)) return;
       delete copy.dataset.shelfPosed;
@@ -238,11 +417,11 @@
     copy.dataset.shelfOrientation = pose.orientation;
     copy.dataset.shelfFace = pose.face;
     copy.style.setProperty('--pose-layer',String(pose.layer));
-    if (pose.face === 'cover') window.AuroraEstanteCapa.prepare(copy);
+    if (pose.face === 'cover' && pose.yaw == null) window.AuroraEstanteCapa.prepare(copy);
   }
 
   function coverRatio(copy) {
-    const img = copy.querySelector('.personal-book-front img');
+    const img = copy.querySelector('.personal-book-front img') || copy.querySelector('.shelf-book-cover img');
     if (img?.naturalWidth && img.naturalHeight) return img.naturalWidth/img.naturalHeight;
     return parseFloat(copy.style.getPropertyValue('--cover-width')) /
       parseFloat(copy.style.getPropertyValue('--book-height')) || .72;
@@ -266,7 +445,14 @@
     for (const copy of buttons) {
       const pose = poses.get(copy);
       const h = copy.offsetHeight;
-      if (pose.face === 'cover') copy.style.setProperty('--pose-cover-width',(h*coverRatio(copy))+'px');
+      const yaw = displayedYaw(pose), horizontal = pose.orientation === 'horizontal';
+      if (yaw != null && window.AuroraVolumeEstante) {
+        const widths = {fino:27,medio:42,grande:59};
+        const spineWidth = widths[copy.dataset.shelfWidth] || parseFloat(copy.style.getPropertyValue('--book-width')) || 42;
+        const coverWidth = h*coverRatio(copy);
+        copy.style.setProperty('--pose-volume-width',window.AuroraVolumeEstante.project(h,coverWidth,spineWidth,yaw,horizontal)+'px');
+        window.AuroraVolumeEstante.layout(copy,h,coverWidth,spineWidth,yaw,horizontal);
+      } else if (pose.face === 'cover') copy.style.setProperty('--pose-cover-width',(h*coverRatio(copy))+'px');
       const w = copy.offsetWidth;
       const angle = pose.angle + (pose.orientation === 'horizontal' ? 90 : 0);
       const radians = angle * Math.PI / 180, cos = Math.abs(Math.cos(radians)), sin = Math.abs(Math.sin(radians));
@@ -276,7 +462,7 @@
       const slot = slots.get(copy);
       if (slot?.parentElement && slot.parentElement !== row) {
         const lane = slot.parentElement;
-        const projected = pose.angle || pose.scale !== 1 || pose.orientation === 'horizontal' || pose.face === 'cover';
+        const projected = pose.yaw != null || pose.angle || pose.scale !== 1 || pose.orientation === 'horizontal' || pose.face === 'cover';
         const seatWidth = projected ? rotatedW * Math.min(.94*pose.scale,
           Math.max(1,lane.clientWidth-10)/rotatedW,Math.max(1,lane.clientHeight-1)/rotatedH) : w;
         slot.style.flexBasis = seatWidth+'px';
@@ -307,7 +493,14 @@
     const row = laneOf(copy);
     const scrollLeft = active.posePreview?.scrollLeft ?? row.scrollLeft;
     const pose = poseOf(next);
+    const old = active.posePreview?.key === key ? active.posePreview.pose : getPose(key);
+    if ((pose.stackOn || active.stacks.children.has(key)) && (old.stackOn !== pose.stackOn ||
+        old.orientation !== pose.orientation || old.angle !== pose.angle)) {
+      try { validateSupport(active.members,key,pose); } catch { return false; }
+    }
     active.posePreview = {key,pose,scrollLeft};
+    if (old.stackOn !== pose.stackOn) { draw(); return true; }
+    if (old.orientation !== pose.orientation || old.angle !== pose.angle) refreshStacks();
     applyPose(copy,pose);
     if (!slots.has(copy)) layoutPoses(row);
     moveToLayer(copy,row);
@@ -318,11 +511,15 @@
   function cancelPose(key) {
     if (active?.posePreview?.key !== key) return;
     const {scrollLeft} = active.posePreview;
+    const wasStacked = active.posePreview.pose.stackOn;
     active.posePreview = null;
     const copy = active.copies.get(key)?.copy;
     if (!copy?.isConnected) return;
     const row = laneOf(copy);
-    applyPose(copy,getPose(key) || defaults);
+    const saved = getPose(key) || defaults;
+    if (saved.stackOn !== wasStacked) { draw(); row.scrollLeft = scrollLeft; return; }
+    refreshStacks();
+    applyPose(copy,saved);
     moveToLayer(copy,row);
     placeRow(row);
     row.scrollLeft = scrollLeft;
@@ -340,7 +537,7 @@
 
   function dragPose(start,dx,dy) {
     if (!start || !Number.isFinite(dx) || !Number.isFinite(dy)) return null;
-    return {...start.pose,x:start.roomX ? limit((start.left+dx)/start.roomX,0,1) : 0,
+    return {...start.pose,stackOn:null,x:start.roomX ? limit((start.left+dx)/start.roomX,0,1) : 0,
       y:start.roomY ? limit((start.bottom-dy)/start.roomY,0,1) : 0};
   }
 
@@ -352,7 +549,7 @@
       .map(sibling => poses.get(sibling)?.layer || 0);
     const layer = !others.length ? 0 : direction === 'front' ? Math.max(...others)+1 : Math.min(...others)-1;
     const placed = (pose.x == null || pose.y == null) ? dragPose(dragOrigin(key),0,0) : pose;
-    return {...placed,layer};
+    return {...placed,stackOn:pose.stackOn,layer};
   }
 
   async function saveAppearance(key,size,pose) {
@@ -368,6 +565,7 @@
       }
       if (pose) {
         const chosen = poseOf(pose);
+        validateSupport(records,key,chosen);
         const stored = {...member.pose};
         for (const field of Object.keys(defaults)) {
           if (chosen[field] === defaults[field]) delete stored[field];
@@ -388,9 +586,10 @@
   const saveSize = (key,size) => saveAppearance(key,size,null);
   const savePose = (key,pose) => saveAppearance(key,null,pose);
 
-  const visualFields = ['title','author','source','cover','spine','coverSource','total','ratio','spineAspect','bookmarked'];
+  const visualFields = ['title','author','source','cover','spine','coverSource','total','ratio','spineAspect','bookmarked','back'];
   function draw() {
     const {scene,editor,members,books,copies} = active;
+    refreshStacks();
     const rows = [...scene.querySelectorAll('.shelf-section')].map((section,i) => bookRow(section,i,editor));
     if (!rows.length) { copies.clear(); return; }
     const contents = rows.map(() => []);
@@ -493,7 +692,7 @@
       return;
     }
     clear();
-    active = {scene,key,editor,members:[],books:new Map(),copies:new Map(),request:0};
+    active = {scene,key,editor,members:[],books:new Map(),copies:new Map(),stacks:stackGraph([]),request:0};
     void refresh();
   }
 
@@ -609,7 +808,14 @@
     if (!title || (add && !picker.section.options.length)) return;
     try {
       await updateMembership(key,saved => {
-        if (!add) return saved.filter(entry => entry?.key !== bookKey);
+        if (!add) {
+          for (const entry of saved) if (entry?.pose?.stackOn === bookKey) {
+            delete entry.pose.stackOn;
+            delete entry.pose.y;
+            if (!Object.keys(entry.pose).length) delete entry.pose;
+          }
+          return saved.filter(entry => entry?.key !== bookKey);
+        }
         if (saved.some(entry => isMember(entry) && entry.key === bookKey)) return;
         saved.push({key:bookKey,section});
         return saved;
@@ -635,5 +841,5 @@
   for (const name of ['aurora:library-data','aurora:shelves-drawn','aurora:online-books-ready','aurora:book-cover-updated']) {
     document.addEventListener(name,schedule);
   }
-  window.AuroraEstanteExemplares = {render,layout,openPicker,clear,originFor,getSize,previewSize,saveSize,cancelSize,defaultPose,getPose,previewPose,cancelPose,savePose,saveAppearance,dragOrigin,dragPose,layerPose};
+  window.AuroraEstanteExemplares = {render,layout,openPicker,clear,originFor,getSize,previewSize,saveSize,cancelSize,defaultPose,getPose,previewPose,cancelPose,savePose,saveAppearance,dragOrigin,dragPose,layerPose,stackTargets,stackPose,unstackPose};
 })();

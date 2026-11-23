@@ -137,3 +137,9 @@ body.new-shelf-page .editor-book-row > .book-spine[data-has-real-cover]:is(:hove
 .personal-book-row.books-behind {pointer-events:none}
 .personal-book-row.books-behind > .book-spine {pointer-events:auto}
 .book-placement-slot {display:block;flex:0 0 auto;height:1px;pointer-events:none}
+.book-placement-slot[hidden] {display:none}
+.personal-book-row > .book-spine[data-volume-estante] {
+  min-width:0;
+  flex-basis:var(--pose-volume-width,var(--book-width,42px));
+}
+.personal-book-row[data-placement] > .book-spine[data-volume-estante] {width:var(--pose-volume-width,var(--book-width,42px))}

@@ -32,7 +32,10 @@
       const book=tx.objectStore('books').get(id);
       const progress=tx.objectStore('progress').get(id);
       tx.oncomplete=()=>{
-        try { resolve(book.result?shelf.importedItem(book.result,progress.result):null); }
+        try {
+          const record=book.result;
+          resolve(record?{...shelf.importedItem(record,progress.result),back:record.back||'',description:record.description||''}:null);
+        }
         catch(error){ reject(error); }
       };
       tx.onabort=()=>reject(tx.error||new Error('Não foi possível ler o exemplar.'));
