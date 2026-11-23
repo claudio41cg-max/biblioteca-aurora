@@ -128,3 +128,67 @@ test('soltar a pressão longa no celular mantém o painel aberto para escolher u
   assert.equal(await sample.getAttribute('data-shelf-height'),'bolso');
   assert.ok(await dialog.isVisible());
 });
+
+test('editar a aparência conserva as medidas antigas, os demais vínculos e a leitura do exemplar',browserOnly,async t=>{
+  const {page,imported}=await openEditor(t);
+  const legacySize={height:'brochura',width:'medio'};
+  const members=[{...initialMembers[0],...legacySize,etiqueta:'Favorito'},initialMembers[1]];
+  const progress={id:'epub-1',page:17,bookmark:12};
+  await page.evaluate(async({storageKey,members,progress})=>{
+    localStorage.setItem(storageKey,JSON.stringify(members));
+    await AuroraFormats.saveRecord('progress',progress);
+  },{storageKey,members,progress});
+  const bookRecord=()=>page.evaluate(()=>AuroraFormats.readRecord('books','epub-1'));
+  const before=await bookRecord();
+  const stored=()=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)),storageKey);
+  await page.reload();
+  await imported.waitFor();
+  assert.deepEqual(await stored(),members,'abrir um vínculo antigo conserva seus campos');
+
+  const dialog=page.getByRole('dialog');
+  const choose=label=>dialog.getByRole('button',{name:label,exact:true}).click();
+  await imported.press('Enter');
+  await choose('Horizontal');
+  await choose('Capa');
+  await choose('Girar 5°');
+  assert.equal(await imported.getAttribute('data-shelf-orientation'),'horizontal');
+  assert.equal(await imported.getAttribute('data-shelf-face'),'cover');
+  assert.deepEqual(await stored(),members,'a prévia ainda não grava na estante');
+  await dialog.press('Escape');
+  await page.locator('#shelfScene [data-personal-book-key="arquivo:epub-1"]:not([data-shelf-orientation="horizontal"])').waitFor();
+  assert.deepEqual(await stored(),members);
+
+  await imported.press('Enter');
+  await choose('Horizontal');
+  await choose('Capa');
+  await choose('Girar 5°');
+  await choose('Pronto');
+  await dialog.waitFor({state:'hidden'});
+  const pose={orientation:'horizontal',face:'cover',angle:5};
+  assert.deepEqual(await stored(),[{...members[0],pose},members[1]]);
+  await page.reload();
+  await imported.waitFor();
+  assert.equal(await imported.getAttribute('data-shelf-orientation'),'horizontal');
+  assert.equal(await imported.getAttribute('data-shelf-face'),'cover');
+  assert.equal(await imported.getAttribute('data-shelf-height'),legacySize.height);
+
+  const newSize={height:'bolso',width:'fino'};
+  await page.evaluate(({key,size})=>AuroraEstanteExemplares.saveSize(key,size),{key:importedKey,size:newSize});
+  const resized=[{...members[0],...newSize,pose},members[1]];
+  assert.deepEqual(await stored(),resized,'a API de medidas preserva a aparência salva');
+  const moved={...pose,x:.4,y:.15,layer:1};
+  await page.evaluate(({key,moved})=>{
+    const editor=AuroraEstanteExemplares;
+    return editor.savePose(key,{...editor.getPose(key),...moved});
+  },{key:importedKey,moved});
+  const positioned=[{...resized[0],pose:moved},members[1]];
+  assert.deepEqual(await stored(),positioned,'mover o livro preserva as medidas e a etiqueta');
+  await imported.press('Enter');
+  await choose('Redefinir');
+  assert.deepEqual(await stored(),positioned,'redefinir também aguarda confirmação');
+  await choose('Pronto');
+  await dialog.waitFor({state:'hidden'});
+  assert.deepEqual(await stored(),[{...initialMembers[0],etiqueta:'Favorito'},members[1]]);
+  assert.deepEqual(await bookRecord(),before);
+  assert.deepEqual(await page.evaluate(()=>AuroraFormats.readRecord('progress','epub-1')),progress);
+});

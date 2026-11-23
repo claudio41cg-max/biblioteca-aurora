@@ -106,3 +106,18 @@ body.new-shelf-page .editor-book-row > .book-spine[data-has-real-cover]:is(:hove
   .shelf-book-picker header {padding:7px 12px 2px}
   .shelf-picker-fields select,.shelf-picker-fields input {min-height:34px}
 }
+
+/* A caixa no fluxo reserva a projeção do volume. A transformação move o livro inteiro. */
+.personal-book-row > .book-spine[data-shelf-posed] {
+  margin-right:var(--pose-space,0px);
+  scale:none;
+  transform-origin:center;
+  transform:translate(var(--pose-dx,0px),var(--pose-dy,0px)) rotate(var(--pose-angle,0deg)) scale(var(--pose-scale,.94)) !important;
+  transition:none;
+  z-index:var(--pose-layer,0) !important;
+}
+.personal-book-row > .book-spine[data-shelf-face="cover"] {
+  min-width:0;
+  flex-basis:var(--pose-cover-width,var(--cover-width,110px));
+}
+.personal-book-row > .book-spine[data-shelf-posed] > .shelf-book-hit-area {transform:none}

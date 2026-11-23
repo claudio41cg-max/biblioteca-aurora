@@ -64,6 +64,7 @@
     // Mesmo uma prateleira totalmente decorada continua rolável para acessar os títulos.
     row.style.left = bestWidth >= 54 ? bestStart+'px' : '0';
     row.style.right = bestWidth >= 54 ? Math.max(0,bounds.width-bestStart-bestWidth)+'px' : '0';
+    layoutPoses(row);
     if (row.classList.contains('editor-book-row')) row.tabIndex = row.scrollWidth > row.clientWidth ? 0 : -1;
   }
 
@@ -158,24 +159,178 @@
     return true;
   }
 
-  async function saveSize(key,size) {
+  const defaults = Object.freeze({scale:1,angle:0,orientation:'vertical',face:'spine',x:null,y:null,layer:0});
+  const defaultPose = () => ({...defaults});
+  const limit = (value,min,max) => Math.min(max,Math.max(min,value));
+  const poses = new WeakMap();
+
+  function poseOf(data) {
+    const pose = data || {};
+    const fraction = n => Number.isFinite(n) ? limit(n,0,1) : null;
+    const angle = Number.isFinite(pose.angle) ? Math.round(pose.angle / 5) * 5 % 360 : 0;
+    return {
+      scale:Number.isFinite(pose.scale) ? limit(Math.round(pose.scale*10)/10,.5,1.5) : 1,
+      angle:angle > 180 ? angle-360 : angle < -180 ? angle+360 : angle,
+      orientation:pose.orientation === 'horizontal' ? 'horizontal' : 'vertical',
+      face:pose.face === 'cover' ? 'cover' : 'spine',
+      x:fraction(pose.x),y:fraction(pose.y),
+      layer:Number.isSafeInteger(pose.layer) ? limit(pose.layer,-1000000,1000000) : 0
+    };
+  }
+
+  function getPose(key) {
+    const member = active?.members.find(entry => entry.key === key);
+    return member ? poseOf(member.pose) : null;
+  }
+
+  function applyPose(copy,pose) {
+    if (Object.keys(defaults).every(field => pose[field] === defaults[field])) {
+      if (!poses.delete(copy)) return;
+      delete copy.dataset.shelfPosed;
+      delete copy.dataset.shelfFace;
+      delete copy.dataset.shelfOrientation;
+      for (const name of ['angle','scale','dx','dy','space','cover-width','layer']) copy.style.removeProperty('--pose-'+name);
+      return;
+    }
+    poses.set(copy,pose);
+    copy.dataset.shelfPosed = 'true';
+    copy.dataset.shelfOrientation = pose.orientation;
+    copy.dataset.shelfFace = pose.face;
+    copy.style.setProperty('--pose-layer',String(pose.layer));
+    if (pose.face === 'cover') window.AuroraEstanteCapa.prepare(copy);
+  }
+
+  function coverRatio(copy) {
+    const img = copy.querySelector('.personal-book-front img');
+    if (img?.naturalWidth && img.naturalHeight) return img.naturalWidth/img.naturalHeight;
+    return parseFloat(copy.style.getPropertyValue('--cover-width')) /
+      parseFloat(copy.style.getPropertyValue('--book-height')) || .72;
+  }
+
+  // O último espaço no fluxo dá a largura da fileira inteira, mesmo quando ela foi rolada.
+  // scrollWidth também inclui sombras, capas laterais e transformações anteriores.
+  function rowWidth(row) {
+    const last = row.lastElementChild;
+    return Math.max(row.clientWidth, last ? last.offsetLeft + last.offsetWidth +
+      (parseFloat(last.style.getPropertyValue('--pose-space')) || 0) + row.clientLeft + 5 : 0);
+  }
+
+  function layoutPoses(row,retry = true) {
+    const buttons = row.querySelectorAll('[data-shelf-posed]');
+    if (!buttons.length || !row.clientWidth) return;
+    const height = row.clientHeight;
+    const availableHeight = Math.max(1,height-1);
+    const availableWidth = Math.max(1,row.clientWidth-10);
+    const boxes = [];
+    for (const copy of buttons) {
+      const pose = poses.get(copy);
+      const h = copy.offsetHeight;
+      if (pose.face === 'cover') copy.style.setProperty('--pose-cover-width',(h*coverRatio(copy))+'px');
+      const w = copy.offsetWidth;
+      const angle = pose.angle + (pose.orientation === 'horizontal' ? 90 : 0);
+      const radians = angle * Math.PI / 180, cos = Math.abs(Math.cos(radians)), sin = Math.abs(Math.sin(radians));
+      const rotatedW = w*cos+h*sin, rotatedH = w*sin+h*cos;
+      const scale = Math.min(.94*pose.scale,availableWidth/rotatedW,availableHeight/rotatedH);
+      const boxWidth = rotatedW*scale, boxHeight = rotatedH*scale;
+      copy.style.setProperty('--pose-space',(boxWidth-w)+'px');
+      copy.style.setProperty('--pose-angle',angle+'deg');
+      copy.style.setProperty('--pose-scale',String(scale));
+      boxes.push({copy,pose,w,h,boxWidth,boxHeight});
+    }
+    if (retry && row.clientHeight !== height) { layoutPoses(row,false); return; }
+    const totalWidth = rowWidth(row);
+    for (const {copy,pose,w,h,boxWidth,boxHeight} of boxes) {
+      const left = pose.x == null ? copy.offsetLeft : 5 + pose.x*Math.max(0,totalWidth-10-boxWidth);
+      const bottom = availableHeight - (pose.y || 0)*Math.max(0,availableHeight-boxHeight);
+      const dx = left-(copy.offsetLeft+(w-boxWidth)/2);
+      const dy = bottom-(copy.offsetTop+(h+boxHeight)/2);
+      copy.style.setProperty('--pose-dx',dx+'px');
+      copy.style.setProperty('--pose-dy',dy+'px');
+    }
+  }
+
+  function previewPose(key,next) {
+    const copy = active?.copies.get(key)?.copy;
+    if (!active?.editor || !copy?.isConnected || !next) return false;
+    if (active.posePreview && active.posePreview.key !== key) cancelPose(active.posePreview.key);
+    const row = copy.parentElement;
+    const scrollLeft = active.posePreview?.scrollLeft ?? row.scrollLeft;
+    const pose = poseOf(next);
+    active.posePreview = {key,pose,scrollLeft};
+    applyPose(copy,pose);
+    layoutPoses(row);
+    return true;
+  }
+
+  function cancelPose(key) {
+    if (active?.posePreview?.key !== key) return;
+    const {scrollLeft} = active.posePreview;
+    active.posePreview = null;
+    const copy = active.copies.get(key)?.copy;
+    if (!copy?.isConnected) return;
+    applyPose(copy,getPose(key) || defaults);
+    layoutPoses(copy.parentElement);
+    copy.parentElement.scrollLeft = scrollLeft;
+  }
+
+  function dragOrigin(key) {
+    const copy = active?.copies.get(key)?.copy;
+    if (!active?.editor || !copy?.isConnected) return null;
+    const row = copy.parentElement;
+    const box = copy.getBoundingClientRect(), bounds = row.getBoundingClientRect();
+    const pose = active.posePreview?.key === key ? active.posePreview.pose : getPose(key);
+    return {pose,left:box.left-bounds.left+row.scrollLeft-5,bottom:row.clientHeight-1-(box.bottom-bounds.top),
+      roomX:Math.max(0,rowWidth(row)-10-box.width),roomY:Math.max(0,row.clientHeight-1-box.height)};
+  }
+
+  function dragPose(start,dx,dy) {
+    if (!start || !Number.isFinite(dx) || !Number.isFinite(dy)) return null;
+    return {...start.pose,x:start.roomX ? limit((start.left+dx)/start.roomX,0,1) : 0,
+      y:start.roomY ? limit((start.bottom-dy)/start.roomY,0,1) : 0};
+  }
+
+  function layerPose(key,direction) {
+    const copy = active?.copies.get(key)?.copy;
+    if (!active?.editor || !copy?.isConnected || !['front','back'].includes(direction)) return null;
+    const pose = active.posePreview?.key === key ? active.posePreview.pose : getPose(key);
+    const others = [...copy.parentElement.children].filter(sibling => sibling !== copy)
+      .map(sibling => poses.get(sibling)?.layer || 0);
+    const layer = !others.length ? 0 : direction === 'front' ? Math.max(...others)+1 : Math.min(...others)-1;
+    return {...pose,layer};
+  }
+
+  async function saveAppearance(key,size,pose) {
     const view = active;
-    if (!view?.editor || !validSize(size)) throw new Error('Medidas de livro inválidas.');
-    const {height,width} = size;
+    if (!view?.editor || (size != null && !validSize(size)) || (size == null && pose == null))
+      throw new Error('Ajustes de livro inválidos.');
     const members = await updateMembership(view.key,records => {
       const member = records.find(entry => isMember(entry) && entry.key === key);
       if (active !== view || !member) throw new Error('Este exemplar saiu da estante.');
-      if (height === 'original') delete member.height;
-      else member.height = height;
-      if (width === 'original') delete member.width;
-      else member.width = width;
+      if (size) for (const field of ['height','width']) {
+        if (size[field] === 'original') delete member[field];
+        else member[field] = size[field];
+      }
+      if (pose) {
+        const chosen = poseOf(pose);
+        const stored = {...member.pose};
+        for (const field of Object.keys(defaults)) {
+          if (chosen[field] === defaults[field]) delete stored[field];
+          else stored[field] = chosen[field];
+        }
+        if (Object.keys(stored).length) member.pose = stored;
+        else delete member.pose;
+      }
       return records;
     });
     if (active !== view) return;
     view.members = members;
-    if (view.preview?.key === key) view.preview = null;
+    if (size && view.preview?.key === key) view.preview = null;
+    if (pose && view.posePreview?.key === key) view.posePreview = null;
     draw();
   }
+
+  const saveSize = (key,size) => saveAppearance(key,size,null);
+  const savePose = (key,pose) => saveAppearance(key,null,pose);
 
   const visualFields = ['title','author','source','cover','spine','coverSource','total','ratio','spineAspect','bookmarked'];
   function draw() {
@@ -198,6 +353,7 @@
         copies.set(key,entry);
       } else entry.book = book;
       applySize(entry.copy,active.preview?.key === key ? active.preview : sizeOf(member));
+      applyPose(entry.copy,active.posePreview?.key === key ? active.posePreview.pose : poseOf(member.pose));
       // Uma seção removida pode ser recuperada ao desfazer. O vínculo original é preservado.
       contents[Math.min(section,rows.length-1)].push(entry.copy);
     }
@@ -221,6 +377,7 @@
     const view = active;
     view.members = read(view.key);
     if (view.preview && !view.members.some(member => member.key === view.preview.key)) view.preview = null;
+    if (view.posePreview && !view.members.some(member => member.key === view.posePreview.key)) view.posePreview = null;
     if (view.editor) {
       const request = ++view.request;
       if (view.members.length) {
@@ -412,5 +569,5 @@
   for (const name of ['aurora:library-data','aurora:shelves-drawn','aurora:online-books-ready','aurora:book-cover-updated']) {
     document.addEventListener(name,schedule);
   }
-  window.AuroraEstanteExemplares = {render,layout,openPicker,clear,originFor,getSize,previewSize,saveSize,cancelSize};
+  window.AuroraEstanteExemplares = {render,layout,openPicker,clear,originFor,getSize,previewSize,saveSize,cancelSize,defaultPose,getPose,previewPose,cancelPose,savePose,saveAppearance,dragOrigin,dragPose,layerPose};
 })();
