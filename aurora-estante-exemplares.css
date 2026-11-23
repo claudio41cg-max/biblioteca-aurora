@@ -121,3 +121,19 @@ body.new-shelf-page .editor-book-row > .book-spine[data-has-real-cover]:is(:hove
   flex-basis:var(--pose-cover-width,var(--cover-width,110px));
 }
 .personal-book-row > .book-spine[data-shelf-posed] > .shelf-book-hit-area {transform:none}
+.editor-book-row > .book-spine {transition:none}
+.personal-book-row[data-placement] {
+  left:0;right:0;overflow:clip;pointer-events:none;z-index:3;
+}
+.personal-book-row[data-placement="back"] {z-index:1}
+.personal-book-row[data-placement] > .book-spine {
+  pointer-events:auto;position:absolute;left:0;bottom:1px;
+  width:var(--placed-spine-width,var(--book-width,42px));
+}
+.personal-book-row[data-placement] > [data-shelf-width="fino"] {width:27px}
+.personal-book-row[data-placement] > [data-shelf-width="medio"] {width:42px}
+.personal-book-row[data-placement] > [data-shelf-width="grande"] {width:59px}
+.personal-book-row[data-placement] > .book-spine[data-shelf-face="cover"] {width:var(--pose-cover-width,110px)}
+.personal-book-row.books-behind {pointer-events:none}
+.personal-book-row.books-behind > .book-spine {pointer-events:auto}
+.book-placement-slot {display:block;flex:0 0 auto;height:1px;pointer-events:none}

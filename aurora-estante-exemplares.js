@@ -65,11 +65,16 @@
     row.style.left = bestWidth >= 54 ? bestStart+'px' : '0';
     row.style.right = bestWidth >= 54 ? Math.max(0,bounds.width-bestStart-bestWidth)+'px' : '0';
     layoutPoses(row);
+    for (const layer of section.querySelectorAll('[data-placement]')) {
+      if (layer.childElementCount) layoutPoses(layer);
+      else layer.remove();
+    }
+    row.classList.toggle('books-behind',Boolean(section.querySelector('[data-placement="back"]')));
     if (row.classList.contains('editor-book-row')) row.tabIndex = row.scrollWidth > row.clientWidth ? 0 : -1;
   }
 
   function bookRow(section,index,editor) {
-    let row = section.querySelector('.personal-book-row');
+    let row = section.querySelector('.personal-book-row:not([data-placement])');
     if (!row) {
       row = element('div','personal-book-row');
       if (editor) {
@@ -141,7 +146,7 @@
     const copy = active.copies.get(key)?.copy, size = getSize(key);
     if (copy && size) {
       applySize(copy,size);
-      if (copy.parentElement === row) row.scrollLeft = scrollLeft;
+      if (laneOf(copy) === row) row.scrollLeft = scrollLeft;
       layout();
     }
   }
@@ -150,7 +155,7 @@
     const copy = active?.copies.get(key)?.copy;
     if (!active?.editor || !copy?.isConnected || !validSize(size)) return false;
     if (active.preview && active.preview.key !== key) cancelSize(active.preview.key);
-    const row = copy.parentElement;
+    const row = laneOf(copy);
     const scrollLeft = active.preview?.row === row ? active.preview.scrollLeft : row.scrollLeft;
     active.preview = {key,height:size.height,width:size.width,row,scrollLeft};
     applySize(copy,size);
@@ -163,6 +168,42 @@
   const defaultPose = () => ({...defaults});
   const limit = (value,min,max) => Math.min(max,Math.max(min,value));
   const poses = new WeakMap();
+  const slots = new WeakMap();
+  const laneOf = copy => slots.get(copy)?.parentElement || copy.parentElement;
+
+  function moveToLayer(copy,row) {
+    const pose = poses.get(copy);
+    let slot = slots.get(copy);
+    if (pose?.x == null && pose?.y == null && !pose?.layer) {
+      if (slot) {
+        slot.replaceWith(copy);
+        slots.delete(copy);
+        copy.style.removeProperty('--placed-spine-width');
+      }
+      return;
+    }
+    const section = row.parentElement;
+    const side = pose.layer < 0 ? 'back' : 'front';
+    let layer = section.querySelector('[data-placement="'+side+'"]');
+    if (!layer) {
+      layer = element('div',row.classList.contains('editor-book-row') ? 'personal-book-row editor-book-row' : 'personal-book-row');
+      layer.dataset.placement = side;
+      section.append(layer);
+    }
+    if (!slot) {
+      // Reserve o lugar no corredor rolável. A única lombada passa à camada da tábua inteira.
+      slot = element('span','book-placement-slot');
+      slot.setAttribute('aria-hidden','true');
+      const originalWidth = copy.offsetWidth;
+      const adjusted = pose.angle || pose.scale !== 1 || pose.orientation === 'horizontal' || pose.face === 'cover';
+      const width = originalWidth + (adjusted ? parseFloat(copy.style.getPropertyValue('--pose-space')) || 0 : 0);
+      slot.style.flexBasis = width+'px';
+      if (pose.face === 'spine' && !copy.dataset.shelfWidth) copy.style.setProperty('--placed-spine-width',originalWidth+'px');
+      copy.before(slot);
+      slots.set(copy,slot);
+    }
+    if (copy.parentElement !== layer) layer.append(copy);
+  }
 
   function poseOf(data) {
     const pose = data || {};
@@ -232,15 +273,25 @@
       const rotatedW = w*cos+h*sin, rotatedH = w*sin+h*cos;
       const scale = Math.min(.94*pose.scale,availableWidth/rotatedW,availableHeight/rotatedH);
       const boxWidth = rotatedW*scale, boxHeight = rotatedH*scale;
+      const slot = slots.get(copy);
+      if (slot?.parentElement && slot.parentElement !== row) {
+        const lane = slot.parentElement;
+        const projected = pose.angle || pose.scale !== 1 || pose.orientation === 'horizontal' || pose.face === 'cover';
+        const seatWidth = projected ? rotatedW * Math.min(.94*pose.scale,
+          Math.max(1,lane.clientWidth-10)/rotatedW,Math.max(1,lane.clientHeight-1)/rotatedH) : w;
+        slot.style.flexBasis = seatWidth+'px';
+      }
       copy.style.setProperty('--pose-space',(boxWidth-w)+'px');
       copy.style.setProperty('--pose-angle',angle+'deg');
       copy.style.setProperty('--pose-scale',String(scale));
       boxes.push({copy,pose,w,h,boxWidth,boxHeight});
     }
     if (retry && row.clientHeight !== height) { layoutPoses(row,false); return; }
-    const totalWidth = rowWidth(row);
+    const totalWidth = row.dataset.placement ? row.clientWidth : rowWidth(row);
     for (const {copy,pose,w,h,boxWidth,boxHeight} of boxes) {
-      const left = pose.x == null ? copy.offsetLeft : 5 + pose.x*Math.max(0,totalWidth-10-boxWidth);
+      const home = slots.get(copy);
+      const originalLeft = pose.x == null && home ? home.getBoundingClientRect().left-row.getBoundingClientRect().left : copy.offsetLeft;
+      const left = pose.x == null ? originalLeft : 5 + pose.x*Math.max(0,totalWidth-10-boxWidth);
       const bottom = availableHeight - (pose.y || 0)*Math.max(0,availableHeight-boxHeight);
       const dx = left-(copy.offsetLeft+(w-boxWidth)/2);
       const dy = bottom-(copy.offsetTop+(h+boxHeight)/2);
@@ -253,12 +304,14 @@
     const copy = active?.copies.get(key)?.copy;
     if (!active?.editor || !copy?.isConnected || !next) return false;
     if (active.posePreview && active.posePreview.key !== key) cancelPose(active.posePreview.key);
-    const row = copy.parentElement;
+    const row = laneOf(copy);
     const scrollLeft = active.posePreview?.scrollLeft ?? row.scrollLeft;
     const pose = poseOf(next);
     active.posePreview = {key,pose,scrollLeft};
     applyPose(copy,pose);
-    layoutPoses(row);
+    if (!slots.has(copy)) layoutPoses(row);
+    moveToLayer(copy,row);
+    placeRow(row);
     return true;
   }
 
@@ -268,19 +321,21 @@
     active.posePreview = null;
     const copy = active.copies.get(key)?.copy;
     if (!copy?.isConnected) return;
+    const row = laneOf(copy);
     applyPose(copy,getPose(key) || defaults);
-    layoutPoses(copy.parentElement);
-    copy.parentElement.scrollLeft = scrollLeft;
+    moveToLayer(copy,row);
+    placeRow(row);
+    row.scrollLeft = scrollLeft;
   }
 
   function dragOrigin(key) {
     const copy = active?.copies.get(key)?.copy;
     if (!active?.editor || !copy?.isConnected) return null;
-    const row = copy.parentElement;
-    const box = copy.getBoundingClientRect(), bounds = row.getBoundingClientRect();
+    const row = laneOf(copy);
+    const box = copy.getBoundingClientRect(), plank = row.parentElement.getBoundingClientRect();
     const pose = active.posePreview?.key === key ? active.posePreview.pose : getPose(key);
-    return {pose,left:box.left-bounds.left+row.scrollLeft-5,bottom:row.clientHeight-1-(box.bottom-bounds.top),
-      roomX:Math.max(0,rowWidth(row)-10-box.width),roomY:Math.max(0,row.clientHeight-1-box.height)};
+    return {pose,left:box.left-plank.left-5,bottom:row.getBoundingClientRect().bottom-1-box.bottom,
+      roomX:Math.max(0,plank.width-10-box.width),roomY:Math.max(0,row.offsetHeight-1-box.height)};
   }
 
   function dragPose(start,dx,dy) {
@@ -293,10 +348,11 @@
     const copy = active?.copies.get(key)?.copy;
     if (!active?.editor || !copy?.isConnected || !['front','back'].includes(direction)) return null;
     const pose = active.posePreview?.key === key ? active.posePreview.pose : getPose(key);
-    const others = [...copy.parentElement.children].filter(sibling => sibling !== copy)
+    const others = [...laneOf(copy).parentElement.querySelectorAll('[data-personal-book-key]')].filter(sibling => sibling !== copy)
       .map(sibling => poses.get(sibling)?.layer || 0);
     const layer = !others.length ? 0 : direction === 'front' ? Math.max(...others)+1 : Math.min(...others)-1;
-    return {...pose,layer};
+    const placed = (pose.x == null || pose.y == null) ? dragPose(dragOrigin(key),0,0) : pose;
+    return {...placed,layer};
   }
 
   async function saveAppearance(key,size,pose) {
@@ -347,6 +403,7 @@
       let entry = copies.get(key);
       const reuse = entry && (entry.book === book || (editor && visualFields.every(field => book[field] === entry.book[field])));
       if (!reuse) {
+        if (entry && slots.has(entry.copy)) { slots.get(entry.copy).remove(); entry.copy.remove(); }
         const copy = makeCopy(book,key,editor);
         copy.dataset.personalBookKey = key;
         entry = {copy,book};
@@ -357,17 +414,26 @@
       // Uma seção removida pode ser recuperada ao desfazer. O vínculo original é preservado.
       contents[Math.min(section,rows.length-1)].push(entry.copy);
     }
-    for (const key of copies.keys()) if (!keys.has(key)) copies.delete(key);
+    for (const [key,entry] of copies) if (!keys.has(key)) {
+      slots.get(entry.copy)?.remove();
+      entry.copy.remove();
+      copies.delete(key);
+    }
     rows.forEach((row,i) => {
       const children = contents[i];
       children.forEach((copy,index) => {
         const atIndex = row.children[index];
-        if (atIndex !== copy) row.insertBefore(copy,atIndex || null);
+        const seat = slots.get(copy) || copy;
+        if (atIndex !== seat) row.insertBefore(seat,atIndex || null);
       });
       while (row.childElementCount > children.length) row.lastElementChild.remove();
       row.hidden = children.length === 0;
       if (!row.hidden) {
         placeRow(row);
+        if (children.some(copy => slots.has(copy) || poses.has(copy))) {
+          for (const copy of children) moveToLayer(copy,row);
+          placeRow(row);
+        }
         if (!editor) children.forEach(copy => window.AuroraLombadas?.enhance?.(copy));
       }
     });
@@ -415,7 +481,7 @@
     if (!active || layoutFrame) return;
     layoutFrame = requestAnimationFrame(() => {
       layoutFrame = 0;
-      active.scene.querySelectorAll('.personal-book-row:not([hidden])').forEach(placeRow);
+      active.scene.querySelectorAll('.personal-book-row:not([data-placement]):not([hidden])').forEach(placeRow);
     });
   }
 
