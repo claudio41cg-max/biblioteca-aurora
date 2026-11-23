@@ -358,3 +358,118 @@ test('uma segunda gravação não ocupa a base que outra aba acabou de usar',bro
   await assert.rejects(save(page,importedKey,stale));
   assert.deepEqual(await stored(),afterFirst,'a prévia antiga não desloca o ocupante nem altera outro vínculo');
 });
+
+test('dois livros são arrastados, encaixados e ajustados antes de uma única confirmação',browserOnly,async t=>{
+  const baseKey='demo:Dom Casmurro',topKey='demo:A Moreninha';
+  const members=[initialMembers[0],...[baseKey,topKey].map((key,i)=>({
+    key,section:0,height:'bolso',width:'fino',pose:{orientation:'horizontal',x:i===0 ? .1 : .7,y:0}
+  }))];
+  const {page,sample:base}=await openEditor(t,{},members);
+  const top=page.locator('#shelfScene [data-personal-book-key="'+topKey+'"]');
+  const dialog=page.getByRole('dialog');
+  const stored=()=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)),storageKey);
+  async function drag(book,dx,dy){
+    const box=await book.boundingBox();
+    const x=box.x+box.width/2,y=box.y+box.height/2;
+    const hit=await book.evaluate((el,p)=>{
+      const target=document.elementFromPoint(p.x,p.y);
+      return el.contains(target) ? null : [target?.className,p,el.dataset.rawTitle];
+    },{x,y});
+    assert.equal(hit,null,'o exemplar está ao alcance do ponteiro: '+JSON.stringify(hit));
+    await page.mouse.move(x,y);
+    await page.mouse.down();
+    await page.mouse.move(x+dx,y+dy,{steps:8});
+    await page.mouse.up();
+  }
+  const turn=degrees=>dialog.getByRole('slider',{name:'Giro 3D'}).evaluate((input,degrees)=>{
+    input.value=String(degrees);input.dispatchEvent(new Event('input',{bubbles:true}));
+  },degrees);
+  await base.press('Enter');
+  await drag(base,32,0);
+  await dialog.getByRole('radio',{name:'Brochura',exact:true}).check();
+  const low=await base.boundingBox(),high=await top.boundingBox();
+  await drag(top,(low.x+low.width/2)-(high.x+high.width/2),low.y-(high.y+high.height));
+  assert.equal(await top.getAttribute('aria-pressed'),'true');
+  assert.equal(await top.getAttribute('data-shelf-stack-on'),baseKey,'o segundo arrasto encaixou o topo sobre a base já movida');
+  await turn(35);
+  assert.deepEqual(await stored(),members,'os dois arrastos, a altura e o giro continuam em prévia');
+  await dialog.getByRole('button',{name:'Pronto'}).click();
+  await dialog.waitFor({state:'hidden'});
+  const saved=await stored();
+  const baseRecord=saved.find(entry=>entry.key===baseKey),topRecord=saved.find(entry=>entry.key===topKey);
+  assert.ok(baseRecord.pose.x>.1);
+  assert.equal(baseRecord.height,'brochura');
+  assert.equal(topRecord.pose.stackOn,baseKey);
+  assert.equal(topRecord.pose.yaw,35);
+  assert.deepEqual(saved[0],initialMembers[0]);
+  await page.reload();
+  await top.waitFor();
+  assert.equal(await top.getAttribute('data-shelf-stack-on'),baseKey);
+
+  for(const close of ['Fechar sem salvar','Escape']){
+    const atRest=await base.boundingBox();
+    await base.press('Enter');
+    const start=await base.boundingBox();
+    await base.press('Shift+ArrowRight');
+    assert.ok((await base.boundingBox()).x>start.x+4,'as setas movem o livro selecionado');
+    await top.press('Enter');
+    await turn(90);
+    assert.equal(await top.getAttribute('data-shelf-yaw'),'90');
+    assert.deepEqual(await stored(),saved);
+    if(close==='Escape')await top.press('Escape');
+    else await dialog.getByRole('button',{name:close}).click();
+    await dialog.waitFor({state:'hidden'});
+    await page.locator('#shelfScene [data-personal-book-key="'+topKey+'"][data-shelf-yaw="35"]').waitFor();
+    assert.deepEqual(await stored(),saved,'cancelar descarta os dois rascunhos');
+    assert.equal(await top.getAttribute('data-shelf-stack-on'),baseKey);
+    assert.ok(Math.abs((await base.boundingBox()).x-atRest.x)<1,'a base voltou à posição salva');
+  }
+});
+
+test('um conflito entre abas impede toda a gravação e conserva os rascunhos até cancelar',browserOnly,async t=>{
+  const {page,imported}=await openEditor(t);
+  const other=await page.context().newPage();
+  await other.goto(page.url());
+  await other.locator('[data-personal-book-key="arquivo:epub-1"]').waitFor();
+  const otherBook=initialMembers[1].key;
+  await page.evaluate(({first,second})=>{
+    const editor=AuroraEstanteExemplares;
+    editor.beginAppearanceSession();
+    editor.previewSize(first,{height:'bolso',width:'fino'});
+    editor.previewPose(second,{...editor.getPose(second),yaw:45});
+  },{first:importedKey,second:otherBook});
+  await other.evaluate(key=>{
+    const editor=AuroraEstanteExemplares;
+    return editor.savePose(key,{...editor.getPose(key),yaw:270});
+  },otherBook);
+  await page.waitForFunction(({storageKey,otherBook})=>JSON.parse(localStorage.getItem(storageKey))
+    .find(book=>book.key===otherBook)?.pose?.yaw===270,{storageKey,otherBook});
+  const stored=()=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)),storageKey);
+  const committed=await stored();
+  const result=await page.evaluate(async()=>{
+    try {await AuroraEstanteExemplares.saveAppearanceSession();return null;}
+    catch(error){return error.code;}
+  });
+  assert.equal(result,'APPEARANCE_CONFLICT');
+  assert.deepEqual(await stored(),committed,'o primeiro livro do lote não foi gravado parcialmente');
+  assert.equal(await imported.getAttribute('data-shelf-height'),'bolso','a falha preserva o rascunho para revisão');
+  const draft=await page.evaluate(key=>AuroraEstanteExemplares.getDraftAppearance(key),otherBook);
+  assert.equal(draft.pose.yaw,45);
+  await page.evaluate(()=>AuroraEstanteExemplares.cancelAppearanceSession());
+  assert.equal(await imported.getAttribute('data-shelf-height'),null);
+  assert.deepEqual(await stored(),committed);
+
+  // Altura e largura do mesmo exemplar podem ser alteradas independentemente.
+  await page.evaluate(key=>{
+    const editor=AuroraEstanteExemplares;
+    editor.beginAppearanceSession();
+    editor.previewSize(key,{...editor.getSize(key),height:'brochura'});
+  },importedKey);
+  await other.evaluate(key=>{
+    const editor=AuroraEstanteExemplares;
+    return editor.saveSize(key,{...editor.getSize(key),width:'grande'});
+  },importedKey);
+  await page.waitForFunction(key=>JSON.parse(localStorage.getItem(key))[0].width==='grande',storageKey);
+  await page.evaluate(()=>AuroraEstanteExemplares.saveAppearanceSession());
+  assert.deepEqual(await stored(),[{...committed[0],height:'brochura',width:'grande'},committed[1]]);
+});

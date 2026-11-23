@@ -3,24 +3,48 @@
   -webkit-user-select:none;
   user-select:none;
 }
-#canvas.medidas-em-edicao {
-  flex:none;
-  height:var(--medidas-altura-cena);
-  overflow-anchor:none;
+html.medidas-sessao {
+  --medidas-painel:min(29rem,56vh);
+  --medidas-painel:min(29rem,56dvh);
+  overflow:hidden;
 }
-#canvas.medidas-em-edicao #shelfScene::after {
+html.medidas-sessao body::before {
   content:"";
-  flex:none;
-  height:100dvh;
+  position:fixed;
+  inset:0;
+  z-index:20;
+  background:#17191b;
 }
-#canvas.medidas-previa-em-foco {
-  translate:0 var(--medidas-elevar-cena);
-  z-index:1;
+#canvas.medidas-estante-aberta {
+  position:fixed;
+  z-index:21;
+  top:max(4px,env(safe-area-inset-top));
+  bottom:calc(var(--medidas-painel) + 4px);
+  left:50%;
+  transform:translateX(-50%);
+  width:min(calc(100% - 16px),768px);
+  height:auto;
+  min-height:0;
+  overflow:auto;
+  overflow-anchor:none;
+  overscroll-behavior:contain;
 }
-.studio:has(> #canvas.medidas-previa-em-foco) > :is(.studio-top,.studio-actions) {visibility:hidden;}
+#canvas.medidas-estante-aberta .shelf-object,#canvas.medidas-estante-aberta .object-size-controls {pointer-events:none;}
+#canvas[data-arrasto-livros] .editor-book-row > [data-personal-book-key] {
+  touch-action:none;
+  cursor:grab;
+}
+#canvas[data-arrasto-livros] .book-spine[data-arrastando-livro] {cursor:grabbing;}
+#canvas[data-arrasto-livros] .editor-book-row > .book-spine > .shelf-book-hit-area {inset:-3px;visibility:visible;}
+#canvas.medidas-estante-aberta .book-spine.medidas-livro-selecionado {
+  outline:2px solid #ffdc98;
+  outline-offset:-2px;
+}
+#canvas.medidas-estante-aberta .book-spine:focus-visible {outline:2px dashed #ffebc6;outline-offset:-3px;}
 
 #bookSizeDialog {
   --medidas-ouro:#e3c28d;
+  z-index:22;
   position:fixed;
   inset:auto 0 0;
   width:min(100%,35rem);
@@ -41,18 +65,18 @@
   overscroll-behavior:contain;
   color-scheme:dark;
 }
-#bookSizeDialog::backdrop { background:rgb(7 9 8 / 19%); }
 #bookSizeDialog[open] {
   display:flex;
   flex-direction:column;
-  max-height:65vh;
-  max-height:65dvh;
+  height:var(--medidas-painel);
+  max-height:var(--medidas-painel);
   overflow:hidden;
 }
-.medidas-conteudo {min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;}
+.medidas-conteudo {flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;}
 .medidas-cabecalho,#bookSizeDialog footer {flex:none;}
 .medidas-cabecalho {display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .medidas-cabecalho > div {min-width:0;}
+.medidas-instrucao {flex:none;margin:4px 0 2px;color:#d8c9b4;font-size:12px;line-height:1.25;}
 #medidas-caption {margin:0 0 2px;color:#d7c19e;font-size:.79rem;}
 #medidas-title {
   display:-webkit-box;
@@ -176,7 +200,7 @@
   padding-top:8px;
   border-top:1px solid #45413c;
 }
-.medidas-posicao button,.medidas-zoom,.medidas-mover-barra button {
+.medidas-posicao button,.medidas-zoom {
   min-height:36px;
   border:1px solid #55514a;
   border-radius:8px;
@@ -185,14 +209,13 @@
   color:#eee6d8;
   font:600 13px/1.1 'DM Sans',system-ui,sans-serif;
 }
-.medidas-ferramentas {display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1.22fr) minmax(0,1fr);gap:6px;}
+.medidas-ferramentas {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px;}
 .medidas-zoom {display:flex;align-items:center;justify-content:space-between;padding:0;min-width:0;}
 .medidas-zoom button {flex:1;min-width:26px;min-height:34px;padding:0;border:0;background:transparent;color:var(--medidas-ouro);font-size:20px;}
 .medidas-escala {min-width:3.3em;font-size:11px;text-align:center;font-variant-numeric:tabular-nums;}
 .medidas-angulo {color:var(--medidas-ouro);font-size:10px;font-variant-numeric:tabular-nums;}
 .medidas-angulo:not(:empty)::before {content:"· ";}
 .medidas-ferramentas > button {padding-inline:2px;white-space:nowrap;}
-.medidas-ferramentas [data-action=move] {background:#383126;border-color:#776045;color:#ffe0a7;}
 .medidas-pares {display:grid;grid-template-columns:1.1fr 1fr;gap:6px;}
 .medidas-pares [role=group],.medidas-camadas {display:grid;grid-template-columns:1fr 1fr;gap:2px;}
 .medidas-pares button {padding-inline:1px;border-radius:5px;font-size:12px;}
@@ -259,49 +282,9 @@
 .medidas-pilha-opcoes input {width:16px;height:16px;margin:0;accent-color:var(--medidas-ouro);}
 .medidas-pilha-aviso {margin:0;color:#e4cfac;font-size:12px;line-height:1.35;}
 .medidas-pilha-aviso:empty {display:none;}
-#medidas-arrasto,.medidas-mover-barra {display:none;}
-#bookSizeDialog[open][data-moving] {
-  display:grid;
-  grid-template-columns:1fr;
-  grid-template-rows:minmax(0,1fr) auto;
-  inset:0;
-  width:100%;
-  height:100%;
-  max-height:none;
-  margin:0;
-  padding:0;
-  border:0;
-  border-radius:0;
-  box-shadow:none;
-  background:transparent;
-}
-#bookSizeDialog[data-moving]::backdrop {background:transparent;}
-#bookSizeDialog[data-moving] > :not(#medidas-arrasto,.medidas-mover-barra) {display:none;}
-#bookSizeDialog[data-moving] #medidas-arrasto {
-  display:block;
-  min-height:0;
-  outline:0;
-  touch-action:none;
-  cursor:grab;
-}
-#bookSizeDialog[data-moving] #medidas-arrasto:active {cursor:grabbing;}
-.editor-book-row > .book-spine.medidas-livro-em-movimento {
-  outline:2px dashed #f7ce86;
-  outline-offset:-2px;
-}
-#bookSizeDialog[data-moving] .medidas-mover-barra {
-  display:flex;flex-direction:column;align-items:center;gap:7px;
-  width:min(100%,35rem);margin-inline:auto;
-  padding:10px 14px max(10px,env(safe-area-inset-bottom));
-  border:1px solid #655848;border-bottom:0;border-radius:16px 16px 0 0;
-  background:#212224;box-shadow:0 -4px 18px #0004;text-align:center;
-}
-.medidas-mover-barra strong,.medidas-mover-barra small {display:block;}
-.medidas-mover-barra small {color:#cabfac;font-size:12px;}
-.medidas-mover-barra button {min-width:84px;margin:0 3px;min-height:40px;}
-.medidas-mover-barra [data-mover=done] {color:#211a11;background:var(--medidas-ouro);border-color:#dabe8a;}
 @media (max-height:480px) {
-  #bookSizeDialog {padding-block:6px;max-height:70dvh;}
+  #bookSizeDialog {padding-block:6px;}
+  .medidas-instrucao {margin-block:1px;}
   .medidas-abas {margin-block:3px;}
   .medidas-abas button {min-height:33px;}
   .medidas-cartao {grid-template-rows:35px auto;padding-block:2px 4px;gap:1px;}
@@ -311,22 +294,21 @@
   #bookSizeDialog footer button {min-height:35px;}
 }
 @media (max-height:480px) and (min-width:540px) {
-  #bookSizeDialog[open]:not([data-moving]) {
+  html.medidas-sessao {--medidas-painel:48dvh;}
+  #bookSizeDialog[open] {
     display:grid;
     grid-template-columns:minmax(0,1fr) auto;
-    grid-template-rows:auto minmax(0,1fr) auto;
+    grid-template-rows:auto auto minmax(0,1fr) auto;
     column-gap:12px;
     width:min(100%,50rem);
-    height:48dvh;
-    max-height:48dvh;
   }
   .medidas-cabecalho {grid-column:1/-1;}
-  .medidas-conteudo {grid-column:1;grid-row:2;}
-  #bookSizeDialog footer {grid-column:2;grid-row:2;flex-direction:column-reverse;justify-content:center;gap:3px;}
+  .medidas-instrucao {grid-column:1 / -1;}
+  .medidas-conteudo {grid-column:1;grid-row:3;}
+  #bookSizeDialog footer {grid-column:2;grid-row:3;flex-direction:column-reverse;justify-content:center;gap:3px;}
   .medidas-status {grid-column:1/-1;}
   .medidas-posicao {grid-template-columns:1fr 1fr;gap:4px 8px;}
   .medidas-camadas {grid-column:1/-1;}
   .medidas-giro,.medidas-pilha-opcoes,.medidas-pilha-acoes {grid-column:1/-1;}
   .medidas-posicao button {min-height:28px;}
-  #bookSizeDialog[data-moving] .medidas-mover-barra {flex-direction:row;justify-content:space-between;}
 }
