@@ -39,7 +39,7 @@
       if (!supports.length || getDraft().stackOn) return;
       const candidates = new Set(supports.map(support => support.key));
       const box = book.getBoundingClientRect();
-      let closest, distance = Infinity;
+      let closest, supportBox, distance = Infinity;
       for (const other of book.closest('.shelf-section').querySelectorAll(selector)) {
         const baseKey = other.dataset.personalBookKey;
         if (!candidates.has(baseKey)) continue;
@@ -50,12 +50,16 @@
         const tolerance = Math.min(14,Math.max(6,base.height*.4));
         if (gap <= tolerance && gap < distance) {
           closest = baseKey;
+          supportBox = base;
           distance = gap;
         }
       }
       if (closest) {
         const pose = renderer.stackPose(key,closest,orientation);
-        if (pose) preview(pose);
+        if (pose) {
+          pose.stackOffset = Math.max(-.35,Math.min(.35,((box.left+box.width/2)-(supportBox.left+supportBox.width/2))/box.width));
+          preview(pose);
+        }
       }
     }
 

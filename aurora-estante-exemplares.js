@@ -450,7 +450,8 @@
         style.setProperty('--pose-dy',dy+'px');
         const support = parents.get(book.dataset.personalBookKey);
         if (support) book.dataset.shelfStackOn = support;
-        bottom -= box.height;
+        // Uma fração de pixel sobreposta evita frestas de rasterização entre capas.
+        bottom -= box.height - .65;
       }
     }
   }
@@ -594,7 +595,7 @@
 
   function dragPose(start,dx,dy) {
     if (!start || !Number.isFinite(dx) || !Number.isFinite(dy)) return null;
-    if (start.pose.stackOn && Math.abs(dy) < 16) return {...start.pose,stackOffset:limit((start.pose.stackOffset || 0)+dx/Math.max(1,start.width),-.35,.35)};
+    if (start.pose.stackOn && Math.abs(dy) < Math.max(20,Math.abs(dx)*.45)) return {...start.pose,stackOffset:limit((start.pose.stackOffset || 0)+dx/Math.max(1,start.width),-.35,.35)};
     return {...start.pose,stackOn:null,stackOffset:0,x:start.roomX ? limit((start.left+dx)/start.roomX,0,1) : 0,
       y:start.roomY ? limit((start.bottom-dy)/start.roomY,0,1) : 0};
   }

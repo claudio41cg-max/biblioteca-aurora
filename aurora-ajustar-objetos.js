@@ -94,7 +94,7 @@
     const button=event.target.closest('[data-object-id]');
     if(!button||!event.isPrimary||event.button!==0)return;
     if(!session){
-      hold={x:event.clientX,y:event.clientY,timer:setTimeout(()=>{hold=null;open(button.dataset.objectId);},500)};
+      hold={id:button.dataset.objectId,pointerId:event.pointerId,x:event.clientX,y:event.clientY,timer:setTimeout(()=>{hold=null;open(button.dataset.objectId);},500)};
       return;
     }
     event.preventDefault();event.stopImmediatePropagation();
@@ -103,12 +103,16 @@
     canvas.setPointerCapture(event.pointerId);
   },true);
   canvas.addEventListener('pointermove',event=>{
-    if(hold&&Math.hypot(event.clientX-hold.x,event.clientY-hold.y)>8){clearTimeout(hold.timer);hold=null;}
+    if(hold&&Math.hypot(event.clientX-hold.x,event.clientY-hold.y)>4){clearTimeout(hold.timer);hold=null;}
     if(drag?.id===event.pointerId)preview({x:Math.max(0,Math.min(100,drag.item.x+(event.clientX-drag.x)/drag.width*100))});
   });
   for(const name of ['pointerup','pointercancel']){
     window.addEventListener(name,event=>{
-      if(hold){clearTimeout(hold.timer);hold=null;}
+      if(hold && hold.pointerId===event.pointerId){
+        const id=hold.id;
+        clearTimeout(hold.timer);hold=null;
+        if(name==='pointerup'&&!session)open(id);
+      }
       if(drag?.id===event.pointerId){
         if(name==='pointercancel')preview(drag.item);
         drag=null;
