@@ -38,6 +38,10 @@
       button.setAttribute('aria-pressed',String(selected));
     }
     sheet.querySelector('[data-action=unstack]').hidden = !pose.stackOn;
+    sheet.querySelector('.medidas-deslocamento').hidden = !pose.stackOn;
+    const offset = Math.round((pose.stackOffset || 0)*100);
+    sheet.querySelector('#medidas-deslocamento').value = offset;
+    sheet.querySelector('#medidas-deslocamento').setAttribute('aria-valuetext',offset===0?'Centralizado':Math.abs(offset)+'% para a '+(offset<0?'esquerda':'direita'));
     sheet.querySelector('.medidas-escala').textContent = Math.round(pose.scale * 100)+'%';
     sheet.querySelector('[data-action=smaller]').disabled = pose.scale <= .5;
     sheet.querySelector('[data-action=larger]').disabled = pose.scale >= 1.5;
@@ -206,6 +210,11 @@
           <button type="button" data-action="front"><span aria-hidden="true">▴</span> Para frente</button>
           <button type="button" data-action="back"><span aria-hidden="true">▾</span> Para trás</button>
         </div>
+        <div class="medidas-deslocamento" hidden>
+          <label for="medidas-deslocamento">Deslocamento lateral na pilha</label>
+          <input id="medidas-deslocamento" type="range" min="-35" max="35" step="1" value="0">
+          <div><span>Esquerda</span><span>Direita</span></div>
+        </div>
         <div class="medidas-pilha-acoes">
           <button type="button" data-action="stack" aria-expanded="false" aria-controls="medidas-pilha-opcoes">Empilhar</button>
           <button type="button" data-action="unstack" hidden>Retirar da pilha</button>
@@ -258,6 +267,9 @@
     });
     dialog.querySelector('#medidas-giro').addEventListener('input', event => {
       preview({...session.pose,yaw:event.target.valueAsNumber},'pose');
+    });
+    dialog.querySelector('#medidas-deslocamento').addEventListener('input',event=>{
+      preview({...session.pose,stackOffset:event.target.valueAsNumber/100},'pose');
     });
     dialog.querySelector('#medidas-pilha-opcoes').addEventListener('change',chooseSupport);
     dialog.querySelector('.medidas-posicao').addEventListener('click', event => {

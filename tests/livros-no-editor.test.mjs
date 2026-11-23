@@ -495,4 +495,23 @@ test('deslocar o topo lateralmente conserva o apoio após salvar e reabrir',brow
   const [upper,lower]=await Promise.all([top.boundingBox(),page.locator('[data-personal-book-key="'+base+'"]').boundingBox()]);
   assert.ok(Math.abs(lower.y-upper.y-upper.height)<1.1);
   assert.ok(upper.x+upper.width/2>lower.x+lower.width/2+5);
+  await top.press('Enter');
+  const panel=page.locator('#bookSizeDialog');
+  const offset=panel.getByRole('slider',{name:'Deslocamento lateral na pilha'});
+  for(const value of [-25,25]){
+    await offset.fill(String(value));
+    const upper=await top.boundingBox();
+    const lower=await page.locator('[data-personal-book-key="'+base+'"]').boundingBox();
+    assert.ok(Math.abs(lower.y-upper.y-upper.height)<1.1,'mudar o deslocamento mantém o contato');
+    assert.ok((upper.x+upper.width/2-lower.x-lower.width/2)*Math.sign(value)>5);
+  }
+  await panel.getByRole('button',{name:'Pronto'}).click();
+  await panel.waitFor({state:'hidden'});
+  await page.reload();
+  await top.waitFor();
+  assert.equal(await page.evaluate(key=>AuroraEstanteExemplares.getPose(key).stackOffset,key),.25);
+  await top.press('Enter');
+  await offset.fill('-20');
+  await panel.getByRole('button',{name:'Fechar sem salvar'}).click();
+  assert.equal(await page.evaluate(key=>AuroraEstanteExemplares.getPose(key).stackOffset,key),.25);
 });
