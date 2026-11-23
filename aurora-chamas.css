@@ -1,0 +1,36 @@
+.shelf-object > .aurora-chamas {
+  display:none;
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  overflow:visible;
+  pointer-events:none;
+  filter:drop-shadow(1px 2px 2px #0006);
+}
+
+/* A foto continua sendo a imagem estática para quem prefere movimento reduzido. */
+@media (prefers-reduced-motion:no-preference) {
+  .shelf-object.aurora-velas > img { opacity:0; }
+  .shelf-object > .aurora-chamas { display:block; }
+  .aurora-chama-ponta {
+    transform-box:view-box;
+    animation:aurora-tremular var(--chama-ciclo) ease-in-out var(--chama-atraso) infinite;
+  }
+  .aurora-chama-luz {
+    animation:aurora-luz 1.77s ease-in-out var(--chama-atraso) infinite alternate;
+  }
+}
+
+@keyframes aurora-tremular {
+  0%, 100% { transform:rotate(-1deg) scale(1,.98); }
+  19% { transform:rotate(4deg) scale(.96,1.04); }
+  33% { transform:rotate(1deg) scale(1.04,.95); }
+  47% { transform:rotate(5deg) scale(.96,1.01); }
+  70% { transform:rotate(-5deg) scale(1.03,.92); }
+  84% { transform:rotate(-2deg) scale(.98,1.03); }
+}
+@keyframes aurora-luz {
+  0%, 72% { opacity:.36; }
+  44%, 100% { opacity:.85; }
+}

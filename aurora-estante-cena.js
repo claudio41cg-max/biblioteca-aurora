@@ -38,7 +38,14 @@
       image.src = item.src;
       image.alt = editable ? '' : item.name || '';
       image.draggable = false;
-      element.append(image);
+      if (item.src === './assets/customizador/aquario.webp' && window.AuroraAquario) {
+        element.append(window.AuroraAquario.create(image));
+      } else {
+        element.append(image);
+        if (item.src === './assets/customizador/velas-marfim.png' || item.src === './assets/customizador/velas-bandeja.webp') {
+          window.AuroraChamas?.mount(element, image);
+        }
+      }
       layer.append(element);
     }
     return layer;
