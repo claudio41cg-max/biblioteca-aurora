@@ -20,6 +20,10 @@
     const clean = document.createElement('source');
     clean.media = motion;
     clean.srcset = base + 'aquario-sem-peixes.webp';
+    // A preferência pode mudar sem rede. Ao exibir o aquário, carregamos também
+    // a outra fotografia para que o service worker a guarde com os peixes.
+    const alternate = new Image();
+    alternate.src = window.matchMedia(motion).matches ? image.src : clean.srcset;
     picture.append(clean,image);
     tank.append(picture);
 
