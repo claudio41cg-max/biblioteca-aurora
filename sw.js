@@ -3,11 +3,11 @@ const CACHE = 'aurora-v89';
 // Os demais arquivos da estante, do livro 3D e dos leitores são cacheados
 // quando usados. O conteúdo importado continua no armazenamento local.
 // As versões dos arquivos preservam no mesmo cache os leitores já baixados.
-const HOME = './index.html?v=105';
-const EDITOR = './nova-estante.html?v=105';
+const HOME = './index.html?v=106';
+const EDITOR = './nova-estante.html?v=106';
 const CORE = [
   HOME,
-  './manifest.webmanifest?v=105',
+  './manifest.webmanifest?v=106',
   './aurora-pwa.js?v=2',
   './aurora-pwa.css?v=2',
   './icons/aurora-192.png',

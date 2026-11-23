@@ -80,3 +80,8 @@ button.shelf-object:active{cursor:grabbing}
 .tone-options .tone-card{flex:0 0 48px;min-height:46px;padding:4px 2px;gap:2px;background:none;border-color:transparent}
 .tone-options .tone-swatch{width:22px;height:22px}
 .tone-options strong{font-size:10px}
+
+.layer-object-row .layer-object-select {min-width:0;overflow-wrap:anywhere}
+.layer-object-row button {min-height:42px}
+.layer-book-row [data-remove-book],.layer-object-row [data-remove-object] {flex:none;color:#ffd3c3}
+.layers-content h3 {margin:12px 0 3px;font-size:15px;color:#e8d8c2}
