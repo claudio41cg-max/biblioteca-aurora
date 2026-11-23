@@ -661,10 +661,37 @@
     active.copies.get(key)?.copy.classList.toggle('shelf-pending-removal',remove);
   }
 
+  function captureRemoval(key) {
+    try {
+      let source=active?.copies.get(key)?.copy;
+      const layers=document.getElementById('layersDialog');
+      if(layers?.open){
+        const action=[...layers.querySelectorAll('[data-remove-book]')].find(button=>button.dataset.removeBook===key);
+        const row=action?.closest('.layer-book-row');
+        source=row?.querySelector('img') || row?.querySelector('[data-edit-book]') || source;
+      } else if(picker?.dialog.open){
+        const action=[...picker.list.querySelectorAll('[data-book-key]')].find(button=>button.dataset.bookKey===key);
+        const row=action?.closest('li');
+        source=row?.querySelector('.aurora-catalog-cover') || row?.querySelector('strong') || source;
+      }
+      return window.AuroraBookParticles?.capture(source);
+    } catch { return null; }
+  }
+
+  async function playRemovals(snapshots) {
+    // Um efeito visual nunca pode transformar uma exclusão já salva em erro.
+    await Promise.all(snapshots.filter(Boolean).map(async snapshot=>{
+      try { await window.AuroraBookParticles?.play(snapshot); } catch { /* A gravação já terminou. */ }
+    }));
+  }
+
   async function removeBook(key) {
     const view = active;
     if (!view || view.session) throw new Error('Conclua os ajustes antes de excluir pela lista.');
+    const snapshot=captureRemoval(key);
     await updateMembership(view.key,records => withoutBooks(records,new Set([key])));
+    if(active !== view)return;
+    await playRemovals([snapshot]);
     if (active === view) await refresh();
   }
 
@@ -681,6 +708,7 @@
     const view = active, session = view?.session;
     if (!session || session.saving) throw new Error('A sessão de edição não está disponível.');
     session.saving = true;
+    const snapshots=[...session.removed].map(captureRemoval);
     try {
       const changed = [...view.drafts].filter(([key,draft]) => !session.removed.has(key) && (draft.size.size || draft.pose.size));
       if (changed.length || session.removed.size) {
@@ -712,6 +740,8 @@
             throw stackError('A base escolhida mudou ou já está ocupada.');
           return records;
         });
+        if (active !== view || view.session !== session) return;
+        await playRemovals(snapshots);
         if (active !== view || view.session !== session) return;
         view.members = members;
       }
@@ -941,7 +971,7 @@
       if (action) changeMembership(action.dataset.bookKey,action.dataset.add === 'true');
     });
     document.body.append(dialog);
-    return {dialog,section:section.select,category:category.select,search,list,status,views,mode:'az'};
+    return {dialog,section:section.select,category:category.select,search,list,status,views,mode:'az',pending:new Set()};
   }
 
   function openPicker() {
@@ -992,7 +1022,7 @@
       action.type = 'button';
       action.dataset.bookKey = book.key;
       action.dataset.add = String(!placed);
-      action.disabled = !placed && !count;
+      action.disabled = picker.pending.has(book.key) || (!placed && !count);
       action.setAttribute('aria-label',placed?'Retirar '+book.title+' desta estante':'Adicionar '+book.title+' à estante');
       if (book.key === focusKey) focusAfter = action;
       if (visual) {
@@ -1008,11 +1038,14 @@
   }
 
   async function changeMembership(bookKey,add) {
-    if (!active || !picker) return;
+    if (!active || !picker || picker.pending.has(bookKey)) return;
     const key = active.key;
     const section = Number(picker.section.value);
     const title = catalog().get(bookKey)?.title;
     if (!title || (add && !picker.section.options.length)) return;
+    const snapshot=add?null:captureRemoval(bookKey);
+    picker.pending.add(bookKey);
+    for(const button of picker.list.querySelectorAll("[data-book-key]"))if(button.dataset.bookKey===bookKey)button.disabled=true;
     try {
       await updateMembership(key,saved => {
         if (!add) {
@@ -1028,11 +1061,16 @@
         return saved;
       });
       if (active?.key !== key) return;
+      await playRemovals([snapshot]);
+      if (active?.key !== key) return;
       await refresh();
       if (active?.key !== key) return;
       picker.status.textContent = add ? '“'+title+'” na prateleira '+(section+1)+'.' : '“'+title+'” retirado desta estante.';
     } catch {
       if (active?.key === key) picker.status.textContent = 'Não foi possível salvar a alteração neste aparelho.';
+    } finally {
+      picker.pending.delete(bookKey);
+      if(active?.key===key && picker.dialog.open)updatePicker();
     }
   }
 

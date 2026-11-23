@@ -383,7 +383,7 @@
       const removeBook=event.target.closest('[data-remove-book]');
       if(removeBook){
         removeBook.disabled=true;
-        try{await window.AuroraEstanteExemplares.removeBook(removeBook.dataset.removeBook);showLayers();notify('Livro excluído da estante. O arquivo permanece no acervo.');}
+        try{await window.AuroraEstanteExemplares.removeBook(removeBook.dataset.removeBook);if($('layersDialog').open)showLayers();notify('Livro excluído da estante. O arquivo permanece no acervo.');}
         catch(error){removeBook.disabled=false;notify(error.message);}
         return;
       }
