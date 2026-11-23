@@ -1,4 +1,4 @@
-/* Controles de um único exemplar da estante em edição. */
+/* Painel de ajustes e seleção dos exemplares durante uma edição da estante. */
 (() => {
   'use strict';
   const scene = document.getElementById('shelfScene');
@@ -44,7 +44,7 @@
     sheet.querySelector('.medidas-angulo').textContent = pose.angle ? ((pose.angle + 360) % 360)+'°' : '';
   }
 
-  function preview(next, kind = 'size') {
+  function preview(next, kind = 'size', reveal = true) {
     if (!session || session.saving || !next) return;
     const pose = kind === 'pose';
     const updated = pose ? api().previewPose(session.key, next) : api().previewSize(session.key, next);
@@ -59,44 +59,28 @@
     else session.draft = next;
     sheet.querySelector('.medidas-status').textContent = '';
     showChoice();
-    if (!sheet.hasAttribute('data-moving')) revealBook();
+    if (reveal) revealBook();
     return true;
   }
 
   function revealBook() {
     if (!session || !sheet.open || !session.button.isConnected) return;
-    let target = session.button.getBoundingClientRect();
-    let canvasTop = canvas.getBoundingClientRect().top;
-    const panel = sheet.hasAttribute('data-moving') ? sheet.querySelector('.medidas-mover-barra') : sheet;
-    const roomBottom = panel.getBoundingClientRect().top - 14;
-    // Na primeira fileira, o cabeçalho pode ocupar o espaço necessário para ver o livro todo.
-    const extra = Math.min(canvasTop, Math.ceil(target.height + canvasTop + 6 - roomBottom));
-    if (extra > 0) {
-      session.lift = (session.lift || 0) + Math.max(extra,canvasTop-6);
-      canvas.style.setProperty('--medidas-elevar-cena', -session.lift+'px');
-      canvas.classList.add('medidas-previa-em-foco');
-      canvasTop = canvas.getBoundingClientRect().top;
-      target = session.button.getBoundingClientRect();
-    }
-    const roomTop = Math.max(0,canvasTop) + 6;
-    if (target.top < roomTop && target.height <= roomBottom-roomTop && canvas.scrollTop > 0) {
-      canvas.scrollTop += Math.floor(target.top-roomTop);
-      return;
-    }
-    if (roomBottom <= roomTop || target.bottom <= roomBottom || target.top <= roomTop) return;
-    const overlap = Math.ceil(Math.min(target.bottom - roomBottom, target.top - roomTop));
-    if (!canvas.classList.contains('medidas-em-edicao')) {
-      // Mesmo quando toda a estante cabe no documento, movemos só o conteúdo do canvas.
-      canvas.style.setProperty('--medidas-altura-cena', canvas.getBoundingClientRect().height + 'px');
-      canvas.classList.add('medidas-em-edicao');
-    }
-    canvas.scrollTop += overlap;
+    const box = session.button.getBoundingClientRect();
+    const bounds = canvas.getBoundingClientRect();
+    const top = bounds.top + 6, bottom = bounds.bottom - 10;
+    if (box.top < top) canvas.scrollTop += Math.floor(box.top - top);
+    else if (box.bottom > bottom) canvas.scrollTop += Math.ceil(Math.min(box.bottom - bottom,box.top - top));
+    const row = session.button.parentElement;
+    if (row.dataset.placement || row.scrollWidth <= row.clientWidth) return;
+    const lane = row.getBoundingClientRect();
+    if (box.left < lane.left) row.scrollLeft += Math.floor(box.left - lane.left);
+    else if (box.right > lane.right) row.scrollLeft += Math.ceil(box.right - lane.right);
   }
 
-  function restoreCanvasTop() {
-    session.lift = 0;
-    canvas.classList.remove('medidas-previa-em-foco');
-    canvas.style.removeProperty('--medidas-elevar-cena');
+  function fitCanvas() {
+    if (!session) return;
+    canvas.style.setProperty('--medidas-altura-parede',scene.offsetHeight+'px');
+    revealBook();
   }
 
   function closeStackOptions() {
@@ -149,34 +133,6 @@
     if (preview(next,'pose')) message.textContent = 'Apoiado em '+base.selectedOptions[0].textContent+'.';
   }
 
-  function startMove() {
-    closeStackOptions();
-    session.moveStart = {...session.pose};
-    sheet.setAttribute('data-moving','');
-    sheet.setAttribute('aria-labelledby','medidas-mover-titulo medidas-title');
-    session.button.classList.add('medidas-livro-em-movimento');
-    const area = sheet.querySelector('#medidas-arrasto');
-    area.setAttribute('aria-label','Mover '+sheet.querySelector('#medidas-title').textContent);
-    window.AuroraMoverExemplar.ativar({
-      area, livro:session.button, getDraft:() => session.pose, preview:next => preview(next,'pose')
-    });
-    restoreCanvasTop();
-    canvas.scrollTop = session.scroll;
-    revealBook();
-    area.focus({preventScroll:true});
-  }
-
-  function endMove(keep) {
-    window.AuroraMoverExemplar.desativar();
-    if (!keep) preview(session.moveStart,'pose');
-    session.moveStart = null;
-    session.button.classList.remove('medidas-livro-em-movimento');
-    sheet.removeAttribute('data-moving');
-    sheet.setAttribute('aria-labelledby','medidas-caption medidas-title');
-    sheet.querySelector('[data-action=move]').focus({preventScroll:true});
-    revealBook();
-  }
-
   function editPose(button) {
     const {action,field} = button.dataset;
     if (field === 'orientation') {
@@ -195,7 +151,6 @@
       case 'rotate': return preview({...session.pose,angle:angle === 180 ? -175 : angle+5},'pose');
       case 'front':
       case 'back': return preview(api().layerPose(session.key,action),'pose');
-      case 'move': return startMove();
       case 'stack': return openStackOptions();
       case 'unstack':
         if (preview(api().unstackPose(session.key),'pose')) {
@@ -210,12 +165,14 @@
   function makeSheet() {
     const dialog = document.createElement('dialog');
     dialog.id = 'bookSizeDialog';
+    dialog.setAttribute('closedby','closerequest');
     dialog.setAttribute('aria-labelledby','medidas-caption medidas-title');
     dialog.innerHTML = `
       <header class="medidas-cabecalho">
-        <div><p id="medidas-caption">Ajustar livro</p><h2 id="medidas-title"></h2></div>
+        <div><p id="medidas-caption">Ajustar livro</p><h2 id="medidas-title" aria-live="polite"></h2></div>
         <button class="medidas-fechar" type="button" aria-label="Fechar sem salvar">×</button>
       </header>
+      <p class="medidas-instrucao">Toque em um livro para selecionar. Arraste para mover.</p>
       <div class="medidas-conteudo">
       <div class="medidas-abas" role="tablist" aria-label="Medida do livro">
         <button type="button" role="tab" id="medidas-tab-height" aria-controls="medidas-panel-height" data-tab="height">Altura</button>
@@ -230,7 +187,6 @@
             <button type="button" data-action="larger" aria-label="Aumentar livro">+</button>
           </div>
           <button type="button" data-action="rotate" aria-label="Girar 5°"><span aria-hidden="true">↻</span> Girar 5° <small class="medidas-angulo"></small></button>
-          <button type="button" data-action="move"><span aria-hidden="true">✥</span> Mover</button>
         </div>
         <div class="medidas-pares">
           <div role="group" aria-label="Orientação">
@@ -268,11 +224,7 @@
       </div>
       <p class="medidas-status" role="status"></p>
       <footer><button class="medidas-redefinir" type="button">Redefinir</button><button class="medidas-pronto" type="button">Pronto</button></footer>
-      <div id="medidas-arrasto" role="group" tabindex="0" aria-describedby="medidas-mover-instrucao"></div>
-      <div class="medidas-mover-barra">
-        <div><strong id="medidas-mover-titulo">Arraste o livro na prateleira</strong><small id="medidas-mover-instrucao">Solte sobre um livro deitado para empilhar. Pelo teclado, use as setas.</small></div>
-        <div><button type="button" data-mover="cancel">Voltar</button><button type="button" data-mover="done">Usar posição</button></div>
-      </div>`;
+`;
 
     for (const [axis, options] of Object.entries(choices)) {
       const panel = document.createElement('div');
@@ -312,10 +264,6 @@
       const button = event.target.closest('button');
       if (button && !session.saving) editPose(button);
     });
-    dialog.querySelector('.medidas-mover-barra').addEventListener('click', event => {
-      const button = event.target.closest('button');
-      if (button) endMove(button.dataset.mover === 'done');
-    });
     const tabs = dialog.querySelector('[role=tablist]');
     tabs.addEventListener('click', event => {
       if (event.target.dataset.tab) setTab(event.target.dataset.tab, true);
@@ -338,58 +286,36 @@
       const controls = [...dialog.querySelectorAll('button:not(:disabled), input:not(:disabled), select:not(:disabled)')];
       for (const control of controls) control.disabled = true;
       try {
-        await api().saveAppearance(session.key, {...session.draft}, {...session.pose});
+        await api().saveAppearanceSession();
         session.saved = true;
         dialog.close();
       } catch (error) {
-        dialog.querySelector('.medidas-status').textContent = error?.code === 'STACK_INVALID' ?
-          error.message : 'Não foi possível salvar. Tente novamente.';
+        let message = 'Não foi possível salvar. Tente novamente.';
+        if (error?.code === 'STACK_INVALID') message = error.message;
+        if (error?.code === 'APPEARANCE_CONFLICT' || error?.code === 'BOOK_REMOVED') {
+          message = error.message+' Feche pelo × e reabra o painel para carregar a estante atual.';
+        }
+        dialog.querySelector('.medidas-status').textContent = message;
       } finally {
         session.saving = false;
         for (const control of controls) control.disabled = false;
         showChoice();
       }
     });
-    dialog.addEventListener('cancel', event => {
-      if (session?.saving) event.preventDefault();
-      else if (dialog.hasAttribute('data-moving')) { event.preventDefault(); endMove(false); }
-    });
-    let pressedBackdrop = false;
-    function isBackdrop(event) {
-      const rect = dialog.getBoundingClientRect();
-      return event.target === dialog && (event.clientY < rect.top || event.clientY > rect.bottom || event.clientX < rect.left || event.clientX > rect.right);
-    }
-    dialog.addEventListener('pointerdown', event => {
-      if (session) session.waitingForRelease = false;
-      pressedBackdrop = isBackdrop(event);
-    },true);
-    dialog.addEventListener('keydown', () => { if (session) session.waitingForRelease = false; },true);
-    dialog.addEventListener('click', event => {
-      // Em telas pequenas a soltura também pode cair sobre uma opção recém-exibida.
-      if (!session?.waitingForRelease || event.detail === 0) return;
-      session.waitingForRelease = false;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-    },true);
-    dialog.addEventListener('pointercancel', () => { pressedBackdrop = false; });
-    dialog.addEventListener('click', event => {
-      // Soltar o dedo que abriu o painel ainda é parte da pressão longa sobre a lombada.
-      if (pressedBackdrop && !session?.saving && isBackdrop(event)) dialog.close();
-      pressedBackdrop = false;
-    });
+    dialog.addEventListener('cancel',event => { if (session?.saving) event.preventDefault(); });
     dialog.addEventListener('close', () => {
-      pressedBackdrop = false;
       if (!session) return;
-      if (dialog.hasAttribute('data-moving')) endMove(true);
-      if (!session.saved) {
-        api().cancelSize(session.key);
-        api().cancelPose(session.key);
-      }
-      canvas.classList.remove('medidas-em-edicao');
-      canvas.style.removeProperty('--medidas-altura-cena');
-      restoreCanvasTop();
+      window.AuroraMoverExemplar.desativar();
+      if (!session.saved) api().cancelAppearanceSession();
+      markSelected(session.button,false);
+      for (const element of session.inert) element.inert = false;
+      document.documentElement.classList.remove('medidas-sessao');
+      canvas.classList.remove('medidas-estante-aberta');
+      canvas.style.removeProperty('--medidas-altura-parede');
       canvas.scrollTop = session.scroll;
-      session.button.focus({preventScroll:true});
+      window.scrollTo({left:session.pageX,top:session.pageY,behavior:'instant'});
+      const focus = session.origin.isConnected ? session.origin : session.button;
+      focus.focus({preventScroll:true});
       session = null;
       for (const prop of ['--medidas-capa','--medidas-lombada','--medidas-posicao','--medidas-textura']) dialog.style.removeProperty(prop);
     });
@@ -397,16 +323,22 @@
     return dialog;
   }
 
-  function open(button, fromHold = false) {
-    if (!button?.isConnected || session) return;
+  function markSelected(button, selected) {
+    if (!button) return;
+    button.classList.toggle('medidas-livro-selecionado',selected);
+    if (selected) button.setAttribute('aria-pressed','true');
+    else button.removeAttribute('aria-pressed');
+  }
+
+  function selectBook(button) {
+    if (!session || session.saving || !button?.isConnected) return false;
+    if (button === session.button) return true;
     const key = button.dataset.personalBookKey;
-    const saved = api()?.getSize(key);
-    if (!saved) return;
-    if (!sheet) sheet = makeSheet();
-    const pose = api().getPose(key);
-    if (!pose) return;
-    session = {key, button, draft:{...saved}, pose:{...pose}, scroll:canvas.scrollTop, waitingForRelease:fromHold};
-    sheet.querySelector('.medidas-conteudo').scrollTop = 0;
+    const appearance = api().getDraftAppearance(key);
+    if (!appearance) return false;
+    markSelected(session.button,false);
+    Object.assign(session,{button,key,draft:{...appearance.size},pose:{...appearance.pose}});
+    markSelected(button,true);
     const title = button.querySelector('.spine-title')?.textContent.trim() || button.dataset.rawTitle;
     sheet.querySelector('h2').textContent = title;
     const cover = button.querySelector('.shelf-book-cover img')?.src;
@@ -419,12 +351,56 @@
     sheet.querySelector('.medidas-status').textContent = '';
     closeStackOptions();
     sheet.querySelector('.medidas-pronto').disabled = false;
-    setTab('height');
     showChoice();
-    sheet.showModal();
-    sheet.querySelector('[aria-selected="true"]').focus({preventScroll:true});
-    revealBook();
+    return true;
   }
+
+  function open(button, hold) {
+    if (session || !button?.isConnected || !api()?.beginAppearanceSession()) return;
+    if (!sheet) sheet = makeSheet();
+    session = {
+      origin:button, scroll:canvas.scrollTop, pageX:window.scrollX, pageY:window.scrollY,
+      inert:[], waitingForRelease:Boolean(hold)
+    };
+    if (!selectBook(button)) {
+      api().cancelAppearanceSession();
+      session = null;
+      return;
+    }
+    for (const element of document.querySelectorAll('.studio-top,.studio-actions,.editor-dock,#canvas .shelf-object-layer,#canvas .object-size-controls')) {
+      if (!element.inert) { element.inert = true; session.inert.push(element); }
+    }
+    document.documentElement.classList.add('medidas-sessao');
+    canvas.classList.add('medidas-estante-aberta');
+    sheet.querySelector('.medidas-conteudo').scrollTop = 0;
+    setTab('height');
+    // A estante e o painel são duas regiões interativas da mesma sessão.
+    sheet.show();
+    fitCanvas();
+    button.focus({preventScroll:true});
+    window.AuroraMoverExemplar.ativar({
+      area:canvas, hold, getBook:() => session.button, selectBook,
+      getDraft:() => session.pose, preview:next => preview(next,'pose',false)
+    });
+  }
+
+  document.addEventListener('pointerdown', () => { if (session) session.waitingForRelease = false; },true);
+  document.addEventListener('keydown', event => {
+    if (!session) return;
+    session.waitingForRelease = false;
+    if (event.key === 'Escape' && !session.saving) {
+      event.preventDefault();
+      event.stopPropagation();
+      sheet.close();
+    }
+  },true);
+  document.addEventListener('click', event => {
+    // A soltura da pressão que abre o painel pode coincidir com outro livro ou controle.
+    if (!session?.waitingForRelease || event.detail === 0) return;
+    session.waitingForRelease = false;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  },true);
 
   function stopPress() {
     if (press) clearTimeout(press.timer);
@@ -433,9 +409,9 @@
   scene.addEventListener('pointerdown', event => {
     stopPress();
     const button = event.target.closest(selector);
-    if (!button || !event.isPrimary || event.button !== 0) return;
+    if (session || !button || !event.isPrimary || event.button !== 0) return;
     press = {id:event.pointerId, x:event.clientX, y:event.clientY,
-      timer:setTimeout(() => { stopPress(); open(button, true); }, 500)};
+      timer:setTimeout(() => { stopPress(); open(button, {pointerId:event.pointerId,clientX:event.clientX,clientY:event.clientY}); }, 500)};
   });
   window.addEventListener('pointermove', event => {
     if (press?.id === event.pointerId && Math.hypot(event.clientX - press.x, event.clientY - press.y) > 8) stopPress();
@@ -443,9 +419,9 @@
   for (const name of ['pointerup','pointercancel']) window.addEventListener(name, stopPress, true);
   window.addEventListener('blur', stopPress);
   window.addEventListener('scroll', stopPress, {capture:true,passive:true});
-  window.addEventListener('resize', revealBook);
+  window.addEventListener('resize', fitCanvas);
   scene.addEventListener('contextmenu', event => { if (event.target.closest(selector)) event.preventDefault(); });
   scene.addEventListener('click', event => {
-    if (event.detail === 0) open(event.target.closest(selector));
+    if (!session && event.detail === 0) open(event.target.closest(selector));
   });
 })();

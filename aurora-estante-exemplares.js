@@ -144,27 +144,83 @@
     if (copy.isConnected) window.AuroraLombadas?.enhance(copy);
   }
 
+  function observedBook(view,key) {
+    let draft = view.drafts.get(key);
+    if (!draft) {
+      draft = {size:new Map(),pose:new Map(),shown:{},origins:{}};
+      view.drafts.set(key,draft);
+    }
+    return draft;
+  }
+
+  function appearance(member,kind) {
+    const values = kind === 'size' ? sizeOf(member) : poseOf(member.pose);
+    const changes = active.drafts.get(member.key)?.[kind];
+    if (changes) for (const [field,change] of changes) values[field] = change.value;
+    return values;
+  }
+
+  function currentPose(key) {
+    const member = active?.members.find(entry => entry.key === key);
+    return member ? appearance(member,'pose') : null;
+  }
+
+  function getDraftAppearance(key) {
+    const member = active?.members.find(entry => entry.key === key);
+    if (!member) return null;
+    const size = appearance(member,'size'), pose = appearance(member,'pose');
+    if (active.session) observedBook(active,key).shown = {size:{...size},pose:{...pose}};
+    return {size,pose};
+  }
+
+  function notePreview(key,kind,next,row,previous) {
+    const view = active, draft = observedBook(view,key);
+    const shown = draft.shown[kind] || previous;
+    const persisted = kind === 'size' ? getSize(key) : getPose(key);
+    for (const [field,value] of Object.entries(next)) {
+      if (value === shown[field]) continue;
+      const change = draft[kind].get(field);
+      const before = change ? change.before : shown[field];
+      if (value === before || value === persisted[field]) draft[kind].delete(field);
+      else draft[kind].set(field,{before,value});
+    }
+    draft.shown[kind] = {...next};
+    if (!draft.origins[kind]) draft.origins[kind] = {row,left:row.scrollLeft};
+    if (view.session && !view.session.rows.has(row)) view.session.rows.set(row,row.scrollLeft);
+    return draft.origins[kind];
+  }
+
+  function forgetPreview(view,key,kind) {
+    const draft = view.drafts.get(key);
+    if (!draft) return;
+    draft[kind].clear();
+    delete draft.shown[kind];
+    delete draft.origins[kind];
+    if (!view.session && !draft.origins.size && !draft.origins.pose) view.drafts.delete(key);
+  }
+
   function cancelSize(key) {
-    if (active?.preview?.key !== key) return;
-    const {row,scrollLeft} = active.preview;
-    active.preview = null;
+    const origin = active?.drafts.get(key)?.origins.size;
+    if (!origin) return;
+    forgetPreview(active,key,'size');
     const copy = active.copies.get(key)?.copy, size = getSize(key);
     if (copy && size) {
       applySize(copy,size);
-      if (laneOf(copy) === row) row.scrollLeft = scrollLeft;
+      if (laneOf(copy) === origin.row) origin.row.scrollLeft = origin.left;
       layout();
     }
   }
 
   function previewSize(key,size) {
     const copy = active?.copies.get(key)?.copy;
-    if (!active?.editor || !copy?.isConnected || !validSize(size)) return false;
-    if (active.preview && active.preview.key !== key) cancelSize(active.preview.key);
+    if (!active?.editor || active.session?.saving || !copy?.isConnected || !validSize(size)) return false;
+    if (!active.session) for (const other of active.drafts.keys()) if (other !== key) cancelSize(other);
+    const member = active.members.find(entry => entry.key === key);
+    if (!member) return false;
     const row = laneOf(copy);
-    const scrollLeft = active.preview?.row === row ? active.preview.scrollLeft : row.scrollLeft;
-    active.preview = {key,height:size.height,width:size.width,row,scrollLeft};
-    applySize(copy,size);
-    row.scrollLeft = scrollLeft;
+    const origin = notePreview(key,'size',sizeOf(size),row,appearance(member,'size'));
+    applySize(copy,appearance(member,'size'));
+    row.scrollLeft = origin.left;
     layout();
     return true;
   }
@@ -270,9 +326,13 @@
     return {nodes,parents,children};
   }
 
+  function draftMembers() {
+    return active.members.map(member => active.drafts.get(member.key)?.pose.size
+      ? {...member,pose:appearance(member,'pose')} : member);
+  }
+
   function refreshStacks() {
-    const edit = active.posePreview;
-    active.stacks = stackGraph(active.members.filter(member => active.books.has(member.key)),edit?.key,edit?.pose);
+    active.stacks = stackGraph(draftMembers().filter(member => active.books.has(member.key)));
   }
 
   function stackError(text) {
@@ -309,7 +369,7 @@
 
   function stackPose(key,baseKey,orientation='horizontal') {
     if (!stackTargets(key,orientation).some(base => base.key === baseKey)) return null;
-    const pose = active.posePreview?.key === key ? active.posePreview.pose : getPose(key);
+    const pose = currentPose(key);
     return {...pose,angle:pose.orientation === orientation ? pose.angle : 0,orientation,stackOn:baseKey,y:0};
   }
 
@@ -488,20 +548,21 @@
 
   function previewPose(key,next) {
     const copy = active?.copies.get(key)?.copy;
-    if (!active?.editor || !copy?.isConnected || !next) return false;
-    if (active.posePreview && active.posePreview.key !== key) cancelPose(active.posePreview.key);
+    if (!active?.editor || active.session?.saving || !copy?.isConnected || !next) return false;
+    if (!active.session) for (const other of active.drafts.keys()) if (other !== key) cancelPose(other);
     const row = laneOf(copy);
-    const scrollLeft = active.posePreview?.scrollLeft ?? row.scrollLeft;
+    const old = currentPose(key);
+    if (!old) return false;
     const pose = poseOf(next);
-    const old = active.posePreview?.key === key ? active.posePreview.pose : getPose(key);
     if ((pose.stackOn || active.stacks.children.has(key)) && (old.stackOn !== pose.stackOn ||
         old.orientation !== pose.orientation || old.angle !== pose.angle)) {
-      try { validateSupport(active.members,key,pose); } catch { return false; }
+      try { validateSupport(draftMembers(),key,pose); } catch { return false; }
     }
-    active.posePreview = {key,pose,scrollLeft};
-    if (old.stackOn !== pose.stackOn) { draw(); return true; }
-    if (old.orientation !== pose.orientation || old.angle !== pose.angle) refreshStacks();
-    applyPose(copy,pose);
+    notePreview(key,'pose',pose,row,old);
+    const updated = currentPose(key);
+    if (old.stackOn !== updated.stackOn) { draw(); return true; }
+    if (old.orientation !== updated.orientation || old.angle !== updated.angle) refreshStacks();
+    applyPose(copy,updated);
     if (!slots.has(copy)) layoutPoses(row);
     moveToLayer(copy,row);
     placeRow(row);
@@ -509,20 +570,12 @@
   }
 
   function cancelPose(key) {
-    if (active?.posePreview?.key !== key) return;
-    const {scrollLeft} = active.posePreview;
-    const wasStacked = active.posePreview.pose.stackOn;
-    active.posePreview = null;
-    const copy = active.copies.get(key)?.copy;
-    if (!copy?.isConnected) return;
-    const row = laneOf(copy);
-    const saved = getPose(key) || defaults;
-    if (saved.stackOn !== wasStacked) { draw(); row.scrollLeft = scrollLeft; return; }
-    refreshStacks();
-    applyPose(copy,saved);
-    moveToLayer(copy,row);
-    placeRow(row);
-    row.scrollLeft = scrollLeft;
+    const origin = active?.drafts.get(key)?.origins.pose;
+    if (!origin) return;
+    forgetPreview(active,key,'pose');
+    draw();
+    if (origin.row.isConnected) origin.row.scrollLeft = origin.left;
+    layout();
   }
 
   function dragOrigin(key) {
@@ -530,7 +583,7 @@
     if (!active?.editor || !copy?.isConnected) return null;
     const row = laneOf(copy);
     const box = copy.getBoundingClientRect(), plank = row.parentElement.getBoundingClientRect();
-    const pose = active.posePreview?.key === key ? active.posePreview.pose : getPose(key);
+    const pose = currentPose(key);
     return {pose,left:box.left-plank.left-5,bottom:row.getBoundingClientRect().bottom-1-box.bottom,
       roomX:Math.max(0,plank.width-10-box.width),roomY:Math.max(0,row.offsetHeight-1-box.height)};
   }
@@ -544,12 +597,86 @@
   function layerPose(key,direction) {
     const copy = active?.copies.get(key)?.copy;
     if (!active?.editor || !copy?.isConnected || !['front','back'].includes(direction)) return null;
-    const pose = active.posePreview?.key === key ? active.posePreview.pose : getPose(key);
+    const pose = currentPose(key);
     const others = [...laneOf(copy).parentElement.querySelectorAll('[data-personal-book-key]')].filter(sibling => sibling !== copy)
       .map(sibling => poses.get(sibling)?.layer || 0);
     const layer = !others.length ? 0 : direction === 'front' ? Math.max(...others)+1 : Math.min(...others)-1;
     const placed = (pose.x == null || pose.y == null) ? dragPose(dragOrigin(key),0,0) : pose;
     return {...placed,stackOn:pose.stackOn,layer};
+  }
+
+  function beginAppearanceSession() {
+    if (!active?.editor) return false;
+    if (!active.session) {
+      if (active.drafts.size) { active.drafts.clear(); draw(); }
+      active.session = {rows:new Map(),saving:false};
+    }
+    return true;
+  }
+
+  function cancelAppearanceSession() {
+    const view = active, session = view?.session;
+    if (!session) return;
+    view.session = null;
+    view.drafts.clear();
+    // Outra aba pode ter salvo enquanto o painel estava aberto.
+    try { view.members = storedRecords(view.key).filter(isMember); } catch { /* Última leitura válida. */ }
+    draw();
+    for (const [row,left] of session.rows) if (row.isConnected) row.scrollLeft = left;
+    layout();
+  }
+
+  function applyField(member,kind,field,value) {
+    const target = kind === 'size' ? member : (member.pose ||= {});
+    if (value === (kind === 'size' ? 'original' : defaults[field])) delete target[field];
+    else target[field] = value;
+    if (kind === 'pose' && !Object.keys(target).length) delete member.pose;
+  }
+
+  function editError(code,message) { return Object.assign(new Error(message),{code}); }
+
+  async function saveAppearanceSession() {
+    const view = active, session = view?.session;
+    if (!session || session.saving) throw new Error('A sessão de edição não está disponível.');
+    session.saving = true;
+    try {
+      const changed = [...view.drafts].filter(([,draft]) => draft.size.size || draft.pose.size);
+      if (changed.length) {
+        const members = await updateMembership(view.key,records => {
+          if (active !== view || view.session !== session) throw new Error('A estante em edição mudou.');
+          const before = stackGraph(records), links = new Map();
+          for (const [key,draft] of changed) {
+            const member = records.find(record => isMember(record) && record.key === key);
+            if (!member) throw editError('BOOK_REMOVED','Um dos livros editados saiu desta estante.');
+            for (const kind of ['size','pose']) {
+              const fresh = kind === 'size' ? sizeOf(member) : poseOf(member.pose);
+              for (const [field,{before:original,value}] of draft[kind]) {
+                if (fresh[field] !== original && fresh[field] !== value)
+                  throw editError('APPEARANCE_CONFLICT','Uma das medidas ou posições também mudou em outra aba.');
+                applyField(member,kind,field,value);
+              }
+            }
+            if (draft.pose.has('stackOn')) links.set(key,member.pose?.stackOn ?? null);
+          }
+          // Valida o conjunto final: é possível soltar um topo e reutilizar sua base na mesma gravação.
+          const after = stackGraph(records);
+          for (const [child,parent] of before.parents) {
+            if (!links.has(child) && after.parents.get(child) !== parent)
+              throw stackError('Esta alteração afetaria outro livro apoiado na pilha.');
+          }
+          for (const [child,parent] of links) if (parent && after.parents.get(child) !== parent)
+            throw stackError('A base escolhida mudou ou já está ocupada.');
+          return records;
+        });
+        if (active !== view || view.session !== session) return;
+        view.members = members;
+      }
+      view.session = null;
+      view.drafts.clear();
+      draw();
+    } finally {
+      session.saving = false;
+    }
   }
 
   async function saveAppearance(key,size,pose) {
@@ -578,8 +705,8 @@
     });
     if (active !== view) return;
     view.members = members;
-    if (size && view.preview?.key === key) view.preview = null;
-    if (pose && view.posePreview?.key === key) view.posePreview = null;
+    if (size) forgetPreview(view,key,'size');
+    if (pose) forgetPreview(view,key,'pose');
     draw();
   }
 
@@ -608,8 +735,8 @@
         entry = {copy,book};
         copies.set(key,entry);
       } else entry.book = book;
-      applySize(entry.copy,active.preview?.key === key ? active.preview : sizeOf(member));
-      applyPose(entry.copy,active.posePreview?.key === key ? active.posePreview.pose : poseOf(member.pose));
+      applySize(entry.copy,appearance(member,'size'));
+      applyPose(entry.copy,appearance(member,'pose'));
       // Uma seção removida pode ser recuperada ao desfazer. O vínculo original é preservado.
       contents[Math.min(section,rows.length-1)].push(entry.copy);
     }
@@ -641,8 +768,9 @@
   async function refresh() {
     const view = active;
     view.members = read(view.key);
-    if (view.preview && !view.members.some(member => member.key === view.preview.key)) view.preview = null;
-    if (view.posePreview && !view.members.some(member => member.key === view.posePreview.key)) view.posePreview = null;
+    if (!view.session) for (const key of view.drafts.keys()) {
+      if (!view.members.some(member => member.key === key)) view.drafts.delete(key);
+    }
     if (view.editor) {
       const request = ++view.request;
       if (view.members.length) {
@@ -692,7 +820,7 @@
       return;
     }
     clear();
-    active = {scene,key,editor,members:[],books:new Map(),copies:new Map(),stacks:stackGraph([]),request:0};
+    active = {scene,key,editor,members:[],drafts:new Map(),session:null,books:new Map(),copies:new Map(),stacks:stackGraph([]),request:0};
     void refresh();
   }
 
@@ -841,5 +969,5 @@
   for (const name of ['aurora:library-data','aurora:shelves-drawn','aurora:online-books-ready','aurora:book-cover-updated']) {
     document.addEventListener(name,schedule);
   }
-  window.AuroraEstanteExemplares = {render,layout,openPicker,clear,originFor,getSize,previewSize,saveSize,cancelSize,defaultPose,getPose,previewPose,cancelPose,savePose,saveAppearance,dragOrigin,dragPose,layerPose,stackTargets,stackPose,unstackPose};
+  window.AuroraEstanteExemplares = {render,layout,openPicker,clear,originFor,getSize,previewSize,saveSize,cancelSize,defaultPose,getPose,previewPose,cancelPose,savePose,saveAppearance,dragOrigin,dragPose,layerPose,stackTargets,stackPose,unstackPose,beginAppearanceSession,getDraftAppearance,saveAppearanceSession,cancelAppearanceSession};
 })();
