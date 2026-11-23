@@ -77,6 +77,12 @@
     else if (box.right > lane.right) row.scrollLeft += Math.ceil(box.right - lane.right);
   }
 
+  function fitCanvas() {
+    if (!session) return;
+    canvas.style.setProperty('--medidas-altura-parede',scene.offsetHeight+'px');
+    revealBook();
+  }
+
   function closeStackOptions() {
     sheet.querySelector('#medidas-pilha-opcoes').hidden = true;
     sheet.querySelector('[data-action=stack]').setAttribute('aria-expanded','false');
@@ -305,6 +311,7 @@
       for (const element of session.inert) element.inert = false;
       document.documentElement.classList.remove('medidas-sessao');
       canvas.classList.remove('medidas-estante-aberta');
+      canvas.style.removeProperty('--medidas-altura-parede');
       canvas.scrollTop = session.scroll;
       window.scrollTo({left:session.pageX,top:session.pageY,behavior:'instant'});
       const focus = session.origin.isConnected ? session.origin : session.button;
@@ -369,7 +376,7 @@
     setTab('height');
     // A estante e o painel são duas regiões interativas da mesma sessão.
     sheet.show();
-    revealBook();
+    fitCanvas();
     button.focus({preventScroll:true});
     window.AuroraMoverExemplar.ativar({
       area:canvas, hold, getBook:() => session.button, selectBook,
@@ -412,7 +419,7 @@
   for (const name of ['pointerup','pointercancel']) window.addEventListener(name, stopPress, true);
   window.addEventListener('blur', stopPress);
   window.addEventListener('scroll', stopPress, {capture:true,passive:true});
-  window.addEventListener('resize', revealBook);
+  window.addEventListener('resize', fitCanvas);
   scene.addEventListener('contextmenu', event => { if (event.target.closest(selector)) event.preventDefault(); });
   scene.addEventListener('click', event => {
     if (!session && event.detail === 0) open(event.target.closest(selector));

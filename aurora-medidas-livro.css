@@ -29,6 +29,8 @@ html.medidas-sessao body::before {
   overflow-anchor:none;
   overscroll-behavior:contain;
 }
+#canvas.medidas-estante-aberta::before,#canvas.medidas-estante-aberta::after,
+#canvas.medidas-estante-aberta .canvas-light {bottom:auto;height:var(--medidas-altura-parede,100%);}
 #canvas.medidas-estante-aberta .shelf-object,#canvas.medidas-estante-aberta .object-size-controls {pointer-events:none;}
 #canvas[data-arrasto-livros] .editor-book-row > [data-personal-book-key] {
   touch-action:none;
