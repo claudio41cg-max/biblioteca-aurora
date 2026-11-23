@@ -10,7 +10,18 @@
     element.style.setProperty('--object-size', size + 'px');
     element.style.setProperty('--object-left', clamp(Number(item.x) || 0, 0, 100) + '%');
     element.style.setProperty('--object-bottom', (onBoard(item) ? 0 : clamp(Number(item.bottom) || 0, 0, 100)) + '%');
-    element.style.setProperty('--object-rotation', (Number(item.rotation) || 0) + 'deg');
+    element.style.setProperty('--object-rotation', ((Number(item.rotation) || 0)+(item.orientation==='horizontal'?90:0)) + 'deg');
+    element.style.setProperty('--object-yaw',(Number(item.yaw)||0)+'deg');
+    element.style.zIndex=String(Number.isFinite(item.layer)?item.layer:4);
+    element.style.setProperty('--object-fit-x','0px');
+    element.style.setProperty('--object-fit-y','0px');
+    if(item.rotation || item.orientation==='horizontal' || item.yaw) requestAnimationFrame(()=>{
+      if(!element.isConnected)return;
+      const box=element.getBoundingClientRect(),area=element.parentElement.getBoundingClientRect();
+      const dx=box.left<area.left?area.left-box.left:box.right>area.right?area.right-box.right:0;
+      element.style.setProperty('--object-fit-x',dx+'px');
+      if(onBoard(item))element.style.setProperty('--object-fit-y',(area.bottom-box.bottom)+'px');
+    });
   }
 
   function objects(items, sectionIndex, {editable = false, selectedId = null} = {}) {

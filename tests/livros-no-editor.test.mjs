@@ -473,3 +473,26 @@ test('um conflito entre abas impede toda a gravação e conserva os rascunhos at
   await page.evaluate(()=>AuroraEstanteExemplares.saveAppearanceSession());
   assert.deepEqual(await stored(),[{...committed[0],height:'brochura',width:'grande'},committed[1]]);
 });
+
+test('deslocar o topo lateralmente conserva o apoio após salvar e reabrir',browserOnly,async t=>{
+  const base='demo:Dom Casmurro';
+  const members=[
+    {key:base,section:0,pose:{orientation:'horizontal'}},
+    {key:importedKey,section:1},
+    {key:'demo:Senhora',section:0,pose:{orientation:'horizontal',stackOn:base}}
+  ];
+  const {page}=await openEditor(t,{},members);
+  const key='demo:Senhora';
+  await page.evaluate(async key=>{
+    const api=AuroraEstanteExemplares;
+    const pose=api.dragPose(api.dragOrigin(key),15,0);
+    await api.savePose(key,pose);
+  },key);
+  await page.reload();
+  const top=page.locator('[data-personal-book-key="'+key+'"]');
+  await top.waitFor();
+  assert.equal(await top.getAttribute('data-shelf-stack-on'),base);
+  const [upper,lower]=await Promise.all([top.boundingBox(),page.locator('[data-personal-book-key="'+base+'"]').boundingBox()]);
+  assert.ok(Math.abs(lower.y-upper.y-upper.height)<1.1);
+  assert.ok(upper.x+upper.width/2>lower.x+lower.width/2+5);
+});

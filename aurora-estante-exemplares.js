@@ -225,7 +225,7 @@
     return true;
   }
 
-  const defaults = Object.freeze({scale:1,angle:0,orientation:'vertical',face:'spine',x:null,y:null,layer:0,yaw:null,stackOn:null});
+  const defaults = Object.freeze({scale:1,angle:0,orientation:'vertical',face:'spine',x:null,y:null,layer:0,yaw:null,stackOn:null,stackOffset:0});
   const defaultPose = () => ({...defaults});
   const limit = (value,min,max) => Math.min(max,Math.max(min,value));
   const poses = new WeakMap();
@@ -280,6 +280,7 @@
       face:pose.face === 'cover' ? 'cover' : 'spine',
       x:fraction(pose.x),y:fraction(pose.y),
       yaw:Number.isFinite(pose.yaw) ? ((pose.yaw % 360)+360)%360 : null,
+      stackOffset:Number.isFinite(pose.stackOffset) ? limit(pose.stackOffset,-.35,.35) : 0,
       stackOn:typeof pose.stackOn === 'string' && pose.stackOn ? pose.stackOn : null,
       layer:Number.isSafeInteger(pose.layer) ? limit(pose.layer,-1000000,1000000) : 0
     };
@@ -370,7 +371,7 @@
   function stackPose(key,baseKey,orientation='horizontal') {
     if (!stackTargets(key,orientation).some(base => base.key === baseKey)) return null;
     const pose = currentPose(key);
-    return {...pose,angle:pose.orientation === orientation ? pose.angle : 0,orientation,stackOn:baseKey,y:0};
+    return {...pose,angle:pose.orientation === orientation ? pose.angle : 0,orientation,stackOn:baseKey,stackOffset:pose.stackOn===baseKey ? pose.stackOffset : 0,y:0};
   }
 
   function unstackPose(key) {
@@ -435,12 +436,15 @@
       const originalBase = base.getBoundingClientRect();
       const halfWidth = width*fit/2;
       const center = limit(originalBase.left+originalBase.width/2,space.left+5+halfWidth,space.right-5-halfWidth);
-      let bottom = surface;
+      let bottom = surface, supportCenter = center;
       for (const book of pile) {
         const style = book.style;
         if (fit < 1) style.setProperty('--pose-scale',String(parseFloat(style.getPropertyValue('--pose-scale'))*fit));
         const box = book.getBoundingClientRect();
-        const dx = parseFloat(style.getPropertyValue('--pose-dx'))+center-box.left-box.width/2;
+        const offset = (poses.get(book)?.stackOffset || 0) * box.width;
+        const bookCenter = limit(supportCenter + offset,plank.left+box.width/2,plank.right-box.width/2);
+        const dx = parseFloat(style.getPropertyValue('--pose-dx'))+bookCenter-box.left-box.width/2;
+        supportCenter = bookCenter;
         const dy = parseFloat(style.getPropertyValue('--pose-dy'))+bottom-box.bottom;
         style.setProperty('--pose-dx',dx+'px');
         style.setProperty('--pose-dy',dy+'px');
@@ -584,13 +588,14 @@
     const row = laneOf(copy);
     const box = copy.getBoundingClientRect(), plank = row.parentElement.getBoundingClientRect();
     const pose = currentPose(key);
-    return {pose,left:box.left-plank.left-5,bottom:row.getBoundingClientRect().bottom-1-box.bottom,
+    return {pose,width:box.width,left:box.left-plank.left-5,bottom:row.getBoundingClientRect().bottom-1-box.bottom,
       roomX:Math.max(0,plank.width-10-box.width),roomY:Math.max(0,row.offsetHeight-1-box.height)};
   }
 
   function dragPose(start,dx,dy) {
     if (!start || !Number.isFinite(dx) || !Number.isFinite(dy)) return null;
-    return {...start.pose,stackOn:null,x:start.roomX ? limit((start.left+dx)/start.roomX,0,1) : 0,
+    if (start.pose.stackOn && Math.abs(dy) < 16) return {...start.pose,stackOffset:limit((start.pose.stackOffset || 0)+dx/Math.max(1,start.width),-.35,.35)};
+    return {...start.pose,stackOn:null,stackOffset:0,x:start.roomX ? limit((start.left+dx)/start.roomX,0,1) : 0,
       y:start.roomY ? limit((start.bottom-dy)/start.roomY,0,1) : 0};
   }
 

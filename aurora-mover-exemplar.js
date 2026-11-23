@@ -36,7 +36,7 @@
       const key = book.dataset.personalBookKey;
       const {orientation} = getDraft();
       const supports = renderer.stackTargets(key,orientation);
-      if (!supports.length) return;
+      if (!supports.length || getDraft().stackOn) return;
       const candidates = new Set(supports.map(support => support.key));
       const box = book.getBoundingClientRect();
       let closest, distance = Infinity;
