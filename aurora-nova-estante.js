@@ -390,7 +390,7 @@
   $('undoButton').addEventListener('click',()=>{if(!history.length){notify('Nada para desfazer ainda');return}state=JSON.parse(history.pop());paint();renderTray();notify('Última mudança desfeita')});
   scene.addEventListener('click',event=>{
     const object=event.target.closest('[data-object-id]');
-    if(object)selectObject(object);
+    if(object && !window.AuroraObjectAdjust?.active())selectObject(object);
   });
   scene.addEventListener('keydown',event=>{
     if(event.key!=='Escape'||!selectedObjectId)return;
@@ -398,6 +398,7 @@
     selectObject(null);
   });
   scene.addEventListener('pointerdown',event=>{
+    if(window.AuroraObjectAdjust?.active())return;
     if(!event.isPrimary||event.button!==0||sizeControls.contains(event.target))return;
     const button=event.target.closest('[data-object-id]');
     selectObject(button);
@@ -411,6 +412,7 @@
     const grabFromBase=start.bottom-event.clientY-(window.AuroraShelfScene.onBoard(item)?0:button.offsetParent.clientHeight-button.offsetTop-button.offsetHeight);
     let moving=false;
     const move=moveEvent=>{
+      if(window.AuroraObjectAdjust?.active())return;
       if(moveEvent.pointerId!==event.pointerId)return;
       if(!moving){
         if(Math.hypot(moveEvent.clientX-event.clientX,moveEvent.clientY-event.clientY)<4)return;
@@ -434,7 +436,7 @@
       scene.removeEventListener('pointerup',up);
       scene.removeEventListener('pointercancel',up);
       sizeControls.hidden=false;
-      if(!moving)return;
+      if(window.AuroraObjectAdjust?.active()||!moving)return;
       if(endEvent.type==='pointerup'&&(position.section!==item.section||position.x!==item.x||position.bottom!==item.bottom)){
         remember();
         Object.assign(item,{section:position.section,x:position.x,bottom:position.bottom});
@@ -447,4 +449,14 @@
   });
   $('shelfNameInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('saveShelfName').click()}});
     paint();renderNav();renderTray();
+  window.AuroraObjectEditor={
+    items:()=>state.objects,
+    commit(changes){
+      const previous=state.objects;
+      state.objects=state.objects.map(item=>changes.has(item.id)?{...item,...changes.get(item.id)}:item);
+      if(!save()){state.objects=previous;throw new Error('Não foi possível salvar. Tente novamente.');}
+      history.push(JSON.stringify({...state,objects:previous}));
+    },
+    clearSelection:()=>selectObject(null)
+  };
 })();

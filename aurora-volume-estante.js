@@ -163,7 +163,6 @@
     const depth = Math.abs(sin)*cover + Math.abs(cos)*spine;
     const slope = Math.min(.083,height*.14/Math.max(1,depth));
     const topHeight = depth*slope;
-    const sideScale = (height-topHeight)/height;
     const halfW = cover/2, halfD = spine/2;
     function paint(name,w,h,x,z,ux,uz,vx,vz,vertical) {
       const face = state.faces[name];
@@ -184,7 +183,8 @@
         acrossY = -acrossY;
         downX = -downX;
       }
-      const downY = vertical ? sideScale : slope*(-vx*sin + vz*cos);
+      if (vertical) { acrossY = 0; if (horizontal) { dy = 0; downX = 0; } }
+      const downY = vertical ? (height-dy)/height : slope*(-vx*sin + vz*cos);
       face.style.width = w+'px';
       face.style.height = h+'px';
       face.style.transform = 'matrix('+[across,acrossY,downX,downY,dx,dy].join(',')+')';
