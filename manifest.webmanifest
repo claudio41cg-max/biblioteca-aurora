@@ -4,7 +4,7 @@
   "short_name": "Aurora",
   "description": "Sua biblioteca pessoal com estantes personalizadas, livros 3D, páginas que viram, EPUB e audiolivros.",
   "lang": "pt-BR",
-  "start_url": "./index.html?v=98",
+  "start_url": "./index.html?v=99",
   "scope": "./",
   "display": "standalone",
   "background_color": "#081d1d",
