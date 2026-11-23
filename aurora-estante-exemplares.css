@@ -143,3 +143,16 @@ body.new-shelf-page .editor-book-row > .book-spine[data-has-real-cover]:is(:hove
   flex-basis:var(--pose-volume-width,var(--book-width,42px));
 }
 .personal-book-row[data-placement] > .book-spine[data-volume-estante] {width:var(--pose-volume-width,var(--book-width,42px))}
+
+/* Os dois catálogos compartilham a busca, o gênero e os vínculos da estante. */
+.shelf-picker-views {grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:3px}
+.shelf-picker-views button {min-width:0;min-height:48px;padding:8px;border:1px solid #ae936c;border-radius:8px;background:#0e1e1a;color:#ffefce;font:600 .83rem/1.3 system-ui,sans-serif;cursor:pointer}
+.shelf-picker-views button[aria-pressed=true] {background:#59452b;border-color:#edcf94;box-shadow:inset 0 0 0 1px #edcf94}
+.shelf-picker-books.shelf-picker-images {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding-bottom:12px}
+.shelf-picker-images li {min-width:0;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:9px;padding:12px 10px;border:1px solid #536459;border-radius:10px;background:#ffffff06}
+.shelf-picker-images .aurora-catalog-cover {width:calc(100% - 18px);margin:5px auto 9px}
+.shelf-picker-images .shelf-picker-action {margin-top:auto;width:100%}
+.shelf-picker-images strong {font-size:1rem}
+.shelf-picker-images .shelf-picker-genre {grid-column:1/-1;border:0;border-radius:0;background:none;padding:12px 0 0}
+.shelf-picker-genre h3 {margin:0;font:normal 1.25rem/1.2 Georgia,serif;color:#f2dba8}
+.shelf-picker-images .shelf-picker-empty {grid-column:1/-1}
