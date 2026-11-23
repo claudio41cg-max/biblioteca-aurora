@@ -6,7 +6,7 @@
   const overlay=$('auroraCatalogOverlay');
   const grid=$('auroraCatalogGrid');
   const more=$('auroraCatalogMore');
-  if(!overlay||!grid||!more||!window.AuroraShelf)return;
+  if(!window.AuroraShelf)return;
   const shelf=window.AuroraShelf;
   const savedGenerated=new Map();
   const PAGE_SIZE=9;
@@ -235,6 +235,9 @@
     render();overlay.scrollTop=0;
     $('auroraCatalogBack').focus({preventScroll:true});
   }
+  // A seleção de livros usa exatamente o mesmo volume do catálogo principal.
+  window.AuroraCatalogPreview={volumeFor};
+  if(!overlay||!grid||!more)return;
   $('auroraCatalogBack').addEventListener('click',()=>close());
   more.addEventListener('click',()=>{
     visible+=PAGE_SIZE;render();

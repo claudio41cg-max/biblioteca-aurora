@@ -850,6 +850,7 @@
     control.append(element('span','',label));
     const select = element('select');
     select.name = name;
+    select.setAttribute('aria-label',label);
     control.append(select);
     return {control,select};
   }
@@ -873,7 +874,22 @@
     const search = element('input');
     search.type = 'search'; search.placeholder = 'Título ou autor';
     searchLabel.append(search);
-    controls.append(section.control,category.control,searchLabel);
+    const views = element('div','shelf-picker-views');
+    views.setAttribute('role','group');
+    views.setAttribute('aria-label','Forma de buscar no catálogo');
+    for (const [mode,text] of [['images','Buscar catálogo por imagem'],['az','Buscar catálogo de A a Z']]) {
+      const button = element('button','',text);
+      button.type = 'button';
+      button.dataset.catalogView = mode;
+      button.setAttribute('aria-pressed',String(mode === 'az'));
+      button.addEventListener('click',() => {
+        picker.mode = mode;
+        updatePicker();
+        picker.list.scrollTop = 0;
+      });
+      views.append(button);
+    }
+    controls.append(section.control,category.control,searchLabel,views);
     const list = element('ul','shelf-picker-books');
     const status = element('p','shelf-picker-status');
     status.setAttribute('role','status');
@@ -885,7 +901,7 @@
       if (action) changeMembership(action.dataset.bookKey,action.dataset.add === 'true');
     });
     document.body.append(dialog);
-    return {dialog,section:section.select,category:category.select,search,list,status};
+    return {dialog,section:section.select,category:category.select,search,list,status,views,mode:'az'};
   }
 
   function openPicker() {
@@ -907,12 +923,25 @@
     const saved = new Map(read(active.key).map(item => [item.key,item.section]));
     const books = [...catalog().values()].filter(book => (!picker.category.value || picker.category.value === book.category) &&
       normalize(book.title+' '+book.author).includes(normalize(picker.search.value).trim()));
-    books.sort((a,b) => a.title.localeCompare(b.title,'pt-BR'));
+    const categories = window.AuroraShelf?.categories || [];
+    const visual = picker.mode === 'images';
+    const categoryOrder = new Map(categories.map((category,index) => [category.id,index]));
+    books.sort((a,b) => (visual ? (categoryOrder.get(a.category) ?? 999)-(categoryOrder.get(b.category) ?? 999) : 0) || a.title.localeCompare(b.title,'pt-BR'));
+    picker.list.classList.toggle('shelf-picker-images',visual);
+    picker.list.setAttribute('aria-label',visual?'Catálogo por imagem':'Catálogo de A a Z');
+    for (const button of picker.views.children) button.setAttribute('aria-pressed',String(button.dataset.catalogView === picker.mode));
     const items = document.createDocumentFragment();
     const focusKey = document.activeElement?.dataset.bookKey;
     let focusAfter = null;
     const count = picker.section.options.length;
+    let previousCategory;
     for (const book of books) {
+      if (visual && book.category !== previousCategory) {
+        const heading = element('li','shelf-picker-genre');
+        heading.append(element('h3','',categories.find(category => category.id === book.category)?.name || 'Outros livros'));
+        items.append(heading);
+        previousCategory = book.category;
+      }
       const li = element('li');
       const label = element('div');
       const placed = saved.has(book.key);
@@ -926,6 +955,10 @@
       action.disabled = !placed && !count;
       action.setAttribute('aria-label',placed?'Retirar '+book.title+' desta estante':'Adicionar '+book.title+' à estante');
       if (book.key === focusKey) focusAfter = action;
+      if (visual) {
+        const preview = window.AuroraCatalogPreview?.volumeFor(book.button,book.title,li);
+        if (preview) li.append(preview.holder);
+      }
       li.append(label,action); items.append(li);
     }
     if (!books.length) items.append(element('li','shelf-picker-empty','Nenhum livro encontrado.'));
