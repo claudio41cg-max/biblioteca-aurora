@@ -19,7 +19,8 @@
 }
 .personal-book-row[hidden] {display:none}
 .editor-book-row > .book-spine {
-  pointer-events:none;
+  touch-action:pan-x pan-y pinch-zoom;
+  -webkit-touch-callout:none;
   user-select:none;
 }
 .editor-book-row:focus-visible {outline:2px solid #ffdf9c;outline-offset:-2px}
@@ -30,7 +31,19 @@
   transform-origin:center bottom;
   transform:rotateY(var(--premium-yaw,-6deg)) rotateZ(var(--tilt,0deg));
 }
+.personal-book-row > [data-shelf-height="bolso"] {height:min(66%,130px)}
+.personal-book-row > [data-shelf-height="brochura"] {height:min(78%,155px)}
+.personal-book-row > [data-shelf-height="capa-dura"] {height:min(89%,180px)}
+.personal-book-row > [data-shelf-height="grande"] {height:min(98%,205px)}
+.personal-book-row > [data-shelf-width] {min-width:0}
+.personal-book-row > [data-shelf-width="fino"] {flex-basis:27px}
+.personal-book-row > [data-shelf-width="medio"] {flex-basis:42px}
+.personal-book-row > [data-shelf-width="grande"] {flex-basis:59px}
+.personal-book-row > :is([data-shelf-height],[data-shelf-width]) .spine-title {padding:12px 2px 17px}
 .personal-book-row > .book-spine .shelf-book-cover {max-width:100px}
+body.new-shelf-page .editor-book-row > .book-spine[data-has-real-cover]:is(:hover,:focus-visible,:active) {
+  transform:rotateY(var(--premium-yaw,-6deg)) rotateZ(var(--tilt,0deg));
+}
 .personal-book-row > .book-spine:focus-visible {
   outline:2px solid #ffdf9c;
   outline-offset:-2px;

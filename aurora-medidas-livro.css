@@ -1,0 +1,179 @@
+.new-shelf-page .editor-book-row > [data-personal-book-key] {
+  -webkit-touch-callout:none;
+  -webkit-user-select:none;
+  user-select:none;
+}
+#canvas.medidas-em-edicao {
+  flex:none;
+  height:var(--medidas-altura-cena);
+  overflow-anchor:none;
+}
+#canvas.medidas-em-edicao #shelfScene::after {
+  content:"";
+  flex:none;
+  height:100dvh;
+}
+
+#bookSizeDialog {
+  --medidas-ouro:#e3c28d;
+  position:fixed;
+  inset:auto 0 0;
+  width:min(100%,35rem);
+  max-width:100%;
+  max-height:78vh;
+  max-height:78dvh;
+  margin:0 auto;
+  box-sizing:border-box;
+  padding:14px clamp(10px,3.8vw,21px) max(12px,env(safe-area-inset-bottom));
+  border:1px solid #514a42;
+  border-bottom:0;
+  border-radius:20px 20px 0 0;
+  background:#212224;
+  color:#faf3e8;
+  box-shadow:0 -8px 36px #0005;
+  font:500 14px/1.3 'DM Sans',system-ui,sans-serif;
+  overflow:auto;
+  overscroll-behavior:contain;
+  color-scheme:dark;
+}
+#bookSizeDialog::backdrop { background:rgb(7 9 8 / 19%); }
+.medidas-cabecalho {display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.medidas-cabecalho > div {min-width:0;}
+#medidas-caption {margin:0 0 2px;color:#d7c19e;font-size:.79rem;}
+#medidas-title {
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+  overflow:hidden;
+  margin:0;
+  font:600 clamp(1.16rem,4.7vw,1.48rem)/1.17 'Playfair Display',Georgia,serif;
+  overflow-wrap:anywhere;
+}
+#bookSizeDialog button {cursor:pointer;}
+.medidas-fechar {
+  align-self:flex-start;
+  flex:0 0 42px;
+  height:42px;
+  background:transparent;
+  color:#e7dece;
+  border:0;
+  border-radius:50%;
+  font:400 25px/1 system-ui,sans-serif;
+}
+.medidas-abas {display:flex;gap:20px;margin:9px 0 7px;border-bottom:1px solid #3f403f;}
+.medidas-abas button {
+  min-height:40px;
+  border:0;
+  border-bottom:2px solid transparent;
+  padding:0 2px;
+  background:none;
+  color:#c1bcb4;
+  font-weight:600;
+}
+.medidas-abas [aria-selected=true] {border-bottom-color:var(--medidas-ouro);color:#ffe2ac;}
+.medidas-opcoes {display:grid;grid-auto-columns:minmax(0,1fr);grid-auto-flow:column;gap:clamp(3px,1.25vw,9px);}
+.medidas-opcao {position:relative;display:block;min-width:0;cursor:pointer;}
+.medidas-opcao input {position:absolute;inset:0;z-index:1;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;}
+.medidas-cartao {
+  display:grid;
+  grid-template-rows:54px auto;
+  align-items:end;
+  justify-items:center;
+  height:100%;
+  gap:5px;
+  padding:5px 1px 7px;
+  border:1px solid transparent;
+  border-radius:9px;
+  color:#cec8bd;
+  font-size:clamp(11px,3.05vw,13px);
+  line-height:1.2;
+  text-align:center;
+}
+.medidas-opcao input:checked + .medidas-cartao {border-color:#b89a6b;background:#35312d;color:#ffe6ba;}
+#medidas-panel-height .medidas-cartao {grid-template-rows:54px auto 1em;row-gap:3px;}
+.medidas-cartao small {color:#c4b8a5;font-size:.68rem;font-weight:400;white-space:nowrap;}
+#bookSizeDialog button:focus-visible,
+.medidas-opcao input:focus-visible + .medidas-cartao {outline:2px solid #ffe2a1;outline-offset:1px;}
+.medidas-amostra {
+  --mini-altura:36px;
+  --mini-largura:23px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  width:100%;
+  height:100%;
+}
+.medidas-amostra i {
+  position:relative;
+  display:block;
+  height:var(--mini-altura);
+  width:var(--mini-largura);
+  max-width:84%;
+  border-radius:1px 2px 2px 1px;
+  background:#685443 var(--medidas-capa,none) center / 100% 100% no-repeat;
+  box-shadow:inset 1px 0 #fff4,inset 3px 0 #1b100d55,1px 1px #30251f,2px 2px #c9b99e,3px 3px 2px #000a;
+}
+#bookSizeDialog[data-sem-capa] .medidas-amostra i {
+  background-position:var(--medidas-posicao,center);
+  background-size:var(--medidas-textura,cover);
+}
+#medidas-panel-height [data-sample=bolso] {--amostra-h:27px;--amostra-w:18px;}
+#medidas-panel-height [data-sample=brochura] {--amostra-h:35px;--amostra-w:23px;}
+#medidas-panel-height [data-sample=capa-dura] {--amostra-h:42px;--amostra-w:27px;}
+#medidas-panel-height [data-sample=grande] {--amostra-h:49px;--amostra-w:31px;}
+#medidas-panel-height .medidas-amostra {--mini-altura:var(--amostra-h,37px);--mini-largura:var(--amostra-w,24px);}
+#medidas-panel-width [data-sample=fino] {--amostra-w:7px;}
+#medidas-panel-width [data-sample=medio] {--amostra-w:12px;}
+#medidas-panel-width [data-sample=grande] {--amostra-w:18px;}
+#medidas-panel-width .medidas-amostra {--mini-altura:42px;--mini-largura:var(--amostra-w,10px);}
+#medidas-panel-width .medidas-amostra i {
+  background-image:var(--medidas-lombada,none);
+  background-position:var(--medidas-posicao,center);
+  background-size:var(--medidas-textura,100% 100%);
+  box-shadow:inset 1px 0 #fff3,inset -1px 0 #1c120cbb,1px 2px 2px #0008;
+}
+#medidas-panel-width .medidas-amostra i::after {
+  content:"";
+  position:absolute;
+  inset:2px -4px 0 100%;
+  transform:skewY(-25deg);
+  transform-origin:left bottom;
+  border-radius:0 2px 0 0;
+  background:#4b4035 var(--medidas-capa,none) left center / auto 100% no-repeat;
+  filter:brightness(.78);
+}
+.medidas-status {margin:7px 0 0;color:#ffcead;font-size:12px;}
+.medidas-status:empty {display:none;}
+#bookSizeDialog footer {display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:11px;}
+#bookSizeDialog footer button {
+  min-height:42px;
+  border:0;
+  border-radius:22px;
+  padding:0 16px;
+  font-weight:650;
+}
+.medidas-redefinir {background:transparent;color:var(--medidas-ouro);}
+.medidas-pronto {min-width:88px;background:var(--medidas-ouro);color:#211a11;}
+#bookSizeDialog button:disabled {opacity:.55;cursor:default;}
+@media (max-height:480px) {
+  #bookSizeDialog {padding-block:6px;max-height:70dvh;}
+  .medidas-abas {margin-block:3px;}
+  .medidas-abas button {min-height:33px;}
+  .medidas-cartao {grid-template-rows:35px auto;padding-block:2px 4px;gap:1px;}
+  #medidas-panel-height .medidas-cartao {grid-template-rows:35px auto 1em;row-gap:1px;}
+  .medidas-amostra i {scale:.68;transform-origin:center bottom;}
+  #bookSizeDialog footer {margin-top:4px;}
+  #bookSizeDialog footer button {min-height:35px;}
+}
+@media (max-height:480px) and (min-width:540px) {
+  #bookSizeDialog[open] {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    column-gap:14px;
+    width:min(100%,40rem);
+  }
+  .medidas-cabecalho {grid-column:1 / -1;}
+  .medidas-abas,.medidas-paineis {grid-column:1;}
+  #bookSizeDialog footer {grid-column:2;grid-row:2 / 4;flex-direction:column-reverse;justify-content:center;gap:4px;}
+  .medidas-status {grid-column:1 / -1;}
+}

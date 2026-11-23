@@ -19,11 +19,26 @@
     return books;
   }
 
+  const isMember = item => item && typeof item.key === 'string' && Number.isInteger(item.section) && item.section >= 0;
+
+  function storedRecords(key) {
+    const records = JSON.parse(localStorage.getItem(key) || '[]');
+    if (!Array.isArray(records)) throw new Error('Lista de exemplares inválida.');
+    return records;
+  }
+
   function read(key) {
-    let saved;
-    try { saved = JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; }
-    if (!Array.isArray(saved)) return [];
-    return saved.filter(item => item && typeof item.key === 'string' && Number.isInteger(item.section) && item.section >= 0);
+    try { return storedRecords(key).filter(isMember); } catch { return []; }
+  }
+
+  function updateMembership(key,edit) {
+    const commit = () => {
+      const records = storedRecords(key);
+      const updated = edit(records);
+      if (updated) localStorage.setItem(key,JSON.stringify(updated));
+      return (updated || records).filter(isMember);
+    };
+    return navigator.locks ? navigator.locks.request(key,commit) : commit();
   }
 
   function element(tag, className, text) {
@@ -69,10 +84,9 @@
   function makeCopy(book,key,editor) {
     if (editor) {
       const copy = window.AuroraEditorAcervo.makeSpine(book);
-      copy.setAttribute('role','img');
-      copy.setAttribute('aria-label',window.AuroraTitles?.display(book.title) || book.title);
+      copy.setAttribute('aria-label','Ajustar medidas de '+(window.AuroraTitles?.display(book.title) || book.title));
+      copy.setAttribute('aria-haspopup','dialog');
       copy.removeAttribute('title');
-      copy.tabIndex = -1;
       return copy;
     }
     const copy = book.button.cloneNode(true);
@@ -89,6 +103,80 @@
     return copy;
   }
 
+  const heights = new Set(['original','bolso','brochura','capa-dura','grande']);
+  const widths = new Set(['original','fino','medio','grande']);
+  const validSize = size => heights.has(size?.height) && widths.has(size?.width);
+
+  function sizeOf(member) {
+    return {
+      height:heights.has(member.height) ? member.height : 'original',
+      width:widths.has(member.width) ? member.width : 'original'
+    };
+  }
+
+  function getSize(key) {
+    const member = active?.members.find(entry => entry.key === key);
+    return member ? sizeOf(member) : null;
+  }
+
+  function applySize(copy,size) {
+    if ((copy.dataset.shelfHeight || 'original') === size.height &&
+        (copy.dataset.shelfWidth || 'original') === size.width) return;
+    if (size.height === 'original') delete copy.dataset.shelfHeight;
+    else copy.dataset.shelfHeight = size.height;
+    if (size.width === 'original') delete copy.dataset.shelfWidth;
+    else copy.dataset.shelfWidth = size.width;
+    // Recalcula só a tipografia/textura deste exemplar nas novas proporções.
+    const title = copy.querySelector('.spine-title');
+    if (title) title.style.fontSize = '';
+    delete copy.dataset.lombada;
+    if (copy.isConnected) window.AuroraLombadas?.enhance(copy);
+  }
+
+  function cancelSize(key) {
+    if (active?.preview?.key !== key) return;
+    const {row,scrollLeft} = active.preview;
+    active.preview = null;
+    const copy = active.copies.get(key)?.copy, size = getSize(key);
+    if (copy && size) {
+      applySize(copy,size);
+      if (copy.parentElement === row) row.scrollLeft = scrollLeft;
+      layout();
+    }
+  }
+
+  function previewSize(key,size) {
+    const copy = active?.copies.get(key)?.copy;
+    if (!active?.editor || !copy?.isConnected || !validSize(size)) return false;
+    if (active.preview && active.preview.key !== key) cancelSize(active.preview.key);
+    const row = copy.parentElement;
+    const scrollLeft = active.preview?.row === row ? active.preview.scrollLeft : row.scrollLeft;
+    active.preview = {key,height:size.height,width:size.width,row,scrollLeft};
+    applySize(copy,size);
+    row.scrollLeft = scrollLeft;
+    layout();
+    return true;
+  }
+
+  async function saveSize(key,size) {
+    const view = active;
+    if (!view?.editor || !validSize(size)) throw new Error('Medidas de livro inválidas.');
+    const {height,width} = size;
+    const members = await updateMembership(view.key,records => {
+      const member = records.find(entry => isMember(entry) && entry.key === key);
+      if (active !== view || !member) throw new Error('Este exemplar saiu da estante.');
+      if (height === 'original') delete member.height;
+      else member.height = height;
+      if (width === 'original') delete member.width;
+      else member.width = width;
+      return records;
+    });
+    if (active !== view) return;
+    view.members = members;
+    if (view.preview?.key === key) view.preview = null;
+    draw();
+  }
+
   const visualFields = ['title','author','source','cover','spine','coverSource','total','ratio','spineAspect','bookmarked'];
   function draw() {
     const {scene,editor,members,books,copies} = active;
@@ -96,7 +184,8 @@
     if (!rows.length) { copies.clear(); return; }
     const contents = rows.map(() => []);
     const keys = new Set();
-    for (const {key,section} of members) {
+    for (const member of members) {
+      const {key,section} = member;
       const book = books.get(key);
       if (!book || keys.has(key)) continue;
       keys.add(key);
@@ -108,6 +197,7 @@
         entry = {copy,book};
         copies.set(key,entry);
       } else entry.book = book;
+      applySize(entry.copy,active.preview?.key === key ? active.preview : sizeOf(member));
       // Uma seção removida pode ser recuperada ao desfazer. O vínculo original é preservado.
       contents[Math.min(section,rows.length-1)].push(entry.copy);
     }
@@ -130,6 +220,7 @@
   async function refresh() {
     const view = active;
     view.members = read(view.key);
+    if (view.preview && !view.members.some(member => member.key === view.preview.key)) view.preview = null;
     if (view.editor) {
       const request = ++view.request;
       if (view.members.length) {
@@ -293,17 +384,13 @@
     const section = Number(picker.section.value);
     const title = catalog().get(bookKey)?.title;
     if (!title || (add && !picker.section.options.length)) return;
-    const save = () => {
-      const saved = read(key);
-      if (add) {
-        if (saved.some(entry => entry.key === bookKey)) return;
-        saved.push({key:bookKey,section});
-        localStorage.setItem(key,JSON.stringify(saved));
-      } else localStorage.setItem(key,JSON.stringify(saved.filter(entry => entry.key !== bookKey)));
-    };
     try {
-      if (navigator.locks) await navigator.locks.request(key,save);
-      else save();
+      await updateMembership(key,saved => {
+        if (!add) return saved.filter(entry => entry?.key !== bookKey);
+        if (saved.some(entry => isMember(entry) && entry.key === bookKey)) return;
+        saved.push({key:bookKey,section});
+        return saved;
+      });
       if (active?.key !== key) return;
       await refresh();
       if (active?.key !== key) return;
@@ -325,5 +412,5 @@
   for (const name of ['aurora:library-data','aurora:shelves-drawn','aurora:online-books-ready','aurora:book-cover-updated']) {
     document.addEventListener(name,schedule);
   }
-  window.AuroraEstanteExemplares = {render,layout,openPicker,clear,originFor};
+  window.AuroraEstanteExemplares = {render,layout,openPicker,clear,originFor,getSize,previewSize,saveSize,cancelSize};
 })();
