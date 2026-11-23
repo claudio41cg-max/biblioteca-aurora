@@ -165,3 +165,15 @@
   #bookSizeDialog footer {margin-top:4px;}
   #bookSizeDialog footer button {min-height:35px;}
 }
+@media (max-height:480px) and (min-width:540px) {
+  #bookSizeDialog[open] {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    column-gap:14px;
+    width:min(100%,40rem);
+  }
+  .medidas-cabecalho {grid-column:1 / -1;}
+  .medidas-abas,.medidas-paineis {grid-column:1;}
+  #bookSizeDialog footer {grid-column:2;grid-row:2 / 4;flex-direction:column-reverse;justify-content:center;gap:4px;}
+  .medidas-status {grid-column:1 / -1;}
+}

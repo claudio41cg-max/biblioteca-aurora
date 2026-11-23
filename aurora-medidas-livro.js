@@ -20,6 +20,7 @@
       document.getElementById(tab.getAttribute('aria-controls')).hidden = !selected;
       if (selected && focus) tab.focus({preventScroll:true});
     }
+    revealBook();
   }
 
   function showChoice() {
@@ -134,7 +135,18 @@
       const rect = dialog.getBoundingClientRect();
       return event.target === dialog && (event.clientY < rect.top || event.clientY > rect.bottom || event.clientX < rect.left || event.clientX > rect.right);
     }
-    dialog.addEventListener('pointerdown', event => { pressedBackdrop = isBackdrop(event); });
+    dialog.addEventListener('pointerdown', event => {
+      if (session) session.waitingForRelease = false;
+      pressedBackdrop = isBackdrop(event);
+    },true);
+    dialog.addEventListener('keydown', () => { if (session) session.waitingForRelease = false; },true);
+    dialog.addEventListener('click', event => {
+      // Em telas pequenas a soltura também pode cair sobre uma opção recém-exibida.
+      if (!session?.waitingForRelease || event.detail === 0) return;
+      session.waitingForRelease = false;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    },true);
     dialog.addEventListener('pointercancel', () => { pressedBackdrop = false; });
     dialog.addEventListener('click', event => {
       // Soltar o dedo que abriu o painel ainda é parte da pressão longa sobre a lombada.
@@ -156,13 +168,13 @@
     return dialog;
   }
 
-  function open(button) {
+  function open(button, fromHold = false) {
     if (!button?.isConnected || session) return;
     const key = button.dataset.personalBookKey;
     const saved = api()?.getSize(key);
     if (!saved) return;
     if (!sheet) sheet = makeSheet();
-    session = {key, button, draft:{...saved}, scroll:canvas.scrollTop};
+    session = {key, button, draft:{...saved}, scroll:canvas.scrollTop, waitingForRelease:fromHold};
     const title = button.querySelector('.spine-title')?.textContent.trim() || button.dataset.rawTitle;
     sheet.querySelector('h2').textContent = title;
     const cover = button.querySelector('.shelf-book-cover img')?.src;
@@ -190,7 +202,7 @@
     const button = event.target.closest(selector);
     if (!button || !event.isPrimary || event.button !== 0) return;
     press = {id:event.pointerId, x:event.clientX, y:event.clientY,
-      timer:setTimeout(() => { stopPress(); open(button); }, 500)};
+      timer:setTimeout(() => { stopPress(); open(button, true); }, 500)};
   });
   window.addEventListener('pointermove', event => {
     if (press?.id === event.pointerId && Math.hypot(event.clientX - press.x, event.clientY - press.y) > 8) stopPress();
