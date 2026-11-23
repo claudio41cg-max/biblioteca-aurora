@@ -26,6 +26,11 @@
 
   function showChoice() {
     for (const input of sheet.querySelectorAll('.medidas-opcoes input')) input.checked = session.draft[input.name] === input.value;
+    const pending = api().removalPending(session.key);
+    const remove = sheet.querySelector('[data-action=remove]');
+    remove.textContent = pending ? 'Desfazer exclusão' : 'Excluir da estante';
+    remove.setAttribute('aria-pressed',String(pending));
+    sheet.querySelector('.medidas-remocao-aviso').textContent = pending ? 'Será excluído da estante ao tocar em Pronto. O arquivo continuará no acervo.' : 'Excluir da estante mantém o livro no acervo.';
     const pose = session.pose;
     const yaw = pose.yaw ?? (pose.face === 'cover' ? 90 : 0);
     const slider = sheet.querySelector('#medidas-giro');
@@ -149,6 +154,10 @@
     }
     const {scale,angle} = session.pose;
     switch (action) {
+      case 'remove':
+        api().previewRemoval(session.key,!api().removalPending(session.key));
+        showChoice();
+        return;
       case 'smaller':
       case 'larger':
         return preview({...session.pose,scale:Math.round(scale * 10 + (action === 'larger' ? 1 : -1))/10},'pose');
@@ -210,6 +219,8 @@
           <button type="button" data-action="front"><span aria-hidden="true">▴</span> Para frente</button>
           <button type="button" data-action="back"><span aria-hidden="true">▾</span> Para trás</button>
         </div>
+        <button type="button" class="medidas-excluir" data-action="remove">Excluir da estante</button>
+        <p class="medidas-remocao-aviso"></p>
         <div class="medidas-deslocamento" hidden>
           <label for="medidas-deslocamento">Deslocamento lateral na pilha</label>
           <input id="medidas-deslocamento" type="range" min="-35" max="35" step="1" value="0">
@@ -433,6 +444,10 @@
   window.addEventListener('scroll', stopPress, {capture:true,passive:true});
   window.addEventListener('resize', fitCanvas);
   scene.addEventListener('contextmenu', event => { if (event.target.closest(selector)) event.preventDefault(); });
+  window.AuroraBookAdjust={open(key){
+    const book=[...scene.querySelectorAll(selector)].find(button=>button.dataset.personalBookKey===key);
+    if(book)open(book);
+  }};
   scene.addEventListener('click', event => {
     if (!session && event.detail === 0) open(event.target.closest(selector));
   });

@@ -615,7 +615,7 @@
     if (!active?.editor) return false;
     if (!active.session) {
       if (active.drafts.size) { active.drafts.clear(); draw(); }
-      active.session = {rows:new Map(),saving:false};
+      active.session = {rows:new Map(),saving:false,removed:new Set()};
     }
     return true;
   }
@@ -632,6 +632,42 @@
     layout();
   }
 
+  function withoutBooks(records,removed) {
+    return records.filter(member => !removed.has(member.key)).map(member => {
+      if (!removed.has(member.pose?.stackOn)) return member;
+      // Sem a base, o livro restante volta a apoiar na prateleira.
+      const pose = {...member.pose,y:0,stackOffset:0};
+      delete pose.stackOn;
+      return {...member,pose};
+    });
+  }
+
+  function listBooks() {
+    if (!active) return [];
+    const count = active.scene.querySelectorAll('.shelf-section').length;
+    return active.members.map(member => {
+      const book = active.books.get(member.key);
+      return {key:member.key,title:book?.title || member.key.split(':').slice(1).join(':'),
+        section:Math.min(member.section,Math.max(0,count-1)),cover:book?.cover || '',
+        available:Boolean(active.copies.get(member.key)?.copy.isConnected)};
+    });
+  }
+
+  function removalPending(key) { return active?.session?.removed.has(key) || false; }
+  function previewRemoval(key,remove) {
+    if (!active?.session || active.session.saving) return;
+    if (remove) active.session.removed.add(key);
+    else active.session.removed.delete(key);
+    active.copies.get(key)?.copy.classList.toggle('shelf-pending-removal',remove);
+  }
+
+  async function removeBook(key) {
+    const view = active;
+    if (!view || view.session) throw new Error('Conclua os ajustes antes de excluir pela lista.');
+    await updateMembership(view.key,records => withoutBooks(records,new Set([key])));
+    if (active === view) await refresh();
+  }
+
   function applyField(member,kind,field,value) {
     const target = kind === 'size' ? member : (member.pose ||= {});
     if (value === (kind === 'size' ? 'original' : defaults[field])) delete target[field];
@@ -646,8 +682,8 @@
     if (!session || session.saving) throw new Error('A sessão de edição não está disponível.');
     session.saving = true;
     try {
-      const changed = [...view.drafts].filter(([,draft]) => draft.size.size || draft.pose.size);
-      if (changed.length) {
+      const changed = [...view.drafts].filter(([key,draft]) => !session.removed.has(key) && (draft.size.size || draft.pose.size));
+      if (changed.length || session.removed.size) {
         const members = await updateMembership(view.key,records => {
           if (active !== view || view.session !== session) throw new Error('A estante em edição mudou.');
           const before = stackGraph(records), links = new Map();
@@ -664,10 +700,12 @@
             }
             if (draft.pose.has('stackOn')) links.set(key,member.pose?.stackOn ?? null);
           }
+          records = withoutBooks(records,session.removed);
+          for (const [key,parent] of links) if (session.removed.has(parent)) links.set(key,null);
           // Valida o conjunto final: é possível soltar um topo e reutilizar sua base na mesma gravação.
           const after = stackGraph(records);
           for (const [child,parent] of before.parents) {
-            if (!links.has(child) && after.parents.get(child) !== parent)
+            if (!session.removed.has(child) && !session.removed.has(parent) && !links.has(child) && after.parents.get(child) !== parent)
               throw stackError('Esta alteração afetaria outro livro apoiado na pilha.');
           }
           for (const [child,parent] of links) if (parent && after.parents.get(child) !== parent)
@@ -741,6 +779,7 @@
         entry = {copy,book};
         copies.set(key,entry);
       } else entry.book = book;
+      entry.copy.classList.toggle('shelf-pending-removal',removalPending(key));
       applySize(entry.copy,appearance(member,'size'));
       applyPose(entry.copy,appearance(member,'pose'));
       // Uma seção removida pode ser recuperada ao desfazer. O vínculo original é preservado.
@@ -769,6 +808,7 @@
         if (!editor) children.forEach(copy => window.AuroraLombadas?.enhance?.(copy));
       }
     });
+    document.dispatchEvent(new CustomEvent('aurora:shelf-books-changed'));
   }
 
   async function refresh() {
@@ -1008,5 +1048,5 @@
   for (const name of ['aurora:library-data','aurora:shelves-drawn','aurora:online-books-ready','aurora:book-cover-updated']) {
     document.addEventListener(name,schedule);
   }
-  window.AuroraEstanteExemplares = {render,layout,openPicker,clear,originFor,getSize,previewSize,saveSize,cancelSize,defaultPose,getPose,previewPose,cancelPose,savePose,saveAppearance,dragOrigin,dragPose,layerPose,stackTargets,stackPose,unstackPose,beginAppearanceSession,getDraftAppearance,saveAppearanceSession,cancelAppearanceSession};
+  window.AuroraEstanteExemplares = {render,layout,openPicker,clear,originFor,listBooks,removeBook,previewRemoval,removalPending,getSize,previewSize,saveSize,cancelSize,defaultPose,getPose,previewPose,cancelPose,savePose,saveAppearance,dragOrigin,dragPose,layerPose,stackTargets,stackPose,unstackPose,beginAppearanceSession,getDraftAppearance,saveAppearanceSession,cancelAppearanceSession};
 })();

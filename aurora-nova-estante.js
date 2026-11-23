@@ -358,13 +358,35 @@
     const toolbar=document.createElement('div');toolbar.className='object-layer-tools';
     const selected=state.objects.find(item=>item.id===selectedObjectId);
     const name=document.createElement('strong');name.textContent=selected?selected.name:'Selecione uma peça na lista';toolbar.append(name);
-    [['smaller','Diminuir'],['larger','Aumentar'],['rotate','Girar 5°'],['remove','Remover']].forEach(([action,label])=>{const button=document.createElement('button');button.type='button';button.dataset.objectAction=action;button.textContent=label;button.disabled=!selected||((action==='smaller'||action==='larger')&&nextSize(selected,action)===(Number(selected.size)||88));toolbar.append(button)});
+    [['smaller','Diminuir'],['larger','Aumentar'],['rotate','Girar 5°'],['remove','Excluir']].forEach(([action,label])=>{const button=document.createElement('button');button.type='button';button.dataset.objectAction=action;button.textContent=label;button.disabled=!selected||((action==='smaller'||action==='larger')&&nextSize(selected,action)===(Number(selected.size)||88));toolbar.append(button)});
     content.append(toolbar);
+    const bookHeading=document.createElement('h3');bookHeading.textContent='Livros';content.append(bookHeading);
+    const books=window.AuroraEstanteExemplares.listBooks();
+    if(!books.length){const empty=document.createElement('p');empty.textContent='Nenhum livro nesta estante.';content.append(empty);}
+    for(const book of books){
+      const row=document.createElement('div');row.className='layer-object-row layer-book-row';
+      if(book.cover){const image=document.createElement('img');image.src=book.cover;image.alt='';row.append(image);}
+      const choose=document.createElement('button');choose.type='button';choose.className='layer-object-select';
+      choose.textContent=book.title+' · prateleira '+(book.section+1);choose.dataset.editBook=book.key;
+      choose.setAttribute('aria-label','Ajustar '+book.title);choose.disabled=!book.available;
+      const remove=document.createElement('button');remove.type='button';remove.dataset.removeBook=book.key;remove.textContent='Excluir';
+      remove.setAttribute('aria-label','Excluir '+book.title+' da estante');row.append(choose,remove);content.append(row);
+    }
+    const objectHeading=document.createElement('h3');objectHeading.textContent='Objetos e fotos';content.append(objectHeading);
     state.objects.forEach(item=>{const row=document.createElement('div');row.className='layer-object-row';row.dataset.objectRow=item.id;
       const image=document.createElement('img');image.src=item.src;image.alt='';const choose=document.createElement('button');choose.type='button';choose.className='layer-object-select';choose.textContent=item.name+' · prateleira '+(item.section+1);
-      const remove=document.createElement('button');remove.type='button';remove.dataset.removeObject=item.id;remove.setAttribute('aria-label','Remover '+item.name);remove.textContent='×';row.append(image,choose,remove);content.append(row);
+      const remove=document.createElement('button');remove.type='button';remove.dataset.removeObject=item.id;remove.setAttribute('aria-label','Excluir '+item.name+' da estante');remove.textContent='Excluir';row.append(image,choose,remove);content.append(row);
     });
-    if(!content.dataset.bound){content.dataset.bound='true';content.addEventListener('click',event=>{
+    if(!content.dataset.bound){content.dataset.bound='true';content.addEventListener('click',async event=>{
+      const editBook=event.target.closest('[data-edit-book]');
+      if(editBook){$('layersDialog').close();window.AuroraBookAdjust.open(editBook.dataset.editBook);return;}
+      const removeBook=event.target.closest('[data-remove-book]');
+      if(removeBook){
+        removeBook.disabled=true;
+        try{await window.AuroraEstanteExemplares.removeBook(removeBook.dataset.removeBook);showLayers();notify('Livro excluído da estante. O arquivo permanece no acervo.');}
+        catch(error){removeBook.disabled=false;notify(error.message);}
+        return;
+      }
       const row=event.target.closest('[data-object-row]');
       if(event.target.closest('[data-remove-object]')){remember();state.objects=state.objects.filter(item=>item.id!==event.target.closest('[data-remove-object]').dataset.removeObject);selectedObjectId=null;paint();showLayers();return}
       if(row){selectedObjectId=row.dataset.objectRow;paint();showLayers();return}
@@ -378,6 +400,7 @@
     })}
     if(!$('layersDialog').open)$('layersDialog').showModal();
   }
+  document.addEventListener('aurora:shelf-books-changed',()=>{if($('layersDialog').open)showLayers();});
   function labelFor(v){return ({noite:'Noite',azul:'Azul',verde:'Verde',petroleo:'Petróleo',lilas:'Lilás',rosa:'Rosa',calor:'Âmbar',natural:'Natural',tijolos:'Tijolos escuros',ripas:'Madeira ripada',reboco:'Reboco vintage',botanico:'Botânico',rose:'Rosé clássico',original:'Original',nogueira:'Nogueira',carvalho:'Carvalho claro',mogno:'Mogno',marmore:'Mármore',metal:'Metal escovado'})[v]||v}
   $('shelfNameButton').addEventListener('click',()=>{$('shelfNameInput').value=state.name;$('nameDialog').showModal()});
   $('saveShelfName').addEventListener('click',e=>{e.preventDefault();state.name=$('shelfNameInput').value.trim()||'Minha estante';const saved=paint();$('nameDialog').close();notify(saved?'Nome da estante salvo':$('dockStatus').textContent)});
@@ -451,9 +474,9 @@
     paint();renderNav();renderTray();
   window.AuroraObjectEditor={
     items:()=>state.objects,
-    commit(changes){
+    commit(changes,removed=new Set()){
       const previous=state.objects;
-      state.objects=state.objects.map(item=>changes.has(item.id)?{...item,...changes.get(item.id)}:item);
+      state.objects=state.objects.filter(item=>!removed.has(item.id)).map(item=>changes.has(item.id)?{...item,...changes.get(item.id)}:item);
       if(!save()){state.objects=previous;throw new Error('Não foi possível salvar. Tente novamente.');}
       history.push(JSON.stringify({...state,objects:previous}));
     },

@@ -12,6 +12,10 @@
     session.id=id;
     buttonFor(id)?.classList.add('object-adjust-selected');
     const item=itemFor(id);
+    const pending=session.removed.has(id);
+    dialog.querySelector('[data-action=remove]').textContent=pending?'Desfazer exclusão':'Excluir da estante';
+    dialog.querySelector('[data-action=remove]').setAttribute('aria-pressed',String(pending));
+    dialog.querySelector('.object-remove-note').textContent=pending?'Será excluído ao tocar em Pronto.':'';
     dialog.querySelector('h2').textContent=item.name;
     dialog.querySelector('output').textContent=Math.round((item.size||88)/88*100)+'%';
     dialog.querySelector('input').value=item.yaw||0;
@@ -31,6 +35,7 @@
       const button=buttonFor(item.id);
       if(button)window.AuroraShelfScene.position(button,item);
     }
+    for(const item of api().items())buttonFor(item.id)?.classList.remove('shelf-pending-removal');
     buttonFor(session.id)?.classList.remove('object-adjust-selected');
     for(const node of session.inert)node.inert=false;
     canvas.classList.remove('medidas-estante-aberta','object-adjust-open');
@@ -54,6 +59,8 @@
           <div class="medidas-camadas"><button data-orientation="vertical">Vertical</button><button data-orientation="horizontal">Horizontal</button></div>
           <div class="medidas-giro"><label for="object-yaw">Giro 3D</label><span class="object-angle"></span><input id="object-yaw" type="range" min="0" max="360" step="1"></div>
           <div class="medidas-camadas"><button data-action="front">▴ Para frente</button><button data-action="back">▾ Para trás</button></div>
+          <button class="medidas-excluir" data-action="remove">Excluir da estante</button>
+          <p class="object-remove-note"></p>
         </div></div><p class="medidas-status" role="status"></p>
         <footer><button class="medidas-redefinir" data-action="reset">Redefinir</button><button class="medidas-pronto" data-action="save">Pronto</button></footer>`;
       document.body.append(dialog);
@@ -71,14 +78,20 @@
           const layers=api().items().map(other=>itemFor(other.id)).filter(other=>other.section===item.section).map(other=>Number.isFinite(other.layer)?other.layer:4);
           preview({layer:action==='front'?Math.max(...layers)+10:Math.min(...layers)-10});
         }
+        if(action==='remove'){
+          if(session.removed.has(item.id))session.removed.delete(item.id);else session.removed.add(item.id);
+          buttonFor(item.id)?.classList.toggle('shelf-pending-removal',session.removed.has(item.id));
+          select(item.id);
+        }
         if(action==='reset')preview({size:88,rotation:0,orientation:'vertical',yaw:0,layer:0});
         if(action==='save'){
-          try{api().commit(session.changes);session.saved=true;dialog.close();}
+          try{api().commit(session.changes,session.removed);session.saved=true;
+            for(const id of session.removed)buttonFor(id)?.remove();dialog.close();}
           catch(error){dialog.querySelector('[role=status]').textContent=error.message;}
         }
       });
     }
-    session={id:null,changes:new Map(),scroll:canvas.scrollTop,inert:[]};
+    session={id:null,changes:new Map(),removed:new Set(),scroll:canvas.scrollTop,inert:[]};
     for(const node of document.querySelectorAll('.studio-top,.studio-actions,.editor-dock,.personal-book-row')){
       if(!node.inert){node.inert=true;session.inert.push(node);}
     }
