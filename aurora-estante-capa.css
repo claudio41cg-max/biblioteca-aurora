@@ -1,0 +1,30 @@
+.personal-book-front {display:none}
+.book-spine[data-shelf-face="cover"] {
+  background-color:#292722;
+  background-image:none!important;
+  border-color:#332c24;
+}
+.book-spine[data-shelf-face="cover"]::after {display:none}
+.book-spine[data-shelf-face="cover"] > :is(.shelf-book-cover,.shelf-book-pages,.spine-title,.spine-source,.shelf-3d-preview-image) {
+  visibility:hidden;
+}
+.book-spine[data-shelf-face="cover"] > .personal-book-front {
+  display:flex;position:absolute;inset:0;z-index:1;
+  align-items:center;justify-content:center;flex-direction:column;
+  gap:.5em;border-radius:inherit;overflow:hidden;pointer-events:none;
+  background:linear-gradient(145deg,#365c58,#273e39 57%,#1b2a2b);
+  color:#fff1d2;text-align:center;line-height:1.15;
+  container-type:inline-size;
+}
+.personal-book-front > img {
+  position:absolute;inset:0;width:100%;height:100%;
+  display:block;object-fit:contain;background:#292722;
+  user-select:none;-webkit-user-drag:none;
+}
+.personal-book-front::after {
+  content:"";position:absolute;inset:0;border-radius:inherit;
+  box-shadow:inset 1px 0 #ffffff38,inset 3px 0 2px #261b151c,inset -1px 0 #0004;
+}
+.personal-book-front > :is(strong, small) {max-width:86%;overflow-wrap:anywhere;font-family:Georgia,serif}
+.personal-book-front > strong {font-size:clamp(8px,12cqi,19px)}
+.personal-book-front > small {font-size:clamp(7px,8cqi,13px)}

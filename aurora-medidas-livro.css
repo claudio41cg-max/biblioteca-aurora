@@ -37,6 +37,15 @@
   color-scheme:dark;
 }
 #bookSizeDialog::backdrop { background:rgb(7 9 8 / 19%); }
+#bookSizeDialog[open] {
+  display:flex;
+  flex-direction:column;
+  max-height:65vh;
+  max-height:65dvh;
+  overflow:hidden;
+}
+.medidas-conteudo {min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;}
+.medidas-cabecalho,#bookSizeDialog footer {flex:none;}
 .medidas-cabecalho {display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .medidas-cabecalho > div {min-width:0;}
 #medidas-caption {margin:0 0 2px;color:#d7c19e;font-size:.79rem;}
@@ -155,6 +164,78 @@
 .medidas-redefinir {background:transparent;color:var(--medidas-ouro);}
 .medidas-pronto {min-width:88px;background:var(--medidas-ouro);color:#211a11;}
 #bookSizeDialog button:disabled {opacity:.55;cursor:default;}
+.medidas-posicao {
+  display:grid;
+  gap:5px;
+  margin-top:8px;
+  padding-top:8px;
+  border-top:1px solid #45413c;
+}
+.medidas-posicao button,.medidas-zoom,.medidas-mover-barra button {
+  min-height:36px;
+  border:1px solid #55514a;
+  border-radius:8px;
+  padding:4px 8px;
+  background:#2c2c2d;
+  color:#eee6d8;
+  font:600 13px/1.1 'DM Sans',system-ui,sans-serif;
+}
+.medidas-ferramentas {display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1.22fr) minmax(0,1fr);gap:6px;}
+.medidas-zoom {display:flex;align-items:center;justify-content:space-between;padding:0;min-width:0;}
+.medidas-zoom button {flex:1;min-width:26px;min-height:34px;padding:0;border:0;background:transparent;color:var(--medidas-ouro);font-size:20px;}
+.medidas-escala {min-width:3.3em;font-size:11px;text-align:center;font-variant-numeric:tabular-nums;}
+.medidas-angulo {color:var(--medidas-ouro);font-size:10px;font-variant-numeric:tabular-nums;}
+.medidas-angulo:not(:empty)::before {content:"· ";}
+.medidas-ferramentas > button {padding-inline:2px;white-space:nowrap;}
+.medidas-ferramentas [data-action=move] {background:#383126;border-color:#776045;color:#ffe0a7;}
+.medidas-pares {display:grid;grid-template-columns:1.1fr 1fr;gap:6px;}
+.medidas-pares [role=group],.medidas-camadas {display:grid;grid-template-columns:1fr 1fr;gap:2px;}
+.medidas-pares button {padding-inline:1px;border-radius:5px;font-size:12px;}
+.medidas-pares [aria-pressed=true] {background:#463b2e;border-color:#b79461;color:#ffe4b2;}
+.medidas-camadas {gap:6px;}
+.medidas-camadas button {min-height:32px;padding-block:4px;color:#e2d4bf;}
+.medidas-camadas button span,.medidas-ferramentas button > span {color:var(--medidas-ouro);}
+#medidas-arrasto,.medidas-mover-barra {display:none;}
+#bookSizeDialog[open][data-moving] {
+  display:grid;
+  grid-template-columns:1fr;
+  grid-template-rows:minmax(0,1fr) auto;
+  inset:0;
+  width:100%;
+  height:100%;
+  max-height:none;
+  margin:0;
+  padding:0;
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+  background:transparent;
+}
+#bookSizeDialog[data-moving]::backdrop {background:transparent;}
+#bookSizeDialog[data-moving] > :not(#medidas-arrasto,.medidas-mover-barra) {display:none;}
+#bookSizeDialog[data-moving] #medidas-arrasto {
+  display:block;
+  min-height:0;
+  outline:0;
+  touch-action:none;
+  cursor:grab;
+}
+#bookSizeDialog[data-moving] #medidas-arrasto:active {cursor:grabbing;}
+.editor-book-row > .book-spine.medidas-livro-em-movimento {
+  outline:2px dashed #f7ce86;
+  outline-offset:-2px;
+}
+#bookSizeDialog[data-moving] .medidas-mover-barra {
+  display:flex;flex-direction:column;align-items:center;gap:7px;
+  width:min(100%,35rem);margin-inline:auto;
+  padding:10px 14px max(10px,env(safe-area-inset-bottom));
+  border:1px solid #655848;border-bottom:0;border-radius:16px 16px 0 0;
+  background:#212224;box-shadow:0 -4px 18px #0004;text-align:center;
+}
+.medidas-mover-barra strong,.medidas-mover-barra small {display:block;}
+.medidas-mover-barra small {color:#cabfac;font-size:12px;}
+.medidas-mover-barra button {min-width:84px;margin:0 3px;min-height:40px;}
+.medidas-mover-barra [data-mover=done] {color:#211a11;background:var(--medidas-ouro);border-color:#dabe8a;}
 @media (max-height:480px) {
   #bookSizeDialog {padding-block:6px;max-height:70dvh;}
   .medidas-abas {margin-block:3px;}
@@ -166,14 +247,21 @@
   #bookSizeDialog footer button {min-height:35px;}
 }
 @media (max-height:480px) and (min-width:540px) {
-  #bookSizeDialog[open] {
+  #bookSizeDialog[open]:not([data-moving]) {
     display:grid;
     grid-template-columns:minmax(0,1fr) auto;
-    column-gap:14px;
-    width:min(100%,40rem);
+    grid-template-rows:auto minmax(0,1fr) auto;
+    column-gap:12px;
+    width:min(100%,50rem);
+    height:48dvh;
+    max-height:48dvh;
   }
-  .medidas-cabecalho {grid-column:1 / -1;}
-  .medidas-abas,.medidas-paineis {grid-column:1;}
-  #bookSizeDialog footer {grid-column:2;grid-row:2 / 4;flex-direction:column-reverse;justify-content:center;gap:4px;}
-  .medidas-status {grid-column:1 / -1;}
+  .medidas-cabecalho {grid-column:1/-1;}
+  .medidas-conteudo {grid-column:1;grid-row:2;}
+  #bookSizeDialog footer {grid-column:2;grid-row:2;flex-direction:column-reverse;justify-content:center;gap:3px;}
+  .medidas-status {grid-column:1/-1;}
+  .medidas-posicao {grid-template-columns:1fr 1fr;gap:4px 8px;}
+  .medidas-camadas {grid-column:1/-1;}
+  .medidas-posicao button {min-height:28px;}
+  #bookSizeDialog[data-moving] .medidas-mover-barra {flex-direction:row;justify-content:space-between;}
 }
