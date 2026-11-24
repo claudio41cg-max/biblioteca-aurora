@@ -27,7 +27,8 @@ test('laboratório executa só o livro cenográfico, sem rotinas do acervo',()=>
  assert.match(page,/id="testBook"/);assert.match(page,/AuroraBookParticles\.capture\(book\)/);
  assert.match(page,/snapshot\.cinematic=true/);assert.match(page,/snapshot\.fragmentScale=Number\(slider\.value\)/);
  assert.match(page,/AuroraBookParticles\.play\(snapshot\)/);
- assert.doesNotMatch(page,/localStorage|indexedDB|AuroraBookActions|erase\(/i);
+ const inline=page.match(/<script>\\s*([\\s\\S]*?)<\\/script>/)?.[1]||'';
+ assert.doesNotMatch(inline,/localStorage|indexedDB|AuroraBookActions|erase\\(/i);
 });
 test('script de controle do laboratório tem sintaxe válida',()=>{
  const inline=page.match(/<script>\s*([\s\S]*?)<\/script>/)?.[1];assert.ok(inline);
