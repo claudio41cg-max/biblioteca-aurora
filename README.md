@@ -1,9 +1,20 @@
+## Laboratório de desfragmentação v112
+
+- As páginas `teste-desfragmentacao.html` e `teste-desfragmentacao-offline.html` contêm somente um livro cenográfico, fora do acervo real. A segunda é um HTML autossuficiente para abrir localmente no Android, sem depender de outros arquivos.
+- O botão **Excluir livro de teste** executa a animação e restaura a mesma demonstração ao terminar. Não chama a rotina de exclusão da Aurora.
+- A página não usa IndexedDB, LocalStorage, importação, progresso de leitura ou arquivos do usuário.
+- A desfragmentação v112 começa no topo, desce em uma frente irregular e usa blocos maiores recortados da própria arte, com gravidade, rotação, poeira fina e uma linha de erosão iluminada.
+- O controle **Tamanho dos blocos** permite comparar a escala dos quadrados antes de aprovar a animação.
+- Regressão: `npm run test:desfragmentacao`; regressão de catálogo/lombadas: `npm run test:catalogo`.
+- O Service Worker usa cache isolado `aurora-v112`; os dados do acervo continuam em IndexedDB/LocalStorage e não são apagados.
+- O laboratório não aparece na navegação normal da biblioteca. O pacote de prévia é gerado no GitHub Actions; a hospedagem HTTPS pode ser ativada depois nas configurações do GitHub Pages, se necessário.
+
 ## Prévia isolada v111
 
 - A regressão focada é executada por `npm run test:catalogo`; `npm test` continua disponível para a suíte completa.
 - Após os testes, o GitHub Actions empacota os arquivos estáticos da branch em um artefato de prévia com retenção de 7 dias.
 - O pacote é código estático, não uma URL hospedada. Para testar instalação PWA no Android, ele precisa ser servido por HTTPS; abrir o HTML diretamente como arquivo não valida o Service Worker.
-- O cache PWA da v111 usa `aurora-v111`. Os dados dos livros permanecem em IndexedDB/localStorage; o Service Worker só renova Cache Storage.
+- O cache PWA da v112 usa `aurora-v112`. Os dados dos livros permanecem em IndexedDB/localStorage; o Service Worker só renova Cache Storage.
 
 ## Atualização v111 — identificação da origem das lombadas no catálogo (24/11/2026)
 
