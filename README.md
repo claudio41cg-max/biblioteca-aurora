@@ -1,3 +1,10 @@
+## Prévia isolada v111
+
+- A regressão focada é executada por `npm run test:catalogo`; `npm test` continua disponível para a suíte completa.
+- Após os testes, o GitHub Actions empacota os arquivos estáticos da branch em um artefato de prévia com retenção de 7 dias.
+- O pacote é código estático, não uma URL hospedada. Para testar instalação PWA no Android, ele precisa ser servido por HTTPS; abrir o HTML diretamente como arquivo não valida o Service Worker.
+- O cache PWA da v111 usa `aurora-v111`. Os dados dos livros permanecem em IndexedDB/localStorage; o Service Worker só renova Cache Storage.
+
 ## Atualização v111 — identificação da origem das lombadas no catálogo (24/11/2026)
 
 - O catálogo agora diferencia lombada original extraída do arquivo, lombada reconstruída a partir da capa, aproximação visual da capa e ausência de arte original.
