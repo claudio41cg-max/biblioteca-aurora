@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [main, corrigir-identificacao-lombadas-v111]
+    branches: [main, corrigir-identificacao-lombadas-v111, teste-desfragmentacao-cinematografica-v112]
 
 permissions:
   contents: read
@@ -21,13 +21,13 @@ jobs:
         with:
           node-version: 22
       - name: Executar testes
-        run: npm run test:catalogo
+        run: npm run test:catalogo && npm run test:desfragmentacao
 
 
   preview-package:
     name: Pacote de prévia Android
     needs: node-tests
-    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/corrigir-identificacao-lombadas-v111'
+    if: github.event_name == 'pull_request' || (github.ref == 'refs/heads/corrigir-identificacao-lombadas-v111' || github.ref == 'refs/heads/teste-desfragmentacao-cinematografica-v112')
     runs-on: ubuntu-latest
     steps:
       - name: Baixar código revisado
@@ -44,7 +44,7 @@ jobs:
       - name: Publicar pacote de prévia
         uses: actions/upload-artifact@v4
         with:
-          name: biblioteca-aurora-v111-preview
+          name: biblioteca-aurora-v112-desfragmentacao-lab
           path: preview-site/
           if-no-files-found: error
           retention-days: 7
