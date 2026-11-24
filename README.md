@@ -1,3 +1,13 @@
+## Laboratório de desfragmentação v113 — baseado no efeito original
+
+- O motor recupera a erosão orgânica e a máscara de dissolução do efeito original v110.
+- Não usa a linha dourada de erosão nem a nuvem de centenas de blocos da experiência v112.
+- O laboratório acrescenta apenas uma camada discreta de quadradinhos recortados da capa, com tamanho inicial 1,35×, queda curta e rotação moderada.
+- A camada de quadradinhos só é ativada quando o laboratório define `snapshot.fragmentScale`; a exclusão normal não recebe esse parâmetro e mantém o comportamento original.
+- A página `teste-desfragmentacao.html` e a versão autossuficiente `teste-desfragmentacao-offline.html` continuam separadas do acervo.
+- Regressão: `npm run test:desfragmentacao`; catálogo/lombadas: `npm run test:catalogo`.
+- Cache PWA de teste: `aurora-v113`. Nenhum dado de livros é apagado.
+
 ## Laboratório de desfragmentação v112
 
 - As páginas `teste-desfragmentacao.html` e `teste-desfragmentacao-offline.html` contêm somente um livro cenográfico, fora do acervo real. A segunda é um HTML autossuficiente para abrir localmente no Android, sem depender de outros arquivos.

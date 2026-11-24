@@ -63,9 +63,9 @@ test('o catálogo atualiza textura e identificação sem reconstruir o cartão d
 
 test('service worker abre a v112 e cria cache isolado da versão anterior',()=>{
   const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
-  assert.ok(sw.includes("const CACHE = 'aurora-v112';"));
-  assert.ok(sw.includes("const HOME = './index.html?v=112';"));
-  assert.ok(sw.includes("const EDITOR = './nova-estante.html?v=112';"));
-  assert.ok(sw.includes("'./manifest.webmanifest?v=112'"));
+  assert.ok(sw.includes("const CACHE = 'aurora-v113';"));
+  assert.ok(sw.includes("const HOME = './index.html?v=113';"));
+  assert.ok(sw.includes("const EDITOR = './nova-estante.html?v=113';"));
+  assert.ok(sw.includes("'./manifest.webmanifest?v=113'"));
   assert.doesNotMatch(sw,/indexedDB\.deleteDatabase|localStorage\.clear\(/);
 });

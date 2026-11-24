@@ -55,8 +55,8 @@ button:disabled{opacity:.48;cursor:wait}
 </div>
 <div class="controls">
 <label class="range-wrap" for="fragmentSize">
-<span class="range-head"><span>Tamanho dos blocos</span><output id="fragmentSizeValue" for="fragmentSize">1,35×</output></span>
-<input id="fragmentSize" type="range" min="0.9" max="2.0" step="0.05" value="1.35">
+<span class="range-head"><span>Tamanho dos quadradinhos</span><output id="fragmentSizeValue" for="fragmentSize">1,35×</output></span>
+<input id="fragmentSize" type="range" min="1.0" max="1.8" step="0.05" value="1.35">
 </label>
 <button id="simulateDelete" class="primary" type="button">Excluir livro de teste</button>
 <button id="restoreBook" type="button">Restaurar livro</button>
@@ -65,7 +65,7 @@ button:disabled{opacity:.48;cursor:wait}
 <p class="safety">Isolamento ativo: esta página não acessa PDFs, EPUBs, audiolivros, IndexedDB, LocalStorage, progresso de leitura nem a rotina real de exclusão. O botão apenas captura esta arte cenográfica, executa a animação e restaura o mesmo elemento.</p>
 </section>
 </main>
-<script src="./aurora-exclusao-particulas.js?v=4"></script>
+<script src="./aurora-exclusao-particulas.js?v=5"></script>
 <script>
 (() => {
 const book=document.getElementById('testBook'),art=document.getElementById('bookArtwork');
