@@ -1,3 +1,14 @@
+## Laboratório de desfragmentação v112
+
+- A página `teste-desfragmentacao.html` contém somente um livro cenográfico, fora do acervo real.
+- O botão **Excluir livro de teste** executa a animação e restaura a mesma demonstração ao terminar. Não chama a rotina de exclusão da Aurora.
+- A página não usa IndexedDB, LocalStorage, importação, progresso de leitura ou arquivos do usuário.
+- A desfragmentação v112 começa no topo, desce em uma frente irregular e usa blocos maiores recortados da própria arte, com gravidade, rotação, poeira fina e uma linha de erosão iluminada.
+- O controle **Tamanho dos blocos** permite comparar a escala dos quadrados antes de aprovar a animação.
+- Regressão: `npm run test:desfragmentacao`; regressão de catálogo/lombadas: `npm run test:catalogo`.
+- O Service Worker usa cache isolado `aurora-v112`; os dados do acervo continuam em IndexedDB/LocalStorage e não são apagados.
+- O laboratório não aparece na navegação normal da biblioteca. Em hospedagem estática, abre diretamente por `/teste-desfragmentacao.html`.
+
 ## Prévia isolada v111
 
 - A regressão focada é executada por `npm run test:catalogo`; `npm test` continua disponível para a suíte completa.
