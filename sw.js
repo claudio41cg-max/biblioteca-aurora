@@ -1,4 +1,4 @@
-const CACHE = 'aurora-v89';
+const CACHE = 'aurora-v111';
 // O cache inicial precisa ser leve para ativar o PWA rapidamente no celular.
 // Os demais arquivos da estante, do livro 3D e dos leitores são cacheados
 // quando usados. O conteúdo importado continua no armazenamento local.
