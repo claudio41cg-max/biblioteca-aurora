@@ -38,6 +38,13 @@ test('capa usada como aproximação não é tratada como lombada original',()=>{
   assert.match(result.description,/não é a lombada original/);
 });
 
+test('marcador de textura sem origem de capa não é promovido a lombada reconstruída',()=>{
+  const result=classify({spineCrisp:'true'});
+  assert.equal(result.kind,'unavailable');
+  assert.equal(result.label,'Sem lombada original');
+  assert.equal(result.useRenderedImage,false);
+});
+
 test('ausência de arte original é identificada explicitamente',()=>{
   const result=classify({});
   assert.equal(result.kind,'unavailable');
