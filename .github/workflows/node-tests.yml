@@ -22,3 +22,29 @@ jobs:
           node-version: 22
       - name: Executar testes
         run: npm run test:catalogo
+
+
+  preview-package:
+    name: Pacote de prévia Android
+    needs: node-tests
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/corrigir-identificacao-lombadas-v111'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar código revisado
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Preparar pacote estático
+        run: |
+          mkdir -p preview-site
+          git archive HEAD | tar -x -C preview-site
+          rm -rf preview-site/.github preview-site/tests preview-site/.vercel
+          find preview-site -type f \( -name '.env' -o -name '.env.*' -o -name '*.pem' -o -name '*.key' \) -delete
+          printf 'Biblioteca Aurora v111\\nCommit: %s\\nBranch: %s\\n' "$GITHUB_SHA" "$GITHUB_REF_NAME" > preview-site/PREVIEW-INFO.txt
+      - name: Publicar pacote de prévia
+        uses: actions/upload-artifact@v4
+        with:
+          name: biblioteca-aurora-v111-preview
+          path: preview-site/
+          if-no-files-found: error
+          retention-days: 7
