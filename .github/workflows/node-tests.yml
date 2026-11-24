@@ -49,39 +49,3 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-
-  deploy-lab-pages:
-    name: Publicar laboratório temporário no GitHub Pages
-    needs: node-tests
-    if: github.event_name == 'push' && github.ref == 'refs/heads/teste-desfragmentacao-cinematografica-v112'
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Baixar código do laboratório
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - name: Configurar GitHub Pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
-      - name: Preparar somente a bancada de teste
-        run: |
-          mkdir -p site
-          cp teste-desfragmentacao.html site/index.html
-          cp teste-desfragmentacao.html site/teste-desfragmentacao.html
-          cp aurora-exclusao-particulas.js site/
-          cp aurora-exclusao-particulas.css site/
-      - name: Enviar artefato do Pages
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
-      - name: Publicar bancada temporária
-        id: deployment
-        uses: actions/deploy-pages@v4
