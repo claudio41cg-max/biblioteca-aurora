@@ -60,3 +60,12 @@ test('o catálogo atualiza textura e identificação sem reconstruir o cartão d
   assert.match(source,/attributeFilter:\['data-real-spine','data-spine-crisp','data-cover-derived'\]/);
   assert.match(source,/new MutationObserver\(\(\)=>\{if\(current&&!overlay\.hidden\)render\(\);\}\)/);
 });
+
+test('service worker abre a v111 e cria cache isolado da versão anterior',()=>{
+  const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
+  assert.ok(sw.includes("const CACHE = 'aurora-v111';"));
+  assert.ok(sw.includes("const HOME = './index.html?v=111';"));
+  assert.ok(sw.includes("const EDITOR = './nova-estante.html?v=111';"));
+  assert.ok(sw.includes("'./manifest.webmanifest?v=111'"));
+  assert.doesNotMatch(sw,/indexedDB\.deleteDatabase|localStorage\.clear\(/);
+});
