@@ -192,7 +192,7 @@
   <script src="./aurora-sinopses.js?v=2"></script>
   <script src="./aurora-artes.js?v=1"></script>
   <script src="./aurora-formatos.js?v=11"></script>
-  <script src="./aurora-exclusao-particulas.js?v=1"></script>
+  <script src="./aurora-exclusao-particulas.js?v=2"></script>
   <script src="./aurora-acoes-livro.js?v=1"></script>
   <script src="./aurora-pdf-covers.js?v=2"></script>
   <!-- Carrega o mesmo Canvas de papel usado pelo livro 3D ANTES do leitor PDF. -->
@@ -383,7 +383,7 @@
     const actionPanel=actions?.mount($('showcase'),()=>{
       const book=catalog.find(item=>item.id===selectedId);if(!book)return null;
       return {source:book.format,id:book.id,title:book.name,key:actions.keyOf(book.format,book.id,book.name)};
-    },{done:()=>{hideBook();location.replace('./index.html?v=108');}});
+    },{done:()=>{hideBook();location.replace('./index.html?v=109');}});
     function showBook(id) {
       const book = catalog.find(item => item.id === id);
       if (!book) { $('hint').textContent = 'Este livro não está mais disponível neste navegador.'; return; }
