@@ -24,7 +24,7 @@ test('animação reserva tempo para queda e assentamento dos blocos',()=>{
  assert.match(source,/snapshot\.fragmentScale/);
 });
 test('laboratório executa só o livro cenográfico, sem rotinas do acervo',()=>{
- assert.match(page,/AuroraBookParticles\\?\\.capture\\(book\\)/);
+ assert.ok(page.includes('AuroraBookParticles?.capture(book)'));
  assert.match(page,/snapshot\.cinematic=true/);assert.match(page,/snapshot\.fragmentScale=Number\(slider\.value\)/);
  assert.match(page,/AuroraBookParticles\.play\(snapshot\)/);
  const start=page.indexOf('<script>'),end=page.indexOf('</script>',start);const inline=start>=0&&end>start?page.slice(start+8,end):'';
