@@ -119,17 +119,24 @@
     const spine=document.createElement('span');
     spine.className='aurora-catalog-spine';
     const source=front.querySelector('img')?.getAttribute('src')||'';
-    const spineInfo=catalogSpineInfo(button);
-    // A arte reconstruída continua sendo usada visualmente, mas nunca é rotulada como original.
-    const spinePhoto=spineInfo.useRenderedImage?button.style.backgroundImage:'';
-    if(spinePhoto&&spinePhoto!=='none'){
-      spine.style.backgroundImage=spinePhoto;
-      spine.style.backgroundSize='100% 100%';
-    }else if(source){
-      spine.style.backgroundImage='url('+JSON.stringify(source)+')';
-      spine.style.backgroundSize='auto 100%';
-      spine.style.backgroundPosition='left center';
+    function updateSpineArt(){
+      const info=catalogSpineInfo(button);
+      // A textura reconstruída permanece visível, mas sua procedência nunca é chamada de original.
+      const photo=info.useRenderedImage?button.style.backgroundImage:'';
+      if(photo&&photo!=='none'){
+        spine.style.backgroundImage=photo;
+        spine.style.backgroundSize='100% 100%';
+        spine.style.backgroundPosition='center';
+      }else if(source){
+        spine.style.backgroundImage='url('+JSON.stringify(source)+')';
+        spine.style.backgroundSize='auto 100%';
+        spine.style.backgroundPosition='left center';
+      }else{
+        spine.style.backgroundImage='none';
+      }
+      return info;
     }
+    updateSpineArt();
 
     const pages=document.createElement('span');
     pages.className='aurora-catalog-pages';
@@ -137,6 +144,7 @@
     if(edge)pages.style.backgroundImage='url('+JSON.stringify(edge)+')';
     volume.append(front,back,spine,pages);
     holder.append(volume);
+    holder.__auroraUpdateSpine=updateSpineArt;
 
     let angle=DEFAULT_TURN,drag=null,suppressUntil=0;
     const setTurn=next=>{
@@ -216,6 +224,7 @@
     const spineInfo=catalogSpineInfo(button);
     card.setAttribute('aria-label','Abrir '+title+' em 3D. '+spineInfo.description+' Arraste a capa para girar e ver a contracapa.');
     const {holder,wasTurning}=volumeFor(button,title,card);
+    card.__auroraSourceBook=button;
     const name=document.createElement('span');name.className='aurora-catalog-name';name.textContent=title;
     const type=document.createElement('span');type.className='aurora-catalog-type';
     const labels={pdf:'PDF',epub:'EPUB',txt:'TXT',audio:'AUDIOLIVRO',online:'ON-LINE',demo:'DEMONSTRAÇÃO'};
@@ -226,6 +235,12 @@
     spineNote.textContent=spineInfo.label;
     spineNote.dataset.spineOrigin=spineInfo.kind;
     card.append(holder,name,type,spineNote);
+    card.__auroraRefreshSpine=()=>{
+      const info=holder.__auroraUpdateSpine?.()||catalogSpineInfo(button);
+      spineNote.textContent=info.label;
+      spineNote.dataset.spineOrigin=info.kind;
+      card.setAttribute('aria-label','Abrir '+title+' em 3D. '+info.description+' Arraste a capa para girar e ver a contracapa.');
+    };
     card.addEventListener('click',event=>{
       if(wasTurning()){event.preventDefault();return;}
       if(button.dataset.auroraShelved==='no')button.__auroraCatalogOrigin=holder.getBoundingClientRect();
@@ -291,10 +306,17 @@
   const library=$('library');
   if(library&&typeof MutationObserver!=='undefined'){
     new MutationObserver(()=>{if(current&&!overlay.hidden)render();})
-      .observe(library,{
-        subtree:true,childList:true,attributes:true,
-        attributeFilter:['data-real-spine','data-spine-crisp','data-cover-derived']
-      });
+      .observe(library,{subtree:true,childList:true});
+    new MutationObserver(records=>{
+      if(!current||overlay.hidden)return;
+      const changed=new Set(records.map(record=>record.target.closest?.('.book-spine')).filter(Boolean));
+      for(const card of grid.querySelectorAll('.aurora-catalog-card')){
+        if(changed.has(card.__auroraSourceBook))card.__auroraRefreshSpine?.();
+      }
+    }).observe(library,{
+      subtree:true,attributes:true,
+      attributeFilter:['data-real-spine','data-spine-crisp','data-cover-derived']
+    });
   }
   document.addEventListener('aurora:book-cover-updated',()=>{if(current&&!overlay.hidden)render();});
   document.addEventListener('aurora:shelf-visibility',()=>{if(current&&!overlay.hidden)render();});
