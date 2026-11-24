@@ -2,7 +2,7 @@ name: Testes automatizados
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, corrigir-identificacao-lombadas-v111]
   push:
     branches: [main, corrigir-identificacao-lombadas-v111, teste-desfragmentacao-cinematografica-v112]
 
