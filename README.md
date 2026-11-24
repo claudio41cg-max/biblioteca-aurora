@@ -1,3 +1,19 @@
+## Prévia isolada v111
+
+- A regressão focada é executada por `npm run test:catalogo`; `npm test` continua disponível para a suíte completa.
+- Após os testes, o GitHub Actions empacota os arquivos estáticos da branch em um artefato de prévia com retenção de 7 dias.
+- O pacote é código estático, não uma URL hospedada. Para testar instalação PWA no Android, ele precisa ser servido por HTTPS; abrir o HTML diretamente como arquivo não valida o Service Worker.
+- O cache PWA da v111 usa `aurora-v111`. Os dados dos livros permanecem em IndexedDB/localStorage; o Service Worker só renova Cache Storage.
+
+## Atualização v111 — identificação da origem das lombadas no catálogo (24/11/2026)
+
+- O catálogo agora diferencia lombada original extraída do arquivo, lombada reconstruída a partir da capa, aproximação visual da capa e ausência de arte original.
+- A reconstrução continua sendo exibida no volume 3D do catálogo, mas recebe identificação explícita e não é apresentada como fotografia da edição.
+- A etiqueta é atualizada quando a estante termina de preparar a textura da lombada.
+- Alteração restrita ao catálogo e à identificação da arte. Não modifica o modelo 3D principal, os leitores, os arquivos importados, o IndexedDB ou o localStorage.
+- Testes focados de catálogo, lombadas e preservação: `npm run test:catalogo`.
+- Suíte completa do repositório: `npm test`. No primeiro diagnóstico da v111, ela executou 66 testes: 26 passaram, 23 falharam e 17 foram ignorados. Há expectativas antigas de versões anteriores e falhas de outras áreas; esse passivo permanece visível e precisa de triagem própria.
+
 ## Atualização v89 — instalação PWA no Android (21/11/2026)
 
 - Corrigida a instalação inicial: o Service Worker é registrado imediatamente, sem aguardar todos os recursos da página terminarem de carregar.
