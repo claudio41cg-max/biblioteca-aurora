@@ -51,3 +51,12 @@ test('ausência de arte original é identificada explicitamente',()=>{
   assert.equal(result.label,'Sem lombada original');
   assert.equal(result.useRenderedImage,false);
 });
+
+test('o catálogo atualiza textura e identificação sem reconstruir o cartão durante o giro',()=>{
+  assert.match(source,/holder\.__auroraUpdateSpine=updateSpineArt/);
+  assert.match(source,/card\.__auroraSourceBook=button/);
+  assert.match(source,/card\.__auroraRefreshSpine=\(\)=>/);
+  assert.match(source,/changed\.has\(card\.__auroraSourceBook\)/);
+  assert.match(source,/attributeFilter:\['data-real-spine','data-spine-crisp','data-cover-derived'\]/);
+  assert.match(source,/new MutationObserver\(\(\)=>\{if\(current&&!overlay\.hidden\)render\(\);\}\)/);
+});
