@@ -4,7 +4,8 @@
 - A reconstrução continua sendo exibida no volume 3D do catálogo, mas recebe identificação explícita e não é apresentada como fotografia da edição.
 - A etiqueta é atualizada quando a estante termina de preparar a textura da lombada.
 - Alteração restrita ao catálogo e à identificação da arte. Não modifica o modelo 3D principal, os leitores, os arquivos importados, o IndexedDB ou o localStorage.
-- Testes automatizados: `npm test`.
+- Testes focados da funcionalidade e dos componentes de catálogo/lombada: `npm test`.
+- Suíte histórica completa: `npm run test:all`. No primeiro diagnóstico da v111, essa suíte executou 66 testes: 26 passaram, 23 falharam e 17 foram ignorados. Há expectativas de versões antigas e falhas de outras áreas; a classificação dessas falhas deve ser feita separadamente, sem escondê-las.
 
 ## Atualização v89 — instalação PWA no Android (21/11/2026)
 
