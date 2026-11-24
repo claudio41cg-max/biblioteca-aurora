@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#101a1b">
+<title>Laboratório de desfragmentação • Biblioteca Aurora</title>
+<style>
+/* Camada efêmera: não captura gestos nem altera o foco dos controles. */
+canvas.aurora-book-particles,
+canvas.aurora-book-particles:popover-open {
+  position:fixed;inset:0;display:block;width:100vw;height:100vh;height:100dvh;
+  max-width:none;max-height:none;margin:0;padding:0;border:0;border-radius:0;
+  background:transparent;box-shadow:none;outline:none;overflow:visible;
+  pointer-events:none!important;user-select:none;z-index:2147483647;
+}
+canvas.aurora-book-particles::backdrop {background:transparent;pointer-events:none}
+
+</style>
+<style>
+:root{color-scheme:dark;font-family:Inter,system-ui,-apple-system,sans-serif;background:#101a1b;color:#f4ead9}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 12%,#29413d 0,#172726 36%,#0d1517 100%);padding:28px 18px 48px}
+.shell{width:min(760px,100%);margin:0 auto}
+.back{display:inline-flex;color:#d7bd8e;text-decoration:none;font-size:13px;margin-bottom:24px}
+.eyebrow{font-size:11px;letter-spacing:2.2px;color:#c5a36c;font-weight:700}
+h1{font:500 clamp(27px,6vw,42px)/1.08 Georgia,serif;margin:10px 0}
+.intro{max-width:610px;color:#c4c9c2;line-height:1.6;margin:0 0 26px;font-size:14px}
+.lab{border:1px solid rgba(205,171,113,.27);border-radius:22px;background:linear-gradient(160deg,rgba(37,54,51,.9),rgba(17,26,27,.96));padding:22px;box-shadow:0 24px 70px #0006}
+.stage{min-height:430px;display:grid;place-items:center;position:relative;overflow:hidden;border-radius:16px;background:radial-gradient(ellipse at 50% 48%,rgba(190,153,94,.14),transparent 58%),linear-gradient(180deg,#1a2b2a,#111a1b)}
+.book-wrap{position:relative;display:grid;place-items:center;padding:26px 32px 62px}
+.demo-book{width:min(238px,58vw);aspect-ratio:420/620;position:relative;z-index:1;border-radius:4px 10px 10px 4px;overflow:visible;box-shadow:13px 20px 28px rgba(0,0,0,.46),2px 2px 0 rgba(240,214,165,.45)}
+.demo-book canvas{display:block;width:100%;height:100%;border-radius:4px 9px 9px 4px;box-shadow:inset -7px 0 10px rgba(0,0,0,.2)}
+.demo-book::before{content:"";position:absolute;z-index:-1;left:-13px;top:2px;width:15px;height:calc(100% - 4px);background:linear-gradient(90deg,#182321,#9b7848 28%,#2b3c35 65%,#17211f);transform:skewY(-.5deg);border-radius:3px 0 0 3px}
+.demo-book::after{content:"";position:absolute;z-index:-2;right:-8px;top:7px;width:10px;height:calc(100% - 14px);background:repeating-linear-gradient(90deg,#e9dfca 0 1px,#b8aa91 1px 2px);transform:skewY(1deg);border-radius:0 4px 4px 0}
+.shelf{position:absolute;bottom:37px;left:5%;width:90%;height:18px;border-radius:3px;background:linear-gradient(180deg,#9c7547,#5b3c26 58%,#2c2019);box-shadow:0 8px 17px #0008,0 2px 0 #c49b64 inset}
+.shelf::after{content:"";position:absolute;left:0;right:0;bottom:-8px;height:8px;background:#291d17;transform:skewX(-15deg);transform-origin:top}
+.book-label{position:absolute;bottom:10px;font-size:10px;letter-spacing:1.6px;color:#aab5aa}
+.controls{display:grid;grid-template-columns:1fr auto auto;align-items:end;gap:12px;margin-top:22px}
+.range-wrap{display:grid;gap:9px;min-width:0}
+.range-head{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#d8d1c3}
+output{color:#e8c78d;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:#c99c5a}
+button{min-height:44px;border-radius:12px;padding:0 15px;border:1px solid rgba(220,185,126,.42);background:#293c37;color:#f6ebd8;font-weight:650;font-size:12px;cursor:pointer}
+button.primary{background:linear-gradient(180deg,#b58a4e,#76542f);border-color:#d3ad71;color:#fff5e4}
+button:disabled{opacity:.48;cursor:wait}
+.status{min-height:24px;margin:17px 0 0;color:#d6c29f;font-size:13px;line-height:1.5}
+.safety{margin:15px 0 0;border-top:1px solid rgba(218,194,151,.16);padding-top:14px;color:#aeb8af;font-size:11px;line-height:1.6}
+@media(max-width:560px){body{padding:22px 12px 36px}.lab{padding:13px}.stage{min-height:390px}.controls{grid-template-columns:1fr 1fr}.range-wrap{grid-column:1/-1}.controls button{width:100%}}
+</style>
+</head>
+<body>
+<main class="shell">
+<a class="back" href="https://github.com/claudio41cg-max/biblioteca-aurora">← Repositório Biblioteca Aurora</a>
+<div class="eyebrow">LABORATÓRIO VISUAL • V112</div>
+<h1>Desfragmentação cinematográfica</h1>
+<p class="intro">Um ambiente separado para experimentar a destruição visual de um único livro de demonstração. Ajuste o tamanho dos blocos e execute quantas vezes quiser.</p>
+<section class="lab" aria-label="Livro exclusivo de teste">
+<div class="stage">
+<div class="book-wrap">
+<div id="testBook" class="demo-book" role="img" aria-label="Livro cenográfico de teste da Biblioteca Aurora"><canvas id="bookArtwork" width="420" height="620"></canvas></div>
+<div class="shelf" aria-hidden="true"></div>
+<div class="book-label">LIVRO DE TESTE • NÃO PERTENCE AO ACERVO</div>
+</div>
+</div>
+<div class="controls">
+<label class="range-wrap" for="fragmentSize">
+<span class="range-head"><span>Tamanho dos blocos</span><output id="fragmentSizeValue" for="fragmentSize">1,35×</output></span>
+<input id="fragmentSize" type="range" min="0.9" max="2.0" step="0.05" value="1.35">
+</label>
+<button id="simulateDelete" class="primary" type="button">Excluir livro de teste</button>
+<button id="restoreBook" type="button">Restaurar livro</button>
+</div>
+<p id="testStatus" class="status" role="status" aria-live="polite">Pronto para testar. A exclusão é apenas visual; o livro reaparece ao terminar.</p>
+<p class="safety">Isolamento ativo: esta página não acessa PDFs, EPUBs, audiolivros, IndexedDB, LocalStorage, progresso de leitura nem a rotina real de exclusão. O botão apenas captura esta arte cenográfica, executa a animação e restaura o mesmo elemento.</p>
+</section>
+</main>
+<script>
+/* Fragmentos do próprio exemplar, com textura real e física visual, sem novas requisições. */
+(() => {
+  'use strict';
+  const active = new Set();
+  const clamp = (n,min,max) => Math.max(min,Math.min(max,n));
+  const rect = box => ({left:box.left,top:box.top,right:box.right,bottom:box.bottom,width:box.width,height:box.height});
+  const loaded = image => image instanceof HTMLCanvasElement ? image.width && image.height : image?.complete && image.naturalWidth;
+  const intersect = (a,b) => {
+    const left=Math.max(a.left,b.left),top=Math.max(a.top,b.top),right=Math.min(a.right,b.right),bottom=Math.min(a.bottom,b.bottom);
+    return {left,top,right,bottom,width:Math.max(0,right-left),height:Math.max(0,bottom-top)};
+  };
+
+  function visibleBounds(element) {
+    let box=intersect(rect(element.getBoundingClientRect()),{left:0,top:0,right:innerWidth,bottom:innerHeight});
+    for(let parent=element.parentElement;parent && parent!==document.body;parent=parent.parentElement){
+      const style=getComputedStyle(parent),clipX=/(auto|scroll|hidden|clip)/.test(style.overflowX),clipY=/(auto|scroll|hidden|clip)/.test(style.overflowY);
+      if(!clipX&&!clipY)continue;
+      const edge=parent.getBoundingClientRect();
+      box=intersect(box,{left:clipX?edge.left:-Infinity,right:clipX?edge.right:Infinity,top:clipY?edge.top:-Infinity,bottom:clipY?edge.bottom:Infinity});
+    }
+    return box;
+  }
+
+  function paintSurface(ctx,node,width,height,fallback) {
+    const style=getComputedStyle(node);
+    const paper=['top','fore'].includes(node.dataset.volumeFace);
+    ctx.fillStyle=paper?'#e4d5b8':style.backgroundColor==='rgba(0, 0, 0, 0)'?'#554333':style.backgroundColor;
+    ctx.fillRect(0,0,width,height);
+    let image=[...node.querySelectorAll('img,canvas')].find(loaded);
+    if(node instanceof HTMLImageElement || node instanceof HTMLCanvasElement)image=loaded(node)?node:null;
+    // Reutiliza imagens CSS já carregadas, sem fazer uma nova requisição.
+    if(!image && style.backgroundImage.includes('url(')){
+      const url=style.backgroundImage.match(/url\(["']?(.*?)["']?\)/)?.[1];
+      image=[...document.images].find(candidate=>loaded(candidate) && (candidate.currentSrc===url || candidate.getAttribute('src')===url));
+    }
+    if(!image&&!paper)image=fallback;
+    if(image){
+      try { ctx.drawImage(image,0,0,width,height); }
+      catch { /* A paleta abaixo permanece válida para imagens indisponíveis. */ }
+    }else if(paper){
+      ctx.strokeStyle='#b8a88a';ctx.lineWidth=.7;
+      for(let x=2;x<width;x+=3){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,height);ctx.stroke();}
+    }else{
+      const gradient=ctx.createLinearGradient(0,0,width,height);
+      gradient.addColorStop(0,'#a58753');gradient.addColorStop(.32,'#574634');gradient.addColorStop(1,'#241f21');
+      ctx.fillStyle=gradient;ctx.fillRect(0,0,width,height);
+      const text=node.querySelector('.spine-title,b,strong')?.textContent || node.dataset.rawTitle || '';
+      if(text){ctx.fillStyle='#f0d9a7';ctx.textAlign='center';ctx.font='600 '+Math.max(7,Math.min(15,width/7))+'px Georgia';ctx.fillText(text,width/2,height/2,width*.86);}
+    }
+    if(node.dataset.volumeFace){
+      ctx.fillStyle='rgba(24,16,12,'+(parseFloat(style.getPropertyValue('--volume-shade'))||.06)+')';ctx.fillRect(0,0,width,height);
+    }
+  }
+
+  function capture(element) {
+    try {
+      if(!element?.isConnected || document.hidden)return null;
+      const style=getComputedStyle(element);
+      if(style.visibility==='hidden'||style.display==='none')return null;
+      const bounds=rect(element.getBoundingClientRect()),clip=visibleBounds(element);
+      if(clip.width<2||clip.height<2)return null;
+      const width=Math.max(1,element.offsetWidth||bounds.width),height=Math.max(1,element.offsetHeight||bounds.height);
+      const local=document.createElement('canvas');local.width=Math.ceil(width);local.height=Math.ceil(height);
+      const ctx=local.getContext('2d');
+      if(!ctx)return null;
+      const fallback=[...element.querySelectorAll('.personal-book-front img,.shelf-book-cover img,img,canvas')].find(loaded);
+      const faces=element.querySelectorAll('.shelf-volume > [data-volume-face]:not([hidden])');
+      if(faces.length){
+        for(const face of faces){
+          const faceStyle=getComputedStyle(face),matrix=new DOMMatrix(faceStyle.transform==='none'?undefined:faceStyle.transform);
+          ctx.save();ctx.transform(matrix.a,matrix.b,matrix.c,matrix.d,matrix.e,matrix.f);
+          paintSurface(ctx,face,face.offsetWidth,face.offsetHeight,fallback);ctx.restore();
+        }
+      }else paintSurface(ctx,element,width,height,fallback);
+      const image=document.createElement('canvas');
+      // Limite de memória independente do zoom e da resolução da tela.
+      const quality=Math.min(2,900/Math.max(bounds.width,bounds.height));
+      image.width=Math.max(1,Math.ceil(bounds.width*quality));image.height=Math.max(1,Math.ceil(bounds.height*quality));
+      const out=image.getContext('2d');
+      if(!out)return null;
+      const matrix=new DOMMatrix(style.transform==='none'?undefined:style.transform);
+      if(matrix.is2D){
+        const xs=[0,width*matrix.a,height*matrix.c,width*matrix.a+height*matrix.c];
+        const ys=[0,width*matrix.b,height*matrix.d,width*matrix.b+height*matrix.d];
+        const left=Math.min(...xs),top=Math.min(...ys),w=Math.max(...xs)-left,h=Math.max(...ys)-top;
+        out.scale(image.width/Math.max(1,w),image.height/Math.max(1,h));
+        out.transform(matrix.a,matrix.b,matrix.c,matrix.d,-left,-top);
+        out.drawImage(local,0,0,width,height);
+      }else out.drawImage(local,0,0,image.width,image.height);
+      return {element,bounds,clip,image};
+    } catch { return null; }
+  }
+
+  // Erosão orgânica da silhueta original, convertendo a matéria em pó fino.
+  const mix=(a,b,t)=>a+(b-a)*t;
+  const smooth=t=>{t=clamp(t,0,1);return t*t*(3-2*t);};
+  function hash(x,y){let n=Math.imul(x+137,374761393)+Math.imul(y+791,668265263);n=Math.imul(n^(n>>>13),1274126177);return ((n^(n>>>16))>>>0)/4294967295;}
+  function noise(x,y){
+    const a=Math.floor(x),b=Math.floor(y),u=smooth(x-a),v=smooth(y-b);
+    return mix(mix(hash(a,b),hash(a+1,b),u),mix(hash(a,b+1),hash(a+1,b+1),u),v);
+  }
+  // Frente de erosão predominantemente horizontal: começa no topo e desce,
+  // com borda irregular suficiente para parecer matéria se desfazendo.
+  function field(u,v){
+    return clamp(.055+v*.79+(noise(u*4.5,v*5.5)-.5)*.18+
+      (noise(u*18,v*23)-.5)*.055+(noise(u*72,v*88)-.5)*.018,.02,.985);
+  }
+  function canvas(w,h){const c=document.createElement('canvas');c.width=Math.max(1,Math.ceil(w));c.height=Math.max(1,Math.ceil(h));return c;}
+  function prepare(snapshot,cinema){
+    const {bounds,clip,image}=snapshot,w=clip.width,h=clip.height;
+    const q=Math.min(1.5,900/Math.max(w,h)),original=canvas(w*q,h*q),oc=original.getContext('2d');
+    oc.drawImage(image,(clip.left-bounds.left)/bounds.width*image.width,(clip.top-bounds.top)/bounds.height*image.height,
+      w/bounds.width*image.width,h/bounds.height*image.height,0,0,original.width,original.height);
+    const sample=canvas(Math.min(original.width,180),Math.min(original.height,220)),ss=sample.getContext('2d',{willReadFrequently:true});
+    ss.drawImage(original,0,0,sample.width,sample.height);
+    let pixels=null;try{pixels=ss.getImageData(0,0,sample.width,sample.height).data;}catch{}
+    const colorAt=(u,v)=>{
+      if(!pixels)return [154,125,91,255];
+      const i=(clamp(Math.floor(v*sample.height),0,sample.height-1)*sample.width+clamp(Math.floor(u*sample.width),0,sample.width-1))*4;
+      return [pixels[i],pixels[i+1],pixels[i+2],pixels[i+3]];
+    };
+    const ratio=Math.min(1.25,340/Math.max(w,h));
+    const mask=canvas(w*ratio,h*ratio),mc=mask.getContext('2d'),edge=canvas(mask.width,mask.height),ec=edge.getContext('2d');
+    const md=mc.createImageData(mask.width,mask.height),ed=ec.createImageData(mask.width,mask.height),values=new Float32Array(mask.width*mask.height);
+    for(let y=0;y<mask.height;y++)for(let x=0;x<mask.width;x++){
+      const i=y*mask.width+x;values[i]=field((x+.5)/mask.width,(y+.5)/mask.height);
+      md.data[i*4]=md.data[i*4+1]=md.data[i*4+2]=255;
+      ed.data[i*4]=231;ed.data[i*4+1]=199;ed.data[i*4+2]=149;
+    }
+    const intact=canvas(original.width,original.height),ic=intact.getContext('2d');
+    const rim=canvas(mask.width,mask.height),rc=rim.getContext('2d');
+    // Grãos minúsculos com relevo e cores amostradas da capa, sem pedaços de papel.
+    const palette=[],atlas=canvas(192,64),ac=atlas.getContext('2d');
+    function getColor(r,g,b){
+      const rgb=[r,g,b].map(v=>clamp(Math.round(v/48)*48,0,255));let best=0,distance=Infinity;
+      for(let i=0;i<palette.length;i++){
+        const p=palette[i],d=(p[0]-rgb[0])**2+(p[1]-rgb[1])**2+(p[2]-rgb[2])**2;
+        if(d<distance){best=i;distance=d;}
+      }
+      if(distance===0||palette.length>=48)return best;
+      palette.push(rgb);const i=palette.length-1,x=i%12*16,y=Math.floor(i/12)*16;
+      const [rr,gg,bb]=rgb,light=v=>Math.round(mix(v,244,.36)),dark=v=>Math.round(v*.55);
+      const gradient=ac.createRadialGradient(x+6,y+5,.4,x+8,y+8,7.2);
+      gradient.addColorStop(0,'rgb('+light(rr)+','+light(gg)+','+light(bb)+')');
+      gradient.addColorStop(.44,'rgb('+rr+','+gg+','+bb+')');
+      gradient.addColorStop(.76,'rgba('+dark(rr)+','+dark(gg)+','+dark(bb)+',.95)');
+      gradient.addColorStop(1,'rgba('+rr+','+gg+','+bb+',0)');
+      ac.fillStyle=gradient;ac.fillRect(x,y,16,16);return i;
+    }
+    const direction=clip.left+w/2>innerWidth*.67?-1:1;
+    const sizeScale=cinema?clamp(Math.sqrt(w*h/65000),.72,1.28):.7;
+    const fragmentScale=clamp(Number(snapshot.fragmentScale)||1.35,.8,2.1);
+    // Blocos recortados da própria capa: maiores e reconhecíveis, com proporções variadas.
+    const chunks=[],chunkCount=cinema?clamp(Math.round(w*h/100),420,780):clamp(Math.round(w*h/150),90,240);
+    for(let i=0;i<chunkCount*3&&chunks.length<chunkCount;i++){
+      const u=Math.random(),v=Math.random(),[r,g,b,a]=colorAt(u,v);if(a<35)continue;
+      const tier=Math.random();
+      const base=(tier<.075?13+Math.random()*7:tier<.34?8+Math.random()*5:4.8+Math.random()*4.2)*sizeScale*fragmentScale;
+      const width=base*(.78+Math.random()*.48),height=base*(.72+Math.random()*.58);
+      const sw=Math.max(3,Math.min(original.width,Math.round(width/w*original.width)));
+      const sh=Math.max(3,Math.min(original.height,Math.round(height/h*original.height)));
+      const sx=Math.round(u*Math.max(0,original.width-sw)),sy=Math.round(v*Math.max(0,original.height-sh));
+      chunks.push({x:clip.left+u*w,y:clip.top+v*h,release:field(u,v),sx,sy,sw,sh,width,height,
+        life:cinema?2.4+Math.random()*1.6:1+Math.random()*.65,
+        vx:direction*(14+Math.random()*56)+(Math.random()-.5)*38,
+        vy:cinema?10+Math.random()*34:4+Math.random()*18,
+        gravity:cinema?24+Math.random()*46:18+Math.random()*20,
+        phase:Math.random()*6.283,spin:(Math.random()-.5)*5,
+        opacity:.72+Math.random()*.28});
+    }
+    // Poeira fina fica como camada secundária; os fragmentos maiores carregam a ação.
+    const particles=[],count=cinema?clamp(Math.round(w*h/60),650,1400):clamp(Math.round(w*h/9),120,650);
+    const dustScale=cinema?clamp(Math.sqrt(w*h/65000),.65,1.2):.7;
+    for(let i=0;i<count*4&&particles.length<count;i++){
+      const u=Math.random(),v=Math.random(),[r,g,b,a]=colorAt(u,v);if(a<35)continue;
+      const rare=Math.random(),radius=(rare<.025?1.25+Math.random()*.65:rare<.2?.65+Math.random()*.55:.22+Math.random()*.48)*dustScale;
+      const p=getColor(r,g,b),dust=rare>.76;
+      particles.push({x:clip.left+u*w,y:clip.top+v*h,release:field(u,v),radius,life:cinema?1.5+Math.random()*2.2:.65+Math.random()*.8,
+        vx:direction*(17+Math.random()*64)+(Math.random()-.5)*35,vy:(Math.random()-.5)*35-(dust?24:5),
+        phase:Math.random()*6.283,spin:.9+Math.random()*2.3,drift:8+Math.random()*21,
+        ax:p%12*16,ay:Math.floor(p/12)*16,opacity:.42+Math.random()*.52,dust});
+    }
+    const haze=Array.from({length:cinema?30:8},()=>{
+      const p=particles[Math.floor(Math.random()*particles.length)];
+      return p?{...p,radius:cinema?10+Math.random()*21:5+Math.random()*8,life:cinema?2.4+Math.random()*1.5:1.2}:null;
+    }).filter(Boolean);
+    return {original,mask,mc,md,edge,ec,ed,values,intact,ic,rim,rc,atlas,chunks,particles,haze,w,h,fragmentScale};
+  }
+  function paintBook(ctx,e,clip,threshold){
+    if(threshold<-.035){ctx.drawImage(e.original,clip.left,clip.top,e.w,e.h);return;}
+    if(threshold>1.035)return;
+    const {mask,mc,md,edge,ec,ed,values,intact,ic,rim,rc,original}=e;
+    for(let i=0;i<values.length;i++){
+      const d=values[i]-threshold;
+      md.data[i*4+3]=Math.round(255*smooth((d+.015)/.035));
+      ed.data[i*4+3]=Math.round(110*Math.max(0,1-Math.abs(d-.006)*46)**2);
+    }
+    mc.putImageData(md,0,0);ec.putImageData(ed,0,0);
+    ic.globalCompositeOperation='source-over';ic.clearRect(0,0,intact.width,intact.height);ic.drawImage(original,0,0);
+    ic.globalCompositeOperation='destination-in';ic.drawImage(mask,0,0,intact.width,intact.height);
+    ic.globalCompositeOperation='source-over';ctx.drawImage(intact,clip.left,clip.top,e.w,e.h);
+    // A luminosidade da borda acompanha a forma real, não o retângulo da imagem.
+    rc.globalCompositeOperation='source-over';rc.clearRect(0,0,rim.width,rim.height);rc.drawImage(edge,0,0);
+    rc.globalCompositeOperation='destination-in';rc.drawImage(original,0,0,rim.width,rim.height);
+    rc.globalCompositeOperation='source-over';ctx.globalAlpha=.56;ctx.drawImage(rim,clip.left,clip.top,e.w,e.h);ctx.globalAlpha=1;
+  }
+  function paintSweep(ctx,e,clip,threshold){
+    if(threshold<=.015||threshold>=.99)return;
+    const width=e.mask.width,height=e.mask.height,samples=Math.min(100,width);
+    ctx.save();ctx.globalCompositeOperation='screen';ctx.beginPath();
+    let started=false;
+    for(let i=0;i<samples;i++){
+      const xIndex=Math.round(i*(width-1)/Math.max(1,samples-1));
+      let low=0,high=height-1;
+      // Busca a borda da erosão em cada coluna; o campo é majoritariamente monotônico.
+      for(let step=0;step<10;step++){
+        const mid=(low+high)>>1;
+        if(e.values[mid*width+xIndex]<threshold)low=mid+1;else high=mid;
+      }
+      const y=clip.top+low/height*e.h,x=clip.left+xIndex/width*e.w;
+      if(y<clip.top||y>clip.bottom)continue;
+      if(!started){ctx.moveTo(x,y);started=true;}else ctx.lineTo(x,y);
+    }
+    if(started){
+      ctx.lineCap='round';ctx.lineJoin='round';
+      ctx.shadowColor='rgba(255,181,96,.95)';ctx.shadowBlur=18;
+      ctx.strokeStyle='rgba(255,202,132,.92)';ctx.lineWidth=2.5;ctx.stroke();
+      ctx.shadowBlur=5;ctx.strokeStyle='rgba(255,244,220,.96)';ctx.lineWidth=.75;ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function paintDust(ctx,e,elapsed,start,span){
+    for(const p of e.haze){
+      const t=elapsed-start-p.release*span;if(t<=0||t>=p.life)continue;
+      const a=t/p.life,x=p.x+p.vx*t*.56+Math.sin(p.phase+t*1.4)*12*t,y=p.y-18*t+Math.cos(p.phase+t)*8*t;
+      const radius=p.radius*(.55+a*1.5),g=ctx.createRadialGradient(x,y,0,x,y,radius);
+      g.addColorStop(0,'rgba(174,145,111,'+(.075*Math.sin(Math.PI*a))+')');g.addColorStop(1,'rgba(174,145,111,0)');
+      ctx.fillStyle=g;ctx.fillRect(x-radius,y-radius,radius*2,radius*2);
+    }
+    // Blocos maiores: recortes reais da capa, com rotação, gravidade e bordas em relevo.
+    for(const p of e.chunks){
+      const t=elapsed-start-p.release*span;if(t<0||t>=p.life)continue;
+      const a=t/p.life,drift=Math.sin(p.phase+t*1.7)*p.width*.62;
+      const x=p.x+p.vx*t+drift;
+      const y=p.y+p.vy*t+.5*p.gravity*t*t+Math.cos(p.phase+t*1.5)*p.height*.28;
+      const scale=1-a*.38,ww=p.width*scale,hh=p.height*scale;
+      ctx.save();ctx.translate(x,y);ctx.rotate(p.phase*.12+p.spin*t);
+      ctx.globalAlpha=p.opacity*smooth(t/.07)*Math.pow(1-a,.92);
+      ctx.shadowColor='rgba(12,9,7,.42)';ctx.shadowBlur=3;
+      ctx.drawImage(e.original,p.sx,p.sy,p.sw,p.sh,-ww/2,-hh/2,ww,hh);
+      ctx.shadowBlur=0;ctx.strokeStyle='rgba(255,235,196,.48)';ctx.lineWidth=.55;
+      ctx.strokeRect(-ww/2,-hh/2,ww,hh);
+      ctx.fillStyle='rgba(255,241,211,.22)';ctx.fillRect(-ww/2,-hh/2,ww,.7);
+      ctx.fillStyle='rgba(17,12,9,.22)';ctx.fillRect(-ww/2,hh/2-.7,ww,.7);
+      ctx.restore();
+    }
+    // Poeira pequena acompanha os blocos, sem competir com os quadrados maiores.
+    for(const p of e.particles){
+      const t=elapsed-start-p.release*span;if(t<0||t>=p.life)continue;
+      const a=t/p.life,curl=Math.sin(p.phase+t*p.spin)*p.drift*t*.55;
+      const x=p.x+p.vx*t+curl,y=p.y+p.vy*t+Math.cos(p.phase+t*p.spin)*p.drift*t*.4+(p.dust?-5:12)*t*t;
+      const size=p.radius*2*(1-a*.65)*(1+.16*Math.sin(p.phase+t*3));
+      ctx.globalAlpha=p.opacity*smooth(t/.09)*Math.pow(1-a,1.15);
+      ctx.drawImage(e.atlas,p.ax,p.ay,16,16,x-size/2,y-size/2,size,size);
+    }
+    ctx.globalAlpha=1;
+  }
+  function play(snapshot) {
+    return new Promise(resolve=>{
+      if(!snapshot||document.hidden||active.size>=4){resolve();return;}
+      let overlay,frame,timer,finished=false,hidden=false;
+      const source=snapshot.element,prior=source?.style.getPropertyValue('visibility'),priority=source?.style.getPropertyPriority('visibility');
+      const finish=()=>{
+        if(finished)return;finished=true;cancelAnimationFrame(frame);clearTimeout(timer);
+        document.removeEventListener('visibilitychange',onVisibility);window.removeEventListener('resize',finish);
+        overlay?.remove();active.delete(finish);
+        if(hidden&&source){if(prior)source.style.setProperty('visibility',prior,priority);else source.style.removeProperty('visibility');}
+        resolve();
+      };
+      const onVisibility=()=>{if(document.hidden)finish();};
+      try{
+        const vw=innerWidth,vh=innerHeight,dpr=Math.min(1.75,devicePixelRatio||1);
+        overlay=canvas(vw*dpr,vh*dpr);overlay.className='aurora-book-particles';overlay.setAttribute('aria-hidden','true');overlay.setAttribute('role','presentation');overlay.setAttribute('popover','manual');
+        document.body.append(overlay);
+        if(overlay.showPopover){try{overlay.showPopover();}catch{}}
+        else if(source?.closest('dialog[open]'))source.closest('dialog[open]').append(overlay);
+        const ctx=overlay.getContext('2d');if(!ctx){finish();return;}
+        ctx.scale(overlay.width/vw,overlay.height/vh);
+        const {bounds,clip,image}=snapshot,reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const cinema=Boolean(snapshot.cinematic||source?.id==='scene');
+        const startRelease=cinema?.32:.10,span=cinema?6.0:1.55,duration=reduced?.18:cinema?9.7:3.2;
+        const effect=reduced?null:prepare(snapshot,cinema);
+        if(source?.isConnected){source.style.setProperty('visibility','hidden','important');hidden=true;}
+        active.add(finish);document.addEventListener('visibilitychange',onVisibility);window.addEventListener('resize',finish,{once:true});
+        timer=setTimeout(finish,duration*1000+500);
+        const start=performance.now();let last=-Infinity;
+        const draw=now=>{
+          try{
+            const elapsed=(now-start)/1000;
+            if(!reduced&&now-last<24&&elapsed<duration){frame=requestAnimationFrame(draw);return;}
+            last=now;ctx.clearRect(0,0,vw,vh);
+            if(reduced){
+              ctx.globalAlpha=clamp(1-elapsed/duration,0,1);
+              ctx.drawImage(image,(clip.left-bounds.left)/bounds.width*image.width,(clip.top-bounds.top)/bounds.height*image.height,
+                clip.width/bounds.width*image.width,clip.height/bounds.height*image.height,clip.left,clip.top,clip.width,clip.height);
+            }else{
+              const threshold=(elapsed-startRelease)/span;
+              paintBook(ctx,effect,clip,threshold);
+              if(cinema)paintSweep(ctx,effect,clip,threshold);
+              paintDust(ctx,effect,elapsed,startRelease,span);
+            }
+            ctx.globalAlpha=1;
+            if(elapsed>=duration)finish();else frame=requestAnimationFrame(draw);
+          }catch{finish();}
+        };
+        draw(start);
+      }catch{finish();}
+    });
+  }
+  window.AuroraBookParticles={capture,play};
+})();
+
+</script>
+<script>
+(() => {
+const book=document.getElementById('testBook'),art=document.getElementById('bookArtwork');
+const run=document.getElementById('simulateDelete'),restore=document.getElementById('restoreBook');
+const slider=document.getElementById('fragmentSize'),output=document.getElementById('fragmentSizeValue'),status=document.getElementById('testStatus');
+let busy=false;
+function drawArtwork(){
+const c=art.getContext('2d'),w=art.width,h=art.height;
+const bg=c.createLinearGradient(0,0,w,h);bg.addColorStop(0,'#36544a');bg.addColorStop(.48,'#1c3531');bg.addColorStop(1,'#101e20');
+c.fillStyle=bg;c.fillRect(0,0,w,h);
+for(let i=0;i<38;i++){c.strokeStyle='rgba(219,190,133,'+(0.025+(i%4)*.008)+')';c.lineWidth=1;c.beginPath();c.moveTo(24,i*17+18);c.lineTo(w-24,i*17+18);c.stroke();}
+c.strokeStyle='#c5a36c';c.lineWidth=3;c.strokeRect(24,24,w-48,h-48);
+c.strokeStyle='rgba(233,211,169,.48)';c.lineWidth=1;c.strokeRect(34,34,w-68,h-68);
+c.beginPath();c.arc(w/2,142,37,0,Math.PI*2);c.strokeStyle='#d9bd8a';c.lineWidth=2;c.stroke();
+c.beginPath();c.moveTo(w/2,112);c.lineTo(w/2,172);c.moveTo(w/2-30,142);c.lineTo(w/2+30,142);c.stroke();
+c.textAlign='center';c.fillStyle='#e8d5ae';c.font='600 20px Georgia,serif';c.fillText('BIBLIOTECA',w/2,225);
+c.fillStyle='#f3e4c7';c.font='bold 49px Georgia,serif';c.fillText('AURORA',w/2,292);
+c.fillStyle='#d4b77e';c.font='italic 22px Georgia,serif';c.fillText('O LIVRO DE TESTE',w/2,346);
+c.strokeStyle='rgba(216,187,135,.75)';c.lineWidth=1;c.beginPath();c.moveTo(84,390);c.lineTo(w-84,390);c.stroke();
+c.fillStyle='#c7b48f';c.font='14px system-ui,sans-serif';c.fillText('EDIÇÃO DE LABORATÓRIO',w/2,426);
+c.fillStyle='rgba(238,222,188,.7)';c.font='12px system-ui,sans-serif';c.fillText('DESFRAGMENTAÇÃO V112',w/2,560);
+const shade=c.createLinearGradient(0,0,w,0);shade.addColorStop(0,'rgba(0,0,0,.24)');shade.addColorStop(.12,'rgba(0,0,0,0)');shade.addColorStop(.88,'rgba(0,0,0,0)');shade.addColorStop(1,'rgba(0,0,0,.2)');
+c.fillStyle=shade;c.fillRect(0,0,w,h);
+}
+slider.addEventListener('input',()=>{output.value=Number(slider.value).toFixed(2).replace('.',',')+'×';});
+run.addEventListener('click',async()=>{
+if(busy)return;
+const snapshot=window.AuroraBookParticles?.capture(book);
+if(!snapshot){status.textContent='Não foi possível capturar o livro de teste. Tente novamente.';return;}
+snapshot.cinematic=true;snapshot.fragmentScale=Number(slider.value);
+busy=true;run.disabled=true;restore.disabled=true;
+status.textContent='Desfragmentação em andamento. A frente de erosão está descendo pelo livro…';
+try{await window.AuroraBookParticles.play(snapshot);status.textContent='Teste concluído. O livro cenográfico foi restaurado automaticamente; nenhum livro do acervo foi excluído.';}
+catch(error){console.warn('Falha no teste de desfragmentação:',error);status.textContent='A animação foi interrompida. O livro de teste continua preservado.';}
+finally{book.style.visibility='';busy=false;run.disabled=false;restore.disabled=false;}
+});
+restore.addEventListener('click',()=>{if(busy)return;drawArtwork();book.style.visibility='visible';status.textContent='Livro de teste restaurado. Pronto para outra execução.';});
+drawArtwork();
+})();
+</script>
+</body>
+</html>
