@@ -26,9 +26,9 @@ assert.match(catalog,/visible\+=PAGE_SIZE/);
 assert.match(css,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
 assert.match(css,/#library \.section-title::after\{display:none\}/);
 assert.match(html,/id="auroraCatalogOverlay"[^>]*role="dialog"[^>]*aria-modal="true"/);
-assert.match(html,/aurora-catalogos\.js\?v=3/);
-assert.match(html,/aurora-catalogos\.css\?v=2/);
-assert.match(sw,/aurora-v54/);
-assert.match(sw,/aurora-catalogos\.js\?v=1/);
+assert.match(html,/aurora-catalogos\.js\?v=6/);
+assert.match(html,/aurora-catalogos\.css\?v=3/);
+assert.match(sw,/aurora-v89/);
+assert.match(sw,/const HOME = '\.\/index\.html\?v=111'/);
 
 console.log('V44/V53: catálogos, capas, volumes físicos e abertura do mesmo livro confirmados.');
