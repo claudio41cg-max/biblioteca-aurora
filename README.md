@@ -1,6 +1,6 @@
 ## Laboratório de desfragmentação v112
 
-- A página `teste-desfragmentacao.html` contém somente um livro cenográfico, fora do acervo real.
+- As páginas `teste-desfragmentacao.html` e `teste-desfragmentacao-offline.html` contêm somente um livro cenográfico, fora do acervo real. A segunda é um HTML autossuficiente para abrir localmente no Android, sem depender de outros arquivos.
 - O botão **Excluir livro de teste** executa a animação e restaura a mesma demonstração ao terminar. Não chama a rotina de exclusão da Aurora.
 - A página não usa IndexedDB, LocalStorage, importação, progresso de leitura ou arquivos do usuário.
 - A desfragmentação v112 começa no topo, desce em uma frente irregular e usa blocos maiores recortados da própria arte, com gravidade, rotação, poeira fina e uma linha de erosão iluminada.
