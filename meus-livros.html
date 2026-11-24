@@ -71,6 +71,8 @@
   <link rel="stylesheet" href="./aurora-edicao.css?v=1">
   <link rel="stylesheet" href="./aurora-vitrine.css?v=8">
   <link rel="stylesheet" href="./aurora-reader.css?v=13">
+<link rel="stylesheet" href="./aurora-acoes-livro.css?v=1">
+<link rel="stylesheet" href="./aurora-exclusao-particulas.css?v=1">
 </head>
 <body>
   <header class="tophead"><div class="eyebrow">SEU ACERVO PESSOAL</div><h1>✦ Meus livros • Aurora ✦</h1><p>Adicione seus livros PDF e guarde cada um pela lombada.</p></header>
@@ -115,6 +117,15 @@
         <div class="volume-cover"><img id="cover3d" alt="Capa original do livro"></div>
       </div>
     </div>
+    <section class="aurora-book-actions" aria-label="Reações e opções do livro">
+      <div class="aurora-reactions"><button type="button" data-book-action="delete" aria-label="Excluir livro" aria-expanded="false"><span aria-hidden="true">🗑️</span><small>Excluir</small></button></div>
+      <button type="button" data-book-action="restore" hidden>Devolver à estante</button>
+      <div class="aurora-delete-options" hidden>
+        <button type="button" data-remove-scope="shelf"><strong>Retirar da estante</strong><small>O livro e o progresso continuam no catálogo.</small></button>
+        <button type="button" data-remove-scope="app"><strong>Excluir do aplicativo</strong><small>Remove o livro e o progresso da Aurora, não o arquivo original.</small></button>
+        <button type="button" data-remove-scope="cancel">Cancelar</button>
+      </div><p role="status" aria-live="polite"></p>
+    </section>
     <p id="coverNotice" class="cover-notice" role="status"></p>
     <p id="showresume" class="showresume" role="status" aria-live="polite"></p>
     <details id="descriptionDetails" class="book-description" open>
@@ -181,6 +192,8 @@
   <script src="./aurora-sinopses.js?v=2"></script>
   <script src="./aurora-artes.js?v=1"></script>
   <script src="./aurora-formatos.js?v=11"></script>
+  <script src="./aurora-exclusao-particulas.js?v=1"></script>
+  <script src="./aurora-acoes-livro.js?v=1"></script>
   <script src="./aurora-pdf-covers.js?v=2"></script>
   <!-- Carrega o mesmo Canvas de papel usado pelo livro 3D ANTES do leitor PDF. -->
   <script src="./aurora-edition-surfaces.js?v=12"></script>
@@ -366,10 +379,16 @@
         $('coverNotice').textContent='Não foi possível ler a capa deste arquivo. Importe novamente o PDF original.';
       }
     });
+    const actions=window.AuroraBookActions;
+    const actionPanel=actions?.mount($('showcase'),()=>{
+      const book=catalog.find(item=>item.id===selectedId);if(!book)return null;
+      return {source:book.format,id:book.id,title:book.name,key:actions.keyOf(book.format,book.id,book.name)};
+    },{done:()=>{hideBook();location.replace('./index.html?v=108');}});
     function showBook(id) {
       const book = catalog.find(item => item.id === id);
       if (!book) { $('hint').textContent = 'Este livro não está mais disponível neste navegador.'; return; }
       selectedId = id;
+      actionPanel?.refresh();
       $('showcase').classList.add('active');
       $('showcase').setAttribute('aria-hidden','false');
       let arrival=null;
@@ -471,6 +490,7 @@
       document.body.style.overflow = '';
     }
     $('back').onclick = () => {
+      if(actionPanel?.isBusy())return;
       hideBook();
       location.href = './index.html?v=22';
     };
@@ -498,7 +518,7 @@
         void recoverOriginalCover(selectedId,true);
       }
     });
-    window.addEventListener('aurora:open-book',()=>{if(selectedId) openReader(selectedId);});
+    window.addEventListener('aurora:open-book',()=>{if(selectedId&&!actionPanel?.isBusy()) openReader(selectedId);});
     const model = $('book3d');
     model.addEventListener('pointerdown', event => {
       down = {x:event.clientX,y:event.clientY,startX:rotation.x,startY:rotation.y,id:event.pointerId};
@@ -516,11 +536,11 @@
       if (!down || event.pointerId !== down.id) return;
       const distance = Math.hypot(event.clientX-down.x,event.clientY-down.y);
       down = null;
-      if (distance < 12 && selectedId) openReader(selectedId);
+      if (distance < 12 && selectedId&&!actionPanel?.isBusy()) openReader(selectedId);
     });
     model.addEventListener('pointercancel',() => down = null);
     model.addEventListener('keydown',event => {
-      if ((event.key === 'Enter' || event.key === ' ') && selectedId) {event.preventDefault();openReader(selectedId);}
+      if ((event.key === 'Enter' || event.key === ' ') && selectedId&&!actionPanel?.isBusy()) {event.preventDefault();openReader(selectedId);}
     });
 
     const safePage = (number,total) => Math.max(0,Math.min(total-1,Math.round(number)));
@@ -1144,6 +1164,6 @@
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
   })();
   </script>
-  <script type="module" src="./aurora-livro-3d.mjs?v=21"></script>
+  <script type="module" src="./aurora-livro-3d.mjs?v=22"></script>
 </body>
 </html>

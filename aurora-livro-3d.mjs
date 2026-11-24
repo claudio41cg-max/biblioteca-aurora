@@ -588,7 +588,12 @@ function initialize(){
       clearModel(previewGroup);
     }
   }
-  window.Aurora3D={display,setPose,reset,playOpen,renderShelfPreview};
+  function captureFrame(){
+    stopMotion();render();
+    const copy=document.createElement('canvas');copy.width=renderer.domElement.width;copy.height=renderer.domElement.height;
+    copy.getContext('2d').drawImage(renderer.domElement,0,0);return copy;
+  }
+  window.Aurora3D={display,setPose,reset,playOpen,renderShelfPreview,captureFrame};
   window.addEventListener('aurora:book-selected',event=>display(event.detail));
   window.addEventListener('aurora:book-closed',()=>{
     stopMotion();

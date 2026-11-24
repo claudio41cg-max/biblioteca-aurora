@@ -1,0 +1,14 @@
+#library .bookrow > .book-spine[data-aurora-shelved="no"]{display:none!important}
+.aurora-book-actions{width:min(100%,540px);flex:none;margin:0 auto 13px;color:#65472f;font:12px/1.35 system-ui,sans-serif;text-align:center}
+.aurora-showcase:not(.settled) .aurora-book-actions{visibility:hidden;pointer-events:none}
+.aurora-reactions{display:flex;justify-content:center;align-items:stretch;gap:5px}
+.aurora-book-actions button{font:inherit;color:inherit;cursor:pointer;border:1px solid #ad89634f;border-radius:10px;background:#fffaf044;box-shadow:none;padding:6px;min-height:44px}
+.aurora-reactions button{flex:1;max-width:82px;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+.aurora-reactions span{font-size:19px;line-height:1.2}.aurora-reactions small{font-size:10px;line-height:1.1;white-space:normal}
+.aurora-book-actions button[aria-pressed=true]{background:#e4c99d;border-color:#a47843}
+.aurora-book-actions button:focus-visible{outline:2px solid #9b6b36;outline-offset:2px}
+.aurora-book-actions button:disabled{opacity:.5}.aurora-book-actions [hidden]{display:none!important}
+.aurora-delete-options{display:grid;gap:6px;margin:9px auto 0;padding:9px;border:1px solid #b89975;border-radius:12px;background:#fff6e8;text-align:left}
+.aurora-delete-options button{text-align:left;padding:9px 12px}.aurora-delete-options button strong,.aurora-delete-options button small{display:block}
+.aurora-delete-options button small{font-size:11px;margin-top:3px}.aurora-delete-options [data-remove-scope=app]{color:#9a3028;border-color:#b55b5066}
+.aurora-book-actions [role=status]:empty{display:none}.aurora-book-actions [role=status]{margin:6px 0 0}.aurora-book-actions [data-book-action=restore]{margin-top:7px}

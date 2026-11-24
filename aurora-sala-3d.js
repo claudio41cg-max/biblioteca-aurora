@@ -10,6 +10,18 @@
   if(!showcase||!scene||!cssBook||!cover)return;
   const categories=['romance','adulto','ficcao','brasileiros','filmes','veterinaria'];
   let active=null;
+  const actions=window.AuroraBookActions;
+  const actionPanel=actions?.mount(showcase,()=>{
+    if(!active?.finished)return null;
+    const {book,button,sourceButton}=active,source=book.format;
+    return {source,id:source==='online'?sourceButton.dataset.bookId:book.id,title:sourceButton.dataset.rawTitle||book.name||book.title,key:actions.keyFor(sourceButton),personal:button.dataset.personalBookKey||''};
+  },{
+    removePersonal:book=>window.AuroraEstanteExemplares.removeBook(book.personal,{animate:false}),
+    done:scope=>{
+      if(scope==='app'){close(true);history.replaceState(null,'',location.href);location.replace('./index.html?v=108');}
+      else close();
+    }
+  });
   const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
   const niceTitle=title=>window.AuroraTitles?.display(title)||String(title||'Livro sem título');
   const formatName={pdf:'PDF',epub:'EPUB',txt:'TXT',audio:'Audiolivro',online:'Leitura on-line',demo:'Demonstração'};
@@ -78,8 +90,8 @@
     :book.format==='epub'
     ?'./ler-epub.html?livro='+encodeURIComponent(book.id)+'&v=8'
     :book.format==='audio'?'./ouvir-livro.html?livro='+encodeURIComponent(book.id)+'&v=1'
-    :'./meus-livros.html?livro='+encodeURIComponent(book.id)+'&open=1&v=31';
-  const editionURL=book=>['epub','txt','audio','online'].includes(book.format)?readerURL(book):'./meus-livros.html?livro='+encodeURIComponent(book.id)+'&v=31';
+    :'./meus-livros.html?livro='+encodeURIComponent(book.id)+'&open=1&v=33';
+  const editionURL=book=>['epub','txt','audio','online'].includes(book.format)?readerURL(book):'./meus-livros.html?livro='+encodeURIComponent(book.id)+'&v=33';
   let fallbackPose={x:-.09,y:.28};
 
   function setPose(x,y){
@@ -112,7 +124,7 @@
 
   function enterReader(){
     const session=active;
-    if(!session?.finished)return;
+    if(!session?.finished||actionPanel?.isBusy())return;
     if(typeof session.book.openReader==='function'){
       const action=session.book.openReader;
       close();
@@ -130,6 +142,7 @@
     setPose(-.09,.28);
     showcase.classList.add('settled');
     session.finished=true;
+    actionPanel?.refresh();
     // O mesmo renderer continua na tela, agora livre para girar com o dedo.
   }
 
@@ -174,14 +187,17 @@
 
   function open(button,book){
     if(active)return;
+    const sourceButton=button;
     button=window.AuroraEstanteExemplares?.originFor(button)||button;
+    const catalogOrigin=sourceButton.__auroraCatalogOrigin;delete sourceButton.__auroraCatalogOrigin;
     // Toda edição adicionada passa pelo mesmo visor, mesmo quando não traz capa.
     if(book&&!book.cover&&window.AuroraFormats?.createDigitalCover){
       book.cover=window.AuroraFormats.createDigitalCover(window.AuroraTitles?.display(book.title||book.name)||book.title||book.name,book.author,book.format);
       book.coverSource='generated';
     }
     if(!book?.cover){location.href=editionURL(book);return;}
-    const session={button,book,origin:button.getBoundingClientRect(),started:false,finished:false};
+    const origin=button.getBoundingClientRect();
+    const session={button,sourceButton,book,origin:origin.width&&origin.height?origin:catalogOrigin||{left:innerWidth/2-30,top:innerHeight/2-60,width:60,height:120},started:false,finished:false};
     active=session;
     showcase.hidden=false;
     showcase.classList.remove('arriving','settled');
@@ -271,7 +287,7 @@
       event.preventDefault();enterReader();
     }
   });
-  $('auroraShowBack').addEventListener('click',()=>close());
+  $('auroraShowBack').addEventListener('click',()=>{if(!actionPanel?.isBusy())close();});
   $('auroraShowDescription').addEventListener('toggle',()=>{
     if(active&&$('auroraShowDescription').open)void supplyInitialExcerpt(active);
   });
@@ -284,7 +300,7 @@
     else close(true);
   });
   document.addEventListener('keydown',event=>{
-    if(event.key==='Escape'&&active?.finished && !event.target?.closest?.('details'))close();
+    if(event.key==='Escape'&&active?.finished && !actionPanel?.isBusy() && !event.target?.closest?.('details'))close();
   });
   $('auroraShowCategory').addEventListener('change',event=>{
     const session=active;

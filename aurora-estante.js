@@ -153,12 +153,13 @@
     hitArea.className='shelf-book-hit-area';
     hitArea.setAttribute('aria-hidden','true');
     button.append(hitArea);
+    window.AuroraBookActions?.mark(button);
     return button;
   }
   function refreshCount(category) {
     const row=$('shelf-'+category);
     const count=$('count-'+category);
-    if (row && count) count.textContent=row.childElementCount+' livros';
+    if (row && count) count.textContent=row.querySelectorAll(':scope > .book-spine:not([data-aurora-shelved="no"])').length+' livros';
   }
   function draw() {
     const library=$('library');

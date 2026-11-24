@@ -31,6 +31,7 @@
       if(existing.some(node=>['pdf','epub','audio'].includes(node.dataset.source)&&node.dataset.title===shelf.normalize(book.title)))continue;
       const button=shelf.makeSpine({title:book.title,author:book.author||'',source:'online',cover:book.cover||'',ratio:.72});
       button.dataset.bookId=book.key;
+      window.AuroraBookActions?.mark(button);
       button.title=book.title+' • abrir na Aurora sem baixar o arquivo.';
       button.setAttribute('aria-label','Abrir '+book.title+' no leitor da Aurora');
       button.addEventListener('click',()=>{

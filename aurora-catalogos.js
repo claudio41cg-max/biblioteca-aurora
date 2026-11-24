@@ -194,9 +194,11 @@
     const type=document.createElement('span');type.className='aurora-catalog-type';
     const labels={pdf:'PDF',epub:'EPUB',txt:'TXT',audio:'AUDIOLIVRO',online:'ON-LINE',demo:'DEMONSTRAÇÃO'};
     type.textContent=labels[button.dataset.source]||'LIVRO';
+    if(button.dataset.auroraShelved==='no')type.textContent+=' • Fora da estante';
     card.append(holder,name,type);
     card.addEventListener('click',event=>{
       if(wasTurning()){event.preventDefault();return;}
+      if(button.dataset.auroraShelved==='no')button.__auroraCatalogOrigin=holder.getBoundingClientRect();
       close(false);
       // Reaproveita a entrada real: voo, giro, descrição e leitor do mesmo livro.
       button.click();
@@ -262,5 +264,6 @@
       .observe(library,{subtree:true,childList:true});
   }
   document.addEventListener('aurora:book-cover-updated',()=>{if(current&&!overlay.hidden)render();});
+  document.addEventListener('aurora:shelf-visibility',()=>{if(current&&!overlay.hidden)render();});
   window.AuroraCatalogos={open,close};
 })();

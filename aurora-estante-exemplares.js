@@ -101,6 +101,7 @@
       return copy;
     }
     const copy = book.button.cloneNode(true);
+    delete copy.dataset.auroraShelved;
     copy.disabled = false;
     copy.style.visibility = '';
     copy.classList.remove('selected-book');
@@ -685,10 +686,10 @@
     }));
   }
 
-  async function removeBook(key) {
+  async function removeBook(key,{animate=true}={}) {
     const view = active;
     if (!view || view.session) throw new Error('Conclua os ajustes antes de excluir pela lista.');
-    const snapshot=captureRemoval(key);
+    const snapshot=animate?captureRemoval(key):null;
     await updateMembership(view.key,records => withoutBooks(records,new Set([key])));
     if(active !== view)return;
     await playRemovals([snapshot]);
