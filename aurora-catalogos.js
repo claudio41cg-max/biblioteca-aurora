@@ -13,7 +13,7 @@
       description:'Lombada original identificada no arquivo da edição.',
       useRenderedImage:true
     };
-    if(data.spineCrisp==='true')return {
+    if(data.coverDerived==='true'&&data.spineCrisp==='true')return {
       kind:'reconstructed',label:'Lombada reconstruída',
       description:'Lombada ilustrativa reconstruída a partir da capa; não é a lombada original.',
       useRenderedImage:true
