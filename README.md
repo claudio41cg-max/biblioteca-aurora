@@ -1,3 +1,11 @@
+## Atualização v111 — identificação da origem das lombadas no catálogo (24/11/2026)
+
+- O catálogo agora diferencia lombada original extraída do arquivo, lombada reconstruída a partir da capa, aproximação visual da capa e ausência de arte original.
+- A reconstrução continua sendo exibida no volume 3D do catálogo, mas recebe identificação explícita e não é apresentada como fotografia da edição.
+- A etiqueta é atualizada quando a estante termina de preparar a textura da lombada.
+- Alteração restrita ao catálogo e à identificação da arte. Não modifica o modelo 3D principal, os leitores, os arquivos importados, o IndexedDB ou o localStorage.
+- Testes automatizados: `npm test`.
+
 ## Atualização v89 — instalação PWA no Android (21/11/2026)
 
 - Corrigida a instalação inicial: o Service Worker é registrado imediatamente, sem aguardar todos os recursos da página terminarem de carregar.
