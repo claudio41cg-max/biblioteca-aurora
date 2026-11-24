@@ -34,3 +34,10 @@ test('script de controle do laboratório tem sintaxe válida',()=>{
  const inline=page.match(/<script>\s*([\s\S]*?)<\/script>/)?.[1];assert.ok(inline);
  assert.doesNotThrow(()=>new Script(inline));
 });
+
+test('a página offline é autossuficiente e não depende de arquivos externos',()=>{
+  const offline=readFileSync(new URL('../teste-desfragmentacao-offline.html',import.meta.url),'utf8');
+  assert.doesNotMatch(offline,/<script\\s+src=|<link\\s+rel="stylesheet"/i);
+  assert.match(offline,/function paintSweep\\(/);
+  assert.match(offline,/id="testBook"/);
+});
