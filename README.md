@@ -7,7 +7,7 @@
 - O controle **Tamanho dos blocos** permite comparar a escala dos quadrados antes de aprovar a animação.
 - Regressão: `npm run test:desfragmentacao`; regressão de catálogo/lombadas: `npm run test:catalogo`.
 - O Service Worker usa cache isolado `aurora-v112`; os dados do acervo continuam em IndexedDB/LocalStorage e não são apagados.
-- O laboratório não aparece na navegação normal da biblioteca. Em hospedagem estática, abre diretamente por `/teste-desfragmentacao.html`.
+- O laboratório não aparece na navegação normal da biblioteca. O pacote de prévia é gerado no GitHub Actions; a hospedagem HTTPS pode ser ativada depois nas configurações do GitHub Pages, se necessário.
 
 ## Prévia isolada v111
 
