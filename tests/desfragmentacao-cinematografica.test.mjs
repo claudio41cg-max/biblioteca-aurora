@@ -37,7 +37,8 @@ test('script de controle do laboratório tem sintaxe válida',()=>{
 
 test('a página offline é autossuficiente e não depende de arquivos externos',()=>{
   const offline=readFileSync(new URL('../teste-desfragmentacao-offline.html',import.meta.url),'utf8');
-  assert.doesNotMatch(offline,/<script\\s+src=|<link\\s+rel="stylesheet"/i);
-  assert.match(offline,/function paintSweep\\(/);
-  assert.match(offline,/id="testBook"/);
+  assert.equal(offline.includes('<script src='),false);
+  assert.equal(offline.includes('<link rel="stylesheet"'),false);
+  assert.ok(offline.includes('function paintSweep('));
+  assert.ok(offline.includes('id="testBook"'));
 });
