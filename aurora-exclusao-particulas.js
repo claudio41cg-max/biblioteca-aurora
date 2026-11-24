@@ -99,8 +99,11 @@
     const a=Math.floor(x),b=Math.floor(y),u=smooth(x-a),v=smooth(y-b);
     return mix(mix(hash(a,b),hash(a+1,b),u),mix(hash(a,b+1),hash(a+1,b+1),u),v);
   }
+  // Frente de erosão predominantemente horizontal: começa no topo e desce,
+  // com borda irregular suficiente para parecer matéria se desfazendo.
   function field(u,v){
-    return clamp(.12+v*.59+(1-u)*.13+(noise(u*5,v*6)-.5)*.25+(noise(u*21,v*24)-.5)*.095+(noise(u*90,v*105)-.5)*.035,.025,.975);
+    return clamp(.055+v*.79+(noise(u*4.5,v*5.5)-.5)*.18+
+      (noise(u*18,v*23)-.5)*.055+(noise(u*72,v*88)-.5)*.018,.02,.985);
   }
   function canvas(w,h){const c=document.createElement('canvas');c.width=Math.max(1,Math.ceil(w));c.height=Math.max(1,Math.ceil(h));return c;}
   function prepare(snapshot,cinema){
@@ -144,22 +147,44 @@
       gradient.addColorStop(1,'rgba('+rr+','+gg+','+bb+',0)');
       ac.fillStyle=gradient;ac.fillRect(x,y,16,16);return i;
     }
-    const particles=[],count=cinema?clamp(Math.round(w*h/33),1000,2350):clamp(Math.round(w*h/9),120,650);
-    const direction=clip.left+w/2>innerWidth*.67?-1:1,sizeScale=cinema?clamp(Math.sqrt(w*h/65000),.65,1.3):.7;
+    const direction=clip.left+w/2>innerWidth*.67?-1:1;
+    const sizeScale=cinema?clamp(Math.sqrt(w*h/65000),.72,1.28):.7;
+    const fragmentScale=clamp(Number(snapshot.fragmentScale)||1.35,.8,2.1);
+    // Blocos recortados da própria capa: maiores e reconhecíveis, com proporções variadas.
+    const chunks=[],chunkCount=cinema?clamp(Math.round(w*h/100),420,780):clamp(Math.round(w*h/150),90,240);
+    for(let i=0;i<chunkCount*3&&chunks.length<chunkCount;i++){
+      const u=Math.random(),v=Math.random(),[r,g,b,a]=colorAt(u,v);if(a<35)continue;
+      const tier=Math.random();
+      const base=(tier<.075?13+Math.random()*7:tier<.34?8+Math.random()*5:4.8+Math.random()*4.2)*sizeScale*fragmentScale;
+      const width=base*(.78+Math.random()*.48),height=base*(.72+Math.random()*.58);
+      const sw=Math.max(3,Math.min(original.width,Math.round(width/w*original.width)));
+      const sh=Math.max(3,Math.min(original.height,Math.round(height/h*original.height)));
+      const sx=Math.round(u*Math.max(0,original.width-sw)),sy=Math.round(v*Math.max(0,original.height-sh));
+      chunks.push({x:clip.left+u*w,y:clip.top+v*h,release:field(u,v),sx,sy,sw,sh,width,height,
+        life:cinema?2.4+Math.random()*1.6:1+Math.random()*.65,
+        vx:direction*(14+Math.random()*56)+(Math.random()-.5)*38,
+        vy:cinema?10+Math.random()*34:4+Math.random()*18,
+        gravity:cinema?24+Math.random()*46:18+Math.random()*20,
+        phase:Math.random()*6.283,spin:(Math.random()-.5)*5,
+        opacity:.72+Math.random()*.28});
+    }
+    // Poeira fina fica como camada secundária; os fragmentos maiores carregam a ação.
+    const particles=[],count=cinema?clamp(Math.round(w*h/60),650,1400):clamp(Math.round(w*h/9),120,650);
+    const dustScale=cinema?clamp(Math.sqrt(w*h/65000),.65,1.2):.7;
     for(let i=0;i<count*4&&particles.length<count;i++){
       const u=Math.random(),v=Math.random(),[r,g,b,a]=colorAt(u,v);if(a<35)continue;
-      const rare=Math.random(),radius=(rare<.035?1.65+Math.random()*.8:rare<.23?.85+Math.random()*.65:.28+Math.random()*.63)*sizeScale;
-      const p=getColor(r,g,b),dust=rare>.83;
-      particles.push({x:clip.left+u*w,y:clip.top+v*h,release:field(u,v),radius,life:cinema?1.35+Math.random()*2.1:.65+Math.random()*.8,
+      const rare=Math.random(),radius=(rare<.025?1.25+Math.random()*.65:rare<.2?.65+Math.random()*.55:.22+Math.random()*.48)*dustScale;
+      const p=getColor(r,g,b),dust=rare>.76;
+      particles.push({x:clip.left+u*w,y:clip.top+v*h,release:field(u,v),radius,life:cinema?1.5+Math.random()*2.2:.65+Math.random()*.8,
         vx:direction*(17+Math.random()*64)+(Math.random()-.5)*35,vy:(Math.random()-.5)*35-(dust?24:5),
         phase:Math.random()*6.283,spin:.9+Math.random()*2.3,drift:8+Math.random()*21,
-        ax:p%12*16,ay:Math.floor(p/12)*16,opacity:.48+Math.random()*.48,dust});
+        ax:p%12*16,ay:Math.floor(p/12)*16,opacity:.42+Math.random()*.52,dust});
     }
-    const haze=Array.from({length:cinema?24:8},()=>{
+    const haze=Array.from({length:cinema?30:8},()=>{
       const p=particles[Math.floor(Math.random()*particles.length)];
-      return p?{...p,radius:cinema?9+Math.random()*19:5+Math.random()*8,life:cinema?2.2+Math.random()*1.2:1.2}:null;
+      return p?{...p,radius:cinema?10+Math.random()*21:5+Math.random()*8,life:cinema?2.4+Math.random()*1.5:1.2}:null;
     }).filter(Boolean);
-    return {original,mask,mc,md,edge,ec,ed,values,intact,ic,rim,rc,atlas,particles,haze,w,h};
+    return {original,mask,mc,md,edge,ec,ed,values,intact,ic,rim,rc,atlas,chunks,particles,haze,w,h,fragmentScale};
   }
   function paintBook(ctx,e,clip,threshold){
     if(threshold<-.035){ctx.drawImage(e.original,clip.left,clip.top,e.w,e.h);return;}
@@ -179,14 +204,57 @@
     rc.globalCompositeOperation='destination-in';rc.drawImage(original,0,0,rim.width,rim.height);
     rc.globalCompositeOperation='source-over';ctx.globalAlpha=.56;ctx.drawImage(rim,clip.left,clip.top,e.w,e.h);ctx.globalAlpha=1;
   }
+  function paintSweep(ctx,e,clip,threshold){
+    if(threshold<=.015||threshold>=.99)return;
+    const width=e.mask.width,height=e.mask.height,samples=Math.min(100,width);
+    ctx.save();ctx.globalCompositeOperation='screen';ctx.beginPath();
+    let started=false;
+    for(let i=0;i<samples;i++){
+      const xIndex=Math.round(i*(width-1)/Math.max(1,samples-1));
+      let low=0,high=height-1;
+      // Busca a borda da erosão em cada coluna; o campo é majoritariamente monotônico.
+      for(let step=0;step<10;step++){
+        const mid=(low+high)>>1;
+        if(e.values[mid*width+xIndex]<threshold)low=mid+1;else high=mid;
+      }
+      const y=clip.top+low/height*e.h,x=clip.left+xIndex/width*e.w;
+      if(y<clip.top||y>clip.bottom)continue;
+      if(!started){ctx.moveTo(x,y);started=true;}else ctx.lineTo(x,y);
+    }
+    if(started){
+      ctx.lineCap='round';ctx.lineJoin='round';
+      ctx.shadowColor='rgba(255,181,96,.95)';ctx.shadowBlur=18;
+      ctx.strokeStyle='rgba(255,202,132,.92)';ctx.lineWidth=2.5;ctx.stroke();
+      ctx.shadowBlur=5;ctx.strokeStyle='rgba(255,244,220,.96)';ctx.lineWidth=.75;ctx.stroke();
+    }
+    ctx.restore();
+  }
   function paintDust(ctx,e,elapsed,start,span){
     for(const p of e.haze){
       const t=elapsed-start-p.release*span;if(t<=0||t>=p.life)continue;
       const a=t/p.life,x=p.x+p.vx*t*.56+Math.sin(p.phase+t*1.4)*12*t,y=p.y-18*t+Math.cos(p.phase+t)*8*t;
       const radius=p.radius*(.55+a*1.5),g=ctx.createRadialGradient(x,y,0,x,y,radius);
-      g.addColorStop(0,'rgba(156,133,107,'+(.055*Math.sin(Math.PI*a))+')');g.addColorStop(1,'rgba(156,133,107,0)');
+      g.addColorStop(0,'rgba(174,145,111,'+(.075*Math.sin(Math.PI*a))+')');g.addColorStop(1,'rgba(174,145,111,0)');
       ctx.fillStyle=g;ctx.fillRect(x-radius,y-radius,radius*2,radius*2);
     }
+    // Blocos maiores: recortes reais da capa, com rotação, gravidade e bordas em relevo.
+    for(const p of e.chunks){
+      const t=elapsed-start-p.release*span;if(t<0||t>=p.life)continue;
+      const a=t/p.life,drift=Math.sin(p.phase+t*1.7)*p.width*.62;
+      const x=p.x+p.vx*t+drift;
+      const y=p.y+p.vy*t+.5*p.gravity*t*t+Math.cos(p.phase+t*1.5)*p.height*.28;
+      const scale=1-a*.38,ww=p.width*scale,hh=p.height*scale;
+      ctx.save();ctx.translate(x,y);ctx.rotate(p.phase*.12+p.spin*t);
+      ctx.globalAlpha=p.opacity*smooth(t/.07)*Math.pow(1-a,.92);
+      ctx.shadowColor='rgba(12,9,7,.42)';ctx.shadowBlur=3;
+      ctx.drawImage(e.original,p.sx,p.sy,p.sw,p.sh,-ww/2,-hh/2,ww,hh);
+      ctx.shadowBlur=0;ctx.strokeStyle='rgba(255,235,196,.48)';ctx.lineWidth=.55;
+      ctx.strokeRect(-ww/2,-hh/2,ww,hh);
+      ctx.fillStyle='rgba(255,241,211,.22)';ctx.fillRect(-ww/2,-hh/2,ww,.7);
+      ctx.fillStyle='rgba(17,12,9,.22)';ctx.fillRect(-ww/2,hh/2-.7,ww,.7);
+      ctx.restore();
+    }
+    // Poeira pequena acompanha os blocos, sem competir com os quadrados maiores.
     for(const p of e.particles){
       const t=elapsed-start-p.release*span;if(t<0||t>=p.life)continue;
       const a=t/p.life,curl=Math.sin(p.phase+t*p.spin)*p.drift*t*.55;
@@ -220,7 +288,7 @@
         ctx.scale(overlay.width/vw,overlay.height/vh);
         const {bounds,clip,image}=snapshot,reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
         const cinema=Boolean(snapshot.cinematic||source?.id==='scene');
-        const startRelease=cinema?.42:.10,span=cinema?5.2:1.55,duration=reduced?.18:cinema?8.7:3.2;
+        const startRelease=cinema?.32:.10,span=cinema?6.0:1.55,duration=reduced?.18:cinema?9.7:3.2;
         const effect=reduced?null:prepare(snapshot,cinema);
         if(source?.isConnected){source.style.setProperty('visibility','hidden','important');hidden=true;}
         active.add(finish);document.addEventListener('visibilitychange',onVisibility);window.addEventListener('resize',finish,{once:true});
@@ -236,7 +304,9 @@
               ctx.drawImage(image,(clip.left-bounds.left)/bounds.width*image.width,(clip.top-bounds.top)/bounds.height*image.height,
                 clip.width/bounds.width*image.width,clip.height/bounds.height*image.height,clip.left,clip.top,clip.width,clip.height);
             }else{
-              paintBook(ctx,effect,clip,(elapsed-startRelease)/span);
+              const threshold=(elapsed-startRelease)/span;
+              paintBook(ctx,effect,clip,threshold);
+              if(cinema)paintSweep(ctx,effect,clip,threshold);
               paintDust(ctx,effect,elapsed,startRelease,span);
             }
             ctx.globalAlpha=1;
