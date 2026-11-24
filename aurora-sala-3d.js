@@ -18,7 +18,7 @@
   },{
     removePersonal:book=>window.AuroraEstanteExemplares.removeBook(book.personal,{animate:false}),
     done:scope=>{
-      if(scope==='app'){close(true);history.replaceState(null,'',location.href);location.replace('./index.html?v=108');}
+      if(scope==='app'){close(true);history.replaceState(null,'',location.href);location.replace('./index.html?v=110');}
       else close();
     }
   });
