@@ -6,6 +6,30 @@
   const overlay=$('auroraCatalogOverlay');
   const grid=$('auroraCatalogGrid');
   const more=$('auroraCatalogMore');
+  function catalogSpineInfo(button){
+    const data=button?.dataset||{};
+    if(data.realSpine==='true')return {
+      kind:'original',label:'Lombada original',
+      description:'Lombada original identificada no arquivo da edição.',
+      useRenderedImage:true
+    };
+    if(data.spineCrisp==='true')return {
+      kind:'reconstructed',label:'Lombada reconstruída',
+      description:'Lombada ilustrativa reconstruída a partir da capa; não é a lombada original.',
+      useRenderedImage:true
+    };
+    if(data.coverDerived==='true')return {
+      kind:'cover-fallback',label:'Aproximação da capa',
+      description:'Aproximação visual derivada da capa; não é a lombada original.',
+      useRenderedImage:false
+    };
+    return {
+      kind:'unavailable',label:'Sem lombada original',
+      description:'O arquivo não forneceu uma imagem original da lombada.',
+      useRenderedImage:false
+    };
+  }
+  window.AuroraCatalogSpineInfo=catalogSpineInfo;
   if(!window.AuroraShelf)return;
   const shelf=window.AuroraShelf;
   const savedGenerated=new Map();
@@ -95,8 +119,9 @@
     const spine=document.createElement('span');
     spine.className='aurora-catalog-spine';
     const source=front.querySelector('img')?.getAttribute('src')||'';
-    const realSpine=button.dataset.realSpine==='true'||button.dataset.spineCrisp==='true';
-    const spinePhoto=realSpine?button.style.backgroundImage:'';
+    const spineInfo=catalogSpineInfo(button);
+    // A arte reconstruída continua sendo usada visualmente, mas nunca é rotulada como original.
+    const spinePhoto=spineInfo.useRenderedImage?button.style.backgroundImage:'';
     if(spinePhoto&&spinePhoto!=='none'){
       spine.style.backgroundImage=spinePhoto;
       spine.style.backgroundSize='100% 100%';
@@ -188,14 +213,19 @@
     const title=getTitle(button);
     const card=document.createElement('button');
     card.type='button';card.className='aurora-catalog-card';
-    card.setAttribute('aria-label','Abrir '+title+' em 3D. Arraste a capa para girar e ver a contracapa.');
+    const spineInfo=catalogSpineInfo(button);
+    card.setAttribute('aria-label','Abrir '+title+' em 3D. '+spineInfo.description+' Arraste a capa para girar e ver a contracapa.');
     const {holder,wasTurning}=volumeFor(button,title,card);
     const name=document.createElement('span');name.className='aurora-catalog-name';name.textContent=title;
     const type=document.createElement('span');type.className='aurora-catalog-type';
     const labels={pdf:'PDF',epub:'EPUB',txt:'TXT',audio:'AUDIOLIVRO',online:'ON-LINE',demo:'DEMONSTRAÇÃO'};
     type.textContent=labels[button.dataset.source]||'LIVRO';
     if(button.dataset.auroraShelved==='no')type.textContent+=' • Fora da estante';
-    card.append(holder,name,type);
+    const spineNote=document.createElement('span');
+    spineNote.className='aurora-catalog-art-note';
+    spineNote.textContent=spineInfo.label;
+    spineNote.dataset.spineOrigin=spineInfo.kind;
+    card.append(holder,name,type,spineNote);
     card.addEventListener('click',event=>{
       if(wasTurning()){event.preventDefault();return;}
       if(button.dataset.auroraShelved==='no')button.__auroraCatalogOrigin=holder.getBoundingClientRect();
@@ -261,7 +291,10 @@
   const library=$('library');
   if(library&&typeof MutationObserver!=='undefined'){
     new MutationObserver(()=>{if(current&&!overlay.hidden)render();})
-      .observe(library,{subtree:true,childList:true});
+      .observe(library,{
+        subtree:true,childList:true,attributes:true,
+        attributeFilter:['data-real-spine','data-spine-crisp','data-cover-derived']
+      });
   }
   document.addEventListener('aurora:book-cover-updated',()=>{if(current&&!overlay.hidden)render();});
   document.addEventListener('aurora:shelf-visibility',()=>{if(current&&!overlay.hidden)render();});
