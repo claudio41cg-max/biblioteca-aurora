@@ -4,70 +4,60 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 const source=readFileSync(new URL('../aurora-exclusao-particulas.js',import.meta.url),'utf8');
-const page=readFileSync(new URL('../teste-desfragmentacao.html',import.meta.url),'utf8');
-const offline=readFileSync(new URL('../teste-desfragmentacao-offline.html',import.meta.url),'utf8');
+const lab=readFileSync(new URL('../aurora-desfragmentacao-lab.js',import.meta.url),'utf8');
 
-test('motor original de erosão mantém sintaxe válida',()=>{
+test('motor de desfragmentação mantém sintaxe válida',()=>{
   assert.doesNotThrow(()=>new Script(source));
 });
 
-test('a erosão mantém o avanço de cima para baixo e alcança as laterais sem efeito de queimadura',()=>{
+test('não cria nem desenha pedaços sólidos recortados da capa',()=>{
+  assert.equal(source.includes('const chunks=[];'),false);
+  assert.equal(source.includes('e.chunks'),false);
+  assert.equal(source.includes('ctx.clip()'),false);
+  assert.equal(source.includes('fragmentScale'),false);
+  assert.equal(source.includes('fragmentCountScale'),false);
+});
+
+test('mantém poeira fina e permite reduzir seu tamanho até 70%',()=>{
+  assert.ok(source.includes('dustParticleScale=clamp(Number(snapshot.dustParticleScale)||1,.7,1)'));
+  assert.ok(source.includes('*sizeScale*dustParticleScale'));
+  assert.ok(source.includes('*dustParticleScale,life:cinema?2.5'));
+  assert.ok(source.includes('const baseParticleCount=cinema?clamp(Math.round(w*h/52)'));
+  assert.ok(source.includes('dustScale=clamp(Number(snapshot.dustScale)||1,1,1.4)'));
+});
+
+test('a erosão orgânica e a duração cinematográfica são preservadas',()=>{
   assert.ok(source.includes('return clamp(.075+v*.52+(1-u)*.10'));
   assert.ok(source.includes('(u<.16?'));
-  assert.ok(source.includes('ed.data[i*4+3]=Math.round(34*'));
+  assert.ok(source.includes('const startRelease=cinema?.42:.10,span=cinema?5.2:1.55,duration=reduced?.18:cinema?8.7:3.2'));
   assert.equal(source.includes('function paintSweep'),false);
 });
 
-test('fragmentos maiores e irregulares usam a textura original da capa',()=>{
-  assert.ok(source.includes('const chunks=[];'));
-  assert.ok(source.includes('if(cinema||fragmentScale>0)'));
-  assert.ok(source.includes('shape:(()=>{const sides='));
-  assert.ok(source.includes('ctx.drawImage(e.original,p.sx,p.sy,p.sw,p.sh'));
-  assert.ok(source.includes('ctx.clip()'));
-  assert.ok(source.includes('for(const p of e.chunks)'));
+test('o som vem de um arquivo real da biblioteca Woven SFX sob CC0',()=>{
+  assert.ok(source.includes('Woven SFX: swish-whoosh-large.wav'));
+  assert.ok(source.includes('https://assets.sfx.woven.video/sfx/swish-whoosh-large.wav'));
+  assert.ok(source.includes('new Audio(DISSOLVE_SOUND_URL)'));
+  assert.equal(source.includes('AudioContext'),false);
 });
 
-test('fragmentos grandes ficam menores e menos numerosos sem reduzir a poeira fina',()=>{
-  assert.ok(source.includes('Math.round(w*h/7800),11,20'));
-  assert.ok(source.includes('Math.round(w*h/8400),6,13'));
-  assert.ok(source.includes('cinema?7+Math.random()*10:5+Math.random()*6'));
-  assert.ok(source.includes('const duration=3.1'));
-  assert.ok(source.includes('source.start(audio.currentTime)'));
-  assert.ok(source.includes('cinema?8+Math.random()*11:5+Math.random()*7'));
-  assert.ok(source.includes('const baseParticleCount=cinema?clamp(Math.round(w*h/52)'));
-});
-test('som de desfragmentação e vibração são discretos e opcionais',()=>{
-  assert.ok(source.includes('function playDissolveSound()'));
-  assert.ok(source.includes('gain.gain.exponentialRampToValueAtTime(.052'));
+test('som e vibração podem ser desligados pelo laboratório',()=>{
+  assert.ok(source.includes('snapshot.soundEnabled!==false'));
+  assert.ok(source.includes('snapshot.hapticEnabled!==false'));
   assert.ok(source.includes('navigator.vibrate([8,34,7])'));
-  assert.ok(source.includes('if(!reduced){playDissolveSound();addGentleHaptic();}'));
+  assert.ok(lab.includes('shot.soundEnabled=sound.checked'));
+  assert.ok(lab.includes('shot.hapticEnabled=vibration.checked'));
 });
 
-test('a exclusão real ativa fragmentos e poeira com movimento e gravidade',()=>{
-  assert.ok(source.includes('Number(snapshot.fragmentScale)||0'));
-  assert.ok(source.includes('gravity:dust?-5:18+Math.random()*34'));
-  assert.ok(source.includes('(cinema?48:12)*dustScale'));
-  assert.ok(source.includes('ctx.clip()'));
+test('o laboratório controla poeira fina, não fragmentos de capa',()=>{
+  assert.ok(lab.includes('Tamanho da poeira fina'));
+  assert.ok(lab.includes('min="0.7" max="1.0" step="0.05" value="1.0"'));
+  assert.ok(lab.includes('shot.dustParticleScale=Number(slider.value)||1'));
+  assert.ok(lab.includes('shot.dustScale=1.12'));
+  assert.equal(lab.includes('shot.fragmentScale'),false);
+  assert.equal(lab.includes('function startSound()'),false);
+  assert.equal(lab.includes('AudioContext'),false);
 });
 
-test('o laboratório começa com quadradinhos em 1,35x e permite ajustar',()=>{
-  assert.ok(page.includes('Tamanho dos quadradinhos'));
-  assert.ok(page.includes('min="1.0" max="1.8" step="0.05" value="1.35"'));
-  assert.ok(page.includes('snapshot.fragmentScale=Number(slider.value)'));
-});
-
-test('a página offline é autossuficiente e inclui o motor original ajustado',()=>{
-  assert.equal(offline.includes('<script src='),false);
-  assert.equal(offline.includes('<link rel="stylesheet"'),false);
-  assert.ok(offline.includes('const fragmentScale=clamp(Number(snapshot.fragmentScale)||0,0,1.8)'));
-  assert.ok(offline.includes('id="testBook"'));
-});
-
-test('scripts de controle do laboratório têm sintaxe válida',()=>{
-  const start=page.indexOf('<script>'),end=page.indexOf('</script>',start);
-  assert.ok(start>=0&&end>start);
-  assert.doesNotThrow(()=>new Script(page.slice(start+8,end)));
-  const offStart=offline.indexOf('<script>'),offEnd=offline.indexOf('</script>',offStart);
-  assert.ok(offStart>=0&&offEnd>offStart);
-  assert.doesNotThrow(()=>new Script(offline.slice(offStart+8,offEnd)));
+test('o script integrado do laboratório mantém sintaxe válida',()=>{
+  assert.doesNotThrow(()=>new Script(lab));
 });
