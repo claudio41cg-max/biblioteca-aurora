@@ -1,3 +1,14 @@
+## Refino de desfragmentação v115
+
+- Remove completamente os fragmentos sólidos recortados da capa (polígonos/pedaços grandes). A erosão orgânica continua igual.
+- Preserva a poeira fina e as partículas pequenas; o laboratório permite ajustar seu tamanho de 70% a 100%, com 100% como padrão.
+- A quantidade de poeira continua ligeiramente aumentada (+12%) no laboratório.
+- Remove o som sintetizado anterior. O efeito passa a usar o arquivo real `swish-whoosh-large.wav` da biblioteca Woven SFX, hospedado em `assets.sfx.woven.video`, licença CC0 1.0. O som é reproduzido em quatro passagens suaves e decrescentes durante a erosão.
+- Os controles de som e vibração do laboratório passam diretamente para o mesmo motor de animação usado na exclusão real.
+- Se o áudio externo estiver indisponível, a animação e a vibração continuam sem travar.
+- Cache PWA isolado: `aurora-v115`.
+- Nenhum dado da biblioteca é apagado ou regravado.
+
 ## Laboratório integrado de desfragmentação 3D v114
 
 - O botão **Testar desfragmentação 3D** abre um exemplar temporário no mesmo visor WebGL, câmera, iluminação, volume, lombada e perspectiva usados pelos livros reais.
