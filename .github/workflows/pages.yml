@@ -8,20 +8,15 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: biblioteca-aurora-pages
   cancel-in-progress: true
 
 jobs:
-  deploy:
-    name: Publicar site principal
+  build:
+    name: Preparar site estático
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Baixar versão principal
         uses: actions/checkout@v4
@@ -31,7 +26,7 @@ jobs:
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
 
-      - name: Preparar arquivos estáticos da Biblioteca Aurora
+      - name: Preparar arquivos da Biblioteca Aurora
         run: |
           mkdir -p site
           git archive HEAD | tar -x -C site
@@ -39,11 +34,22 @@ jobs:
           rm -f site/README.md site/package.json site/package-lock.json site/PREVIEW-INFO.txt
           find site -type f \( -name '.env' -o -name '.env.*' -o -name '*.pem' -o -name '*.key' \) -delete
 
-      - name: Enviar arquivos para o GitHub Pages
-        uses: actions/upload-pages-artifact@v3
+      - name: Enviar artefato para o GitHub Pages
+        uses: actions/upload-pages-artifact@v4
         with:
           path: site
 
+  deploy:
+    name: Publicar site principal
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Publicar Biblioteca Aurora
         id: deployment
         uses: actions/deploy-pages@v4
