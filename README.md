@@ -377,3 +377,6 @@ A prova v56 foi refinada no leitor PDF **somente de Razão e Sensibilidade**: a 
 
 O ensaio de **Razão e Sensibilidade** não desenha mais falsos filetes horizontais em CSS: agora as bordas direita e inferior recebem recortes da própria função `AuroraEditionSurfaces.paperEdgeCanvas('vertical'/'horizontal')`, que já gera as fibras finíssimas do volume WebGL. A base do miolo é lisa e opaca, e a curva esquerda usa sombra suave, papel no mesmo tom da página e uma dobra mais larga. Quando disponível, a capa de trás real do exemplar é usada por baixo do miolo; na ausência dela, mantém-se a capa original. Apenas este PDF em telefone recebe a experiência. StPageFlip, tempo de 900 ms, marcadores, progresso e demais formatos não foram alterados. O código compartilhado é carregado antes do leitor. Backup: `backup-aurora-v57-antes-miolo-3d-compartilhado-20261117`.
 
+
+## Integração Pages
+O laboratório v114 está preparado para entrar na publicação principal quando este pull request for integrado à branch `main`.
