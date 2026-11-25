@@ -100,7 +100,7 @@
     return mix(mix(hash(a,b),hash(a+1,b),u),mix(hash(a,b+1),hash(a+1,b+1),u),v);
   }
   function field(u,v){
-    return clamp(.12+v*.59+(1-u)*.13+(noise(u*5,v*6)-.5)*.25+(noise(u*21,v*24)-.5)*.095+(noise(u*90,v*105)-.5)*.035,.025,.975);
+    return clamp(.075+v*.52+(1-u)*.10+(u<.16?(1-u/.16)*.13:0)+(u>.84?((u-.84)/.16)*.13:0)+(noise(u*5,v*6)-.5)*.25+(noise(u*21,v*24)-.5)*.095+(noise(u*90,v*105)-.5)*.035,.025,.975);
   }
   function canvas(w,h){const c=document.createElement('canvas');c.width=Math.max(1,Math.ceil(w));c.height=Math.max(1,Math.ceil(h));return c;}
   function prepare(snapshot,cinema){
@@ -126,7 +126,7 @@
     for(let y=0;y<mask.height;y++)for(let x=0;x<mask.width;x++){
       const i=y*mask.width+x;values[i]=field((x+.5)/mask.width,(y+.5)/mask.height);
       md.data[i*4]=md.data[i*4+1]=md.data[i*4+2]=255;
-      ed.data[i*4]=231;ed.data[i*4+1]=199;ed.data[i*4+2]=149;
+      ed.data[i*4]=178;ed.data[i*4+1]=158;ed.data[i*4+2]=132;
     }
     const intact=canvas(original.width,original.height),ic=intact.getContext('2d');
     const rim=canvas(mask.width,mask.height),rc=rim.getContext('2d');
@@ -148,38 +148,38 @@
       gradient.addColorStop(1,'rgba('+rr+','+gg+','+bb+',0)');
       ac.fillStyle=gradient;ac.fillRect(x,y,16,16);return i;
     }
-    const baseParticleCount=cinema?clamp(Math.round(w*h/33),1000,2350):clamp(Math.round(w*h/9),120,650);
-    const particles=[],count=clamp(Math.round(baseParticleCount*dustScale),cinema?1000:120,cinema?2800:780);
-    const direction=clip.left+w/2>innerWidth*.67?-1:1,sizeScale=cinema?clamp(Math.sqrt(w*h/65000),.65,1.3):.7;
+    const baseParticleCount=cinema?clamp(Math.round(w*h/52),720,1550):clamp(Math.round(w*h/16),90,420);
+    const particles=[],count=clamp(Math.round(baseParticleCount*dustScale),cinema?720:90,cinema?1850:520);
+    const direction=clip.left+w/2>innerWidth*.67?-1:1,sizeScale=cinema?clamp(Math.sqrt(w*h/52000),.9,1.55):.9;
     for(let i=0;i<count*4&&particles.length<count;i++){
       const u=Math.random(),v=Math.random(),[r,g,b,a]=colorAt(u,v);if(a<35)continue;
-      const rare=Math.random(),radius=(rare<.035?1.65+Math.random()*.8:rare<.23?.85+Math.random()*.65:.28+Math.random()*.63)*sizeScale;
+      const rare=Math.random(),radius=(rare<.055?2.8+Math.random()*1.7:rare<.31?1.55+Math.random()*1.35:.72+Math.random()*1.05)*sizeScale;
       const p=getColor(r,g,b),dust=rare>.83;
-      particles.push({x:clip.left+u*w,y:clip.top+v*h,release:field(u,v),radius,life:cinema?1.35+Math.random()*2.1:.65+Math.random()*.8,
-        vx:direction*(17+Math.random()*64)+(Math.random()-.5)*35,vy:(Math.random()-.5)*35-(dust?24:5),
-        phase:Math.random()*6.283,spin:.9+Math.random()*2.3,drift:8+Math.random()*21,
+      particles.push({x:clip.left+u*w,y:clip.top+v*h,release:field(u,v),radius,life:cinema?1.7+Math.random()*2.3:.8+Math.random()*.9,
+        vx:direction*(28+Math.random()*92)+(Math.random()-.5)*48,vy:(Math.random()-.5)*42-(dust?20:2),gravity:dust?-5:18+Math.random()*34,
+        phase:Math.random()*6.283,spin:1.2+Math.random()*3.1,drift:10+Math.random()*27,
         ax:p%12*16,ay:Math.floor(p/12)*16,opacity:.48+Math.random()*.48,dust});
     }
     // Poucos quadradinhos recortados da própria capa: complemento discreto à erosão original.
     const chunks=[];
-    if(fragmentScale>0){
-      const baseChunkCount=cinema?clamp(Math.round(w*h/350),85,155):clamp(Math.round(w*h/500),35,90);
-      const chunkCount=clamp(Math.round(baseChunkCount*fragmentCountScale),cinema?85:35,cinema?180:105);
+    if(cinema||fragmentScale>0){
+      const baseChunkCount=cinema?clamp(Math.round(w*h/2200),48,92):clamp(Math.round(w*h/2600),24,52);
+      const chunkCount=clamp(Math.round(baseChunkCount*(cinema?1:fragmentCountScale)),cinema?48:24,cinema?110:60);
       for(let i=0;i<chunkCount*4&&chunks.length<chunkCount;i++){
         const u=Math.random(),v=Math.random(),[r,g,b,a]=colorAt(u,v);if(a<35)continue;
-        const sw=Math.max(4,Math.round((7+Math.random()*5)*fragmentScale));
-        const sh=Math.max(4,Math.round((7+Math.random()*5)*fragmentScale));
+        const sw=Math.max(18,Math.round((cinema?30+Math.random()*42:18+Math.random()*24)*(fragmentScale||1)));
+        const sh=Math.max(18,Math.round((cinema?28+Math.random()*38:18+Math.random()*22)*(fragmentScale||1)));
         const sx=Math.round(u*Math.max(0,original.width-sw)),sy=Math.round(v*Math.max(0,original.height-sh));
         chunks.push({x:clip.left+u*w,y:clip.top+v*h,release:field(u,v),sx,sy,sw,sh,
           width:sw/original.width*w,height:sh/original.height*h,
           life:cinema?1.45+Math.random()*.85:.9+Math.random()*.45,
           vx:(Math.random()-.5)*24,vy:5+Math.random()*16,gravity:cinema?24+Math.random()*22:16+Math.random()*16,
-          phase:Math.random()*6.283,spin:(Math.random()-.5)*3.2,opacity:.72+Math.random()*.25});
+          phase:Math.random()*6.283,spin:(Math.random()-.5)*3.2,opacity:.78+Math.random()*.22,shape:Array.from({length:5+Math.floor(Math.random()*4)},(_,i,all)=>{const angle=i/all.length*Math.PI*2+(Math.random()-.5)*.35,radius=.68+Math.random()*.38;return [Math.cos(angle)*radius,Math.sin(angle)*radius]})});
       }
     }
-    const haze=Array.from({length:Math.round((cinema?24:8)*dustScale)},()=>{
+    const haze=Array.from({length:Math.round((cinema?48:12)*dustScale)},()=>{
       const p=particles[Math.floor(Math.random()*particles.length)];
-      return p?{...p,radius:cinema?9+Math.random()*19:5+Math.random()*8,life:cinema?2.2+Math.random()*1.2:1.2}:null;
+      return p?{...p,radius:cinema?15+Math.random()*27:7+Math.random()*12,life:cinema?2.5+Math.random()*1.7:1.5}:null;
     }).filter(Boolean);
     return {original,mask,mc,md,edge,ec,ed,values,intact,ic,rim,rc,atlas,particles,chunks,haze,w,h};
   }
@@ -190,7 +190,7 @@
     for(let i=0;i<values.length;i++){
       const d=values[i]-threshold;
       md.data[i*4+3]=Math.round(255*smooth((d+.015)/.035));
-      ed.data[i*4+3]=Math.round(110*Math.max(0,1-Math.abs(d-.006)*46)**2);
+      ed.data[i*4+3]=Math.round(34*Math.max(0,1-Math.abs(d-.006)*46)**2);
     }
     mc.putImageData(md,0,0);ec.putImageData(ed,0,0);
     ic.globalCompositeOperation='source-over';ic.clearRect(0,0,intact.width,intact.height);ic.drawImage(original,0,0);
@@ -199,7 +199,7 @@
     // A luminosidade da borda acompanha a forma real, não o retângulo da imagem.
     rc.globalCompositeOperation='source-over';rc.clearRect(0,0,rim.width,rim.height);rc.drawImage(edge,0,0);
     rc.globalCompositeOperation='destination-in';rc.drawImage(original,0,0,rim.width,rim.height);
-    rc.globalCompositeOperation='source-over';ctx.globalAlpha=.56;ctx.drawImage(rim,clip.left,clip.top,e.w,e.h);ctx.globalAlpha=1;
+    rc.globalCompositeOperation='source-over';ctx.globalAlpha=.16;ctx.drawImage(rim,clip.left,clip.top,e.w,e.h);ctx.globalAlpha=1;
   }
   function paintDust(ctx,e,elapsed,start,span){
     for(const p of e.haze){
@@ -217,15 +217,15 @@
       const ww=p.width*(1-a*.22),hh=p.height*(1-a*.22);
       ctx.save();ctx.translate(x,y);ctx.rotate(p.phase*.08+p.spin*t);
       ctx.globalAlpha=p.opacity*smooth(t/.08)*Math.pow(1-a,.95);
-      ctx.shadowColor='rgba(12,9,7,.28)';ctx.shadowBlur=2;
+      ctx.shadowColor='rgba(12,9,7,.32)';ctx.shadowBlur=4;
+      ctx.beginPath();p.shape.forEach((point,i)=>{const px=point[0]*ww/2,py=point[1]*hh/2;i?ctx.lineTo(px,py):ctx.moveTo(px,py)});ctx.closePath();ctx.clip();
       ctx.drawImage(e.original,p.sx,p.sy,p.sw,p.sh,-ww/2,-hh/2,ww,hh);
-      ctx.shadowBlur=0;ctx.strokeStyle='rgba(244,226,190,.32)';ctx.lineWidth=.45;ctx.strokeRect(-ww/2,-hh/2,ww,hh);
       ctx.restore();
     }
     for(const p of e.particles){
       const t=elapsed-start-p.release*span;if(t<0||t>=p.life)continue;
       const a=t/p.life,curl=Math.sin(p.phase+t*p.spin)*p.drift*t*.55;
-      const x=p.x+p.vx*t+curl,y=p.y+p.vy*t+Math.cos(p.phase+t*p.spin)*p.drift*t*.4+(p.dust?-5:12)*t*t;
+      const x=p.x+p.vx*t+curl,y=p.y+p.vy*t+.5*(p.gravity||12)*t*t+Math.cos(p.phase+t*p.spin)*p.drift*t*.4;
       const size=p.radius*2*(1-a*.65)*(1+.16*Math.sin(p.phase+t*3));
       ctx.globalAlpha=p.opacity*smooth(t/.09)*Math.pow(1-a,1.15);
       ctx.drawImage(e.atlas,p.ax,p.ay,16,16,x-size/2,y-size/2,size,size);
