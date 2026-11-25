@@ -27,6 +27,18 @@ test('fragmentos maiores e irregulares usam a textura original da capa',()=>{
   assert.ok(source.includes('for(const p of e.chunks)'));
 });
 
+test('fragmentos grandes ficam menores e menos numerosos sem reduzir a poeira fina',()=>{
+  assert.ok(source.includes('Math.round(w*h/3900),22,40'));
+  assert.ok(source.includes('cinema?15+Math.random()*21:9+Math.random()*12'));
+  assert.ok(source.includes('const baseParticleCount=cinema?clamp(Math.round(w*h/52)'));
+});
+test('som de desfragmentação e vibração são discretos e opcionais',()=>{
+  assert.ok(source.includes('function playDissolveSound()'));
+  assert.ok(source.includes('gain.gain.exponentialRampToValueAtTime(.018'));
+  assert.ok(source.includes('navigator.vibrate([8,34,7])'));
+  assert.ok(source.includes('if(!reduced){playDissolveSound();addGentleHaptic();}'));
+});
+
 test('a exclusão real ativa fragmentos e poeira com movimento e gravidade',()=>{
   assert.ok(source.includes('Number(snapshot.fragmentScale)||0'));
   assert.ok(source.includes('gravity:dust?-5:18+Math.random()*34'));
