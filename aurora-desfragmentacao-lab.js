@@ -48,7 +48,7 @@
   const launch=document.createElement('button');
   launch.type='button';launch.id='auroraLabLaunch';launch.className='aurora-lab-launch';
   launch.textContent='✦ Testar desfragmentação 3D';
-  launch.dataset.source='demo';launch.dataset.bookId='aurora-lab-demo-v114';launch.dataset.rawTitle='Livro de teste Aurora';
+  launch.dataset.source='demo';launch.dataset.bookId='aurora-lab-demo-v115';launch.dataset.rawTitle='Livro de teste Aurora';
   launch.setAttribute('aria-label','Abrir livro temporário no visor 3D para testar a desfragmentação');
   tools.append(launch);
 
@@ -62,11 +62,11 @@
       <strong>Laboratório de desfragmentação</strong>
       <small>Exemplar temporário • sem exclusão do acervo</small>
     </div>
-    <p class="aurora-lab-description">Este é o mesmo visor 3D usado pelos livros da sua estante. A animação é executada sobre a captura do volume real, mantendo perspectiva, iluminação, lombada e espessura.</p>
+    <p class="aurora-lab-description">Este é o mesmo visor 3D usado pelos livros da sua estante. A animação usa a captura do volume real e dispersa somente poeira fina, sem pedaços sólidos recortados da capa.</p>
     <div class="aurora-lab-row">
-      <label for="auroraLabFragmentSize">Tamanho dos quadradinhos</label>
-      <output id="auroraLabFragmentValue" for="auroraLabFragmentSize">1,45×</output>
-      <input id="auroraLabFragmentSize" type="range" min="1.2" max="1.8" step="0.05" value="1.45">
+      <label for="auroraLabDustSize">Tamanho da poeira fina</label>
+      <output id="auroraLabDustValue" for="auroraLabDustSize">100%</output>
+      <input id="auroraLabDustSize" type="range" min="0.7" max="1.0" step="0.05" value="1.0">
     </div>
     <div class="aurora-lab-toggles">
       <label><input id="auroraLabSound" type="checkbox" checked> Som da desfragmentação</label>
@@ -81,9 +81,9 @@
   if(actions)actions.after(panel);else showcase.append(panel);
 
   const scene=$('scene'),cssBook=$('book3d'),back=$('auroraShowBack');
-  const run=$('auroraLabRun'),slider=$('auroraLabFragmentSize'),value=$('auroraLabFragmentValue');
+  const run=$('auroraLabRun'),slider=$('auroraLabDustSize'),value=$('auroraLabDustValue');
   const sound=$('auroraLabSound'),vibration=$('auroraLabVibration'),status=$('auroraLabStatus');
-  let busy=false,stopSound=null,stopVibration=null;
+  let busy=false;
 
   function drawCover(backSide=false){
     const c=document.createElement('canvas');c.width=900;c.height=1320;
@@ -128,7 +128,7 @@
   }
   function createDemoBook(){
     return {
-      id:'aurora-lab-demo-v114',
+      id:'aurora-lab-demo-v115',
       name:'Livro de teste Aurora',
       title:'Livro de teste Aurora',
       author:'Laboratório visual da Biblioteca Aurora',
@@ -140,80 +140,7 @@
     };
   }
 
-  function startSound(){
-    const AudioContext=window.AudioContext||window.webkitAudioContext;
-    if(!AudioContext)return null;
-    let context;
-    try{
-      context=new AudioContext();
-      const now=context.currentTime,duration=8.7;
-      const master=context.createGain();master.gain.setValueAtTime(.0001,now);
-      master.gain.linearRampToValueAtTime(.15,now+.45);
-      master.gain.setValueAtTime(.12,now+5.9);
-      master.gain.exponentialRampToValueAtTime(.0001,now+duration);
-      master.connect(context.destination);
-
-      const length=Math.floor(context.sampleRate*duration);
-      const buffer=context.createBuffer(1,length,context.sampleRate),data=buffer.getChannelData(0);
-      for(let i=0;i<length;i++){
-        const t=i/context.sampleRate;
-        const fade=Math.min(1,t/.35,(duration-t)/1.1);
-        const grains=.52+.24*Math.sin(t*2*Math.PI*5.2)+.13*Math.sin(t*2*Math.PI*12.5);
-        data[i]=(Math.random()*2-1)*Math.max(0,fade)*grains;
-      }
-      const noise=context.createBufferSource();noise.buffer=buffer;
-      const high=context.createBiquadFilter();high.type='highpass';high.frequency.setValueAtTime(105,now);
-      const low=context.createBiquadFilter();low.type='lowpass';low.frequency.setValueAtTime(1650,now);low.frequency.exponentialRampToValueAtTime(430,now+duration);
-      noise.connect(high).connect(low).connect(master);noise.start(now);noise.stop(now+duration);
-
-      const rumble=context.createOscillator(),rumbleGain=context.createGain();
-      rumble.type='triangle';rumble.frequency.setValueAtTime(68,now);rumble.frequency.exponentialRampToValueAtTime(34,now+duration);
-      rumbleGain.gain.setValueAtTime(.0001,now);rumbleGain.gain.linearRampToValueAtTime(.022,now+.6);
-      rumbleGain.gain.exponentialRampToValueAtTime(.0001,now+duration);
-      rumble.connect(rumbleGain).connect(master);rumble.start(now);rumble.stop(now+duration);
-
-      const crackleLength=Math.floor(context.sampleRate*.055);
-      const crackleBuffer=context.createBuffer(1,crackleLength,context.sampleRate);
-      const crackleData=crackleBuffer.getChannelData(0);
-      for(let i=0;i<crackleLength;i++)crackleData[i]=(Math.random()*2-1)*(1-i/crackleLength);
-      for(let i=0;i<22;i++){
-        const when=now+.35+Math.random()*7.5;
-        const pop=context.createBufferSource();pop.buffer=crackleBuffer;
-        const band=context.createBiquadFilter();band.type='bandpass';band.frequency.value=750+Math.random()*1750;band.Q.value=.85;
-        const gain=context.createGain();gain.gain.setValueAtTime(.0001,when);
-        gain.gain.linearRampToValueAtTime(.16,when+.006);gain.gain.exponentialRampToValueAtTime(.0001,when+.06);
-        pop.connect(band).connect(gain).connect(master);pop.start(when);pop.stop(when+.07);
-      }
-      context.resume?.().catch(()=>{});
-      return ()=>{
-        try{const t=context.currentTime;master.gain.cancelScheduledValues(t);master.gain.setTargetAtTime(.0001,t,.035);}catch{}
-        setTimeout(()=>{try{context.close();}catch{}},180);
-      };
-    }catch(error){
-      try{context?.close();}catch{}
-      console.warn('Som da desfragmentação indisponível:',error);
-      return null;
-    }
-  }
-
-  function startVibration(){
-    if(typeof navigator.vibrate!=='function')return null;
-    const pulse=(pattern)=>{try{navigator.vibrate(pattern);}catch{}};
-    pulse([10,42,8]);
-    const timers=[
-      setTimeout(()=>pulse([8,48,8]),2450),
-      setTimeout(()=>pulse([10,54,8]),5050),
-      setTimeout(()=>pulse([8,38,8]),7200)
-    ];
-    return ()=>{
-      timers.forEach(clearTimeout);
-      try{navigator.vibrate(0);}catch{}
-    };
-  }
-
   function cleanup(){
-    stopSound?.();stopSound=null;
-    stopVibration?.();stopVibration=null;
     busy=false;run.disabled=false;slider.disabled=false;sound.disabled=false;vibration.disabled=false;
     showcase.classList.remove('aurora-lab-demo');
     panel.hidden=true;
@@ -227,20 +154,13 @@
       return;
     }
     shot.cinematic=true;
-    shot.fragmentScale=Number(slider.value)||1.45;
-    shot.fragmentCountScale=1.12;
+    shot.dustParticleScale=Number(slider.value)||1;
     shot.dustScale=1.12;
+    shot.soundEnabled=sound.checked;
+    shot.hapticEnabled=vibration.checked;
 
     busy=true;run.disabled=true;slider.disabled=true;sound.disabled=true;vibration.disabled=true;
-    status.textContent='Desfragmentando o livro 3D… os fragmentos e a poeira estão acompanhando a erosão.';
-    if(sound.checked){
-      stopSound=startSound();
-      if(!stopSound)status.textContent='Som indisponível neste navegador. A animação continuará normalmente.';
-    }
-    if(vibration.checked){
-      stopVibration=startVibration();
-      if(!stopVibration)status.textContent='Vibração não disponível neste navegador. A animação continuará normalmente.';
-    }
+    status.textContent='Desfragmentando o livro 3D… somente poeira fina, sem pedaços da capa.';
     try{
       await window.AuroraBookParticles?.play(shot);
       status.textContent='Teste concluído. O mesmo livro 3D continua no visor; nenhum item do acervo foi alterado.';
@@ -248,12 +168,11 @@
       console.warn('Falha no laboratório de desfragmentação:',error);
       status.textContent='A animação foi interrompida. O livro de teste continua preservado.';
     }finally{
-      stopSound?.();stopSound=null;stopVibration?.();stopVibration=null;
       busy=false;run.disabled=false;slider.disabled=false;sound.disabled=false;vibration.disabled=false;
     }
   }
 
-  slider.addEventListener('input',()=>{value.value=Number(slider.value).toFixed(2).replace('.',',')+'×';});
+  slider.addEventListener('input',()=>{value.value=Math.round(Number(slider.value)*100)+'%';});
   run.addEventListener('click',runTest);
   launch.addEventListener('click',()=>{
     if(!window.AuroraShelfViewer?.open){
