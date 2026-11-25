@@ -174,7 +174,7 @@
           width:sw/original.width*w,height:sh/original.height*h,
           life:cinema?1.45+Math.random()*.85:.9+Math.random()*.45,
           vx:(Math.random()-.5)*24,vy:5+Math.random()*16,gravity:cinema?24+Math.random()*22:16+Math.random()*16,
-          phase:Math.random()*6.283,spin:(Math.random()-.5)*3.2,opacity:.78+Math.random()*.22,shape:Array.from({length:5+Math.floor(Math.random()*4)},(_,i,all)=>{const angle=i/all.length*Math.PI*2+(Math.random()-.5)*.35,radius=.68+Math.random()*.38;return [Math.cos(angle)*radius,Math.sin(angle)*radius]})});
+          phase:Math.random()*6.283,spin:(Math.random()-.5)*3.2,opacity:.78+Math.random()*.22,shape:(()=>{const sides=5+Math.floor(Math.random()*4);return Array.from({length:sides},(_,i)=>{const angle=i/sides*Math.PI*2+(Math.random()-.5)*.35,radius=.68+Math.random()*.38;return [Math.cos(angle)*radius,Math.sin(angle)*radius]})})()});
       }
     }
     const haze=Array.from({length:Math.round((cinema?48:12)*dustScale)},()=>{
