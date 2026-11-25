@@ -588,10 +588,31 @@ function initialize(){
       clearModel(previewGroup);
     }
   }
-  function captureFrame(){
-    stopMotion();render();
-    const copy=document.createElement('canvas');copy.width=renderer.domElement.width;copy.height=renderer.domElement.height;
-    copy.getContext('2d').drawImage(renderer.domElement,0,0);return copy;
+  function captureFrame(options={}){
+    stopMotion();
+    const previous={x:rotation.x,y:rotation.y,hinge:frontHinge?.rotation.y??0};
+    const useVolumePose=Boolean(options.volumePose&&currentBook&&!opening);
+    if(useVolumePose){
+      const pitch=Number.isFinite(options.pitch)?options.pitch:.16;
+      const yaw=Number.isFinite(options.yaw)?options.yaw:.72;
+      rotation={x:pitch,y:yaw};
+      group.rotation.set(rotation.x,rotation.y,0);
+    }
+    let copy;
+    try{
+      render();
+      copy=document.createElement('canvas');copy.width=renderer.domElement.width;copy.height=renderer.domElement.height;
+      copy.getContext('2d').drawImage(renderer.domElement,0,0);
+    }finally{
+      // O ângulo usado para a captura é temporário: o livro volta exatamente à pose anterior.
+      if(useVolumePose){
+        rotation={x:previous.x,y:previous.y};
+        group.rotation.set(rotation.x,rotation.y,0);
+        if(frontHinge)frontHinge.rotation.y=previous.hinge;
+        render();
+      }
+    }
+    return copy;
   }
   window.Aurora3D={display,setPose,reset,playOpen,renderShelfPreview,captureFrame};
   window.addEventListener('aurora:book-selected',event=>display(event.detail));
