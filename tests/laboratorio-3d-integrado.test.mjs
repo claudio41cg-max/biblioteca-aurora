@@ -16,12 +16,12 @@ test('laboratório abre o mesmo visor 3D da Biblioteca Aurora',()=>{
   assert.ok(lab.includes("window.AuroraShelfViewer.open(launch,createDemoBook())"));
   assert.ok(lab.includes("showcase.classList.add('aurora-lab-demo')"));
   assert.ok(lab.includes("window.AuroraBookActions?.capture(scene,cssBook)"));
-  assert.ok(html.includes('aurora-desfragmentacao-lab.js?v=1'));
+  assert.ok(html.includes('aurora-desfragmentacao-lab.js?v=2'));
 });
 
 test('livro de teste é um modelo 3D temporário e não é salvo no acervo',()=>{
   assert.ok(lab.includes("format:'demo'"));
-  assert.ok(lab.includes("id:'aurora-lab-demo-v114'"));
+  assert.ok(lab.includes("id:'aurora-lab-demo-v115'"));
   assert.ok(lab.includes('cover:drawCover(false),back:drawCover(true),spine:drawSpine()'));
   assert.ok(lab.includes("window.addEventListener('aurora:book-closed',cleanup)"));
   assert.equal(lab.includes('indexedDB'),false);
@@ -35,21 +35,20 @@ test('o toque na capa do exemplar temporário não abre o leitor',()=>{
   assert.ok(lab.includes('window.Aurora3D?.reset?.()'));
 });
 
-test('o teste usa o mesmo motor de partículas e aumenta só um pouco os efeitos',()=>{
+test('o laboratório usa o motor de poeira sem pedaços de capa',()=>{
   assert.ok(lab.includes('window.AuroraBookParticles?.play(shot)'));
-  assert.ok(lab.includes('shot.fragmentScale=Number(slider.value)||1.45'));
-  assert.ok(lab.includes('shot.fragmentCountScale=1.12'));
+  assert.ok(lab.includes('shot.dustParticleScale=Number(slider.value)||1'));
   assert.ok(lab.includes('shot.dustScale=1.12'));
-  assert.ok(engine.includes('Number(snapshot.fragmentCountScale)||1'));
-  assert.ok(engine.includes('Number(snapshot.dustScale)||1'));
+  assert.ok(engine.includes('dustParticleScale=clamp(Number(snapshot.dustParticleScale)||1,.7,1)'));
+  assert.equal(engine.includes('const chunks=[];'),false);
 });
 
-test('som sintetizado e vibração são opcionais e iniciados pelo botão do usuário',()=>{
-  assert.ok(lab.includes('window.AudioContext||window.webkitAudioContext'));
-  assert.ok(lab.includes('function startVibration()'));
-  assert.ok(lab.includes('navigator.vibrate(0)'));
-  assert.ok(lab.includes('sound.checked'));
-  assert.ok(lab.includes('vibration.checked'));
+test('som externo e vibração são opcionais e controlados pelos checkboxes',()=>{
+  assert.ok(lab.includes('shot.soundEnabled=sound.checked'));
+  assert.ok(lab.includes('shot.hapticEnabled=vibration.checked'));
+  assert.ok(engine.includes('https://assets.sfx.woven.video/sfx/swish-whoosh-large.wav'));
+  assert.ok(engine.includes('navigator.vibrate([8,34,7])'));
+  assert.equal(lab.includes('AudioContext'),false);
 });
 
 test('a captura do livro 3D é a mesma função usada na exclusão normal',()=>{
