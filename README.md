@@ -1,3 +1,14 @@
+## Biblioteca Aurora v116 — poeira refinada e som CC0
+
+- Os fragmentos sólidos que pareciam pedaços da capa continuam removidos: o motor não gera nem desenha `chunks`.
+- Os grãos maiores de poeira foram reduzidos para aproximadamente 70% do raio anterior; os grãos pequenos permanecem praticamente no mesmo tamanho.
+- A poeira difusa (haze) também foi reduzida em cerca de 30%, sem retirar a nuvem fina.
+- O som anterior de whoosh repetido foi substituído por três arquivos reais da biblioteca SpritePilot: **Spell cast**, **Wind spell** e **Buff**, em volumes baixos e sincronizados com a progressão.
+- Fonte: https://spritepilot.com/free-game-assets/sound-effects/magic
+- Licença: CC0 1.0, conforme declarada pela biblioteca. Sons externos são opcionais pelo controle do laboratório.
+- O controle de poeira fina permanece disponível entre 70% e 100%; o valor inicial preserva os grãos pequenos.
+- Cache PWA: `aurora-v116`. O livro de teste continua temporário e não acessa o acervo.
+
 ## Refino de desfragmentação v115 — publicação principal
 
 - Remove completamente os fragmentos sólidos recortados da capa (polígonos/pedaços grandes). A erosão orgânica continua igual.

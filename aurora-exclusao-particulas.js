@@ -152,7 +152,8 @@
     const direction=clip.left+w/2>innerWidth*.67?-1:1,sizeScale=cinema?clamp(Math.sqrt(w*h/52000),.9,1.55):.9;
     for(let i=0;i<count*4&&particles.length<count;i++){
       const u=Math.random(),v=Math.random(),[r,g,b,a]=colorAt(u,v);if(a<35)continue;
-      const rare=Math.random(),radius=(rare<.055?2.8+Math.random()*1.7:rare<.31?1.55+Math.random()*1.35:.72+Math.random()*1.05)*sizeScale*dustParticleScale;
+      // A faixa de grãos maiores fica em ~70% do tamanho anterior; os grãos pequenos permanecem praticamente iguais.
+      const rare=Math.random(),radius=(rare<.055?1.95+Math.random()*1.2:rare<.31?1.45+Math.random()*1.1:.72+Math.random()*.95)*sizeScale*dustParticleScale;
       const p=getColor(r,g,b),dust=rare>.83;
       particles.push({x:clip.left+u*w,y:clip.top+v*h,release:field(u,v),radius,life:cinema?1.7+Math.random()*2.3:.8+Math.random()*.9,
         vx:direction*(28+Math.random()*92)+(Math.random()-.5)*48,vy:(Math.random()-.5)*42-(dust?20:2),gravity:dust?-5:18+Math.random()*34,
@@ -161,7 +162,7 @@
     }
     const haze=Array.from({length:Math.round((cinema?48:12)*dustScale)},()=>{
       const p=particles[Math.floor(Math.random()*particles.length)];
-      return p?{...p,radius:(cinema?15+Math.random()*27:7+Math.random()*12)*dustParticleScale,life:cinema?2.5+Math.random()*1.7:1.5}:null;
+      return p?{...p,radius:(cinema?10+Math.random()*19:5+Math.random()*8)*dustParticleScale,life:cinema?2.5+Math.random()*1.7:1.5}:null;
     }).filter(Boolean);
     return {original,mask,mc,md,edge,ec,ed,values,intact,ic,rim,rc,atlas,particles,haze,w,h};
   }
@@ -201,25 +202,31 @@
     }
     ctx.globalAlpha=1;
   }
-  // Woven SFX: swish-whoosh-large.wav (0,789 s), licença CC0 1.0.
-  // Quatro passagens curtas e decrescentes acompanham a descida da poeira, sem grave de suspense.
-  const DISSOLVE_SOUND_URL='https://assets.sfx.woven.video/sfx/swish-whoosh-large.wav';
+  // Fontes externas SpritePilot, biblioteca CC0 1.0: whoosh com brilho, vento suave e shimmer final.
+  // Sem drones graves, impactos ou repetição do mesmo whoosh.
+  const SPELL_CAST_SOUND_URL='https://spritepilot.com/free-assets/sound-effects/magic/spell-cast.ogg';
+  const WIND_SPELL_SOUND_URL='https://spritepilot.com/free-assets/sound-effects/magic/wind-spell.ogg';
+  const BUFF_SOUND_URL='https://spritepilot.com/free-assets/sound-effects/magic/buff.ogg';
   function playDissolveSound(){
     if(typeof Audio==='undefined')return null;
     const players=[],timers=[];let stopped=false;
-    const cues=[{at:0,volume:.14},{at:2350,volume:.11},{at:4700,volume:.085},{at:7050,volume:.06}];
-    const playCue=volume=>{
+    const cues=[
+      {at:0,url:SPELL_CAST_SOUND_URL,volume:.18},
+      {at:3350,url:WIND_SPELL_SOUND_URL,volume:.12},
+      {at:6550,url:BUFF_SOUND_URL,volume:.09}
+    ];
+    const playCue=cue=>{
       if(stopped)return;
       try{
-        const audio=new Audio(DISSOLVE_SOUND_URL);
-        audio.preload='auto';audio.volume=volume;
+        const audio=new Audio(cue.url);
+        audio.preload='auto';audio.volume=cue.volume;
         players.push(audio);
         const promise=audio.play();
         if(promise&&typeof promise.catch==='function')promise.catch(()=>{});
       }catch{}
     };
-    playCue(cues[0].volume);
-    for(const cue of cues.slice(1))timers.push(setTimeout(()=>playCue(cue.volume),cue.at));
+    playCue(cues[0]);
+    for(const cue of cues.slice(1))timers.push(setTimeout(()=>playCue(cue),cue.at));
     return ()=>{
       stopped=true;timers.forEach(clearTimeout);
       players.forEach(audio=>{try{audio.pause();audio.currentTime=0;}catch{}});

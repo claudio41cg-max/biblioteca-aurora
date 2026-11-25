@@ -16,12 +16,12 @@ test('laboratório abre o mesmo visor 3D da Biblioteca Aurora',()=>{
   assert.ok(lab.includes("window.AuroraShelfViewer.open(launch,createDemoBook())"));
   assert.ok(lab.includes("showcase.classList.add('aurora-lab-demo')"));
   assert.ok(lab.includes("window.AuroraBookActions?.capture(scene,cssBook)"));
-  assert.ok(html.includes('aurora-desfragmentacao-lab.js?v=2'));
+  assert.ok(html.includes('aurora-desfragmentacao-lab.js?v=3'));
 });
 
 test('livro de teste é um modelo 3D temporário e não é salvo no acervo',()=>{
   assert.ok(lab.includes("format:'demo'"));
-  assert.ok(lab.includes("id:'aurora-lab-demo-v115'"));
+  assert.ok(lab.includes("id:'aurora-lab-demo-v116'"));
   assert.ok(lab.includes('cover:drawCover(false),back:drawCover(true),spine:drawSpine()'));
   assert.ok(lab.includes("window.addEventListener('aurora:book-closed',cleanup)"));
   assert.equal(lab.includes('indexedDB'),false);
@@ -46,7 +46,10 @@ test('o laboratório usa o motor de poeira sem pedaços de capa',()=>{
 test('som externo e vibração são opcionais e controlados pelos checkboxes',()=>{
   assert.ok(lab.includes('shot.soundEnabled=sound.checked'));
   assert.ok(lab.includes('shot.hapticEnabled=vibration.checked'));
-  assert.ok(engine.includes('https://assets.sfx.woven.video/sfx/swish-whoosh-large.wav'));
+  assert.ok(engine.includes('https://spritepilot.com/free-assets/sound-effects/magic/spell-cast.ogg'));
+  assert.ok(engine.includes('https://spritepilot.com/free-assets/sound-effects/magic/wind-spell.ogg'));
+  assert.ok(engine.includes('https://spritepilot.com/free-assets/sound-effects/magic/buff.ogg'));
+  assert.equal(engine.includes('assets.sfx.woven.video'),false);
   assert.ok(engine.includes('navigator.vibrate([8,34,7])'));
   assert.equal(lab.includes('AudioContext'),false);
 });
