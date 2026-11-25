@@ -28,6 +28,15 @@ test('mantém poeira fina e permite reduzir seu tamanho até 70%',()=>{
   assert.ok(source.includes('dustScale=clamp(Number(snapshot.dustScale)||1,1,1.4)'));
 });
 
+test('a fumaça difusa ganha volume sem criar fragmentos sólidos',()=>{
+  assert.ok(source.includes('cinema?58:14'));
+  assert.ok(source.includes('cinema?12+Math.random()*20:6+Math.random()*9'));
+  assert.ok(source.includes('opacity=.07*Math.sin(Math.PI*a)'));
+  assert.ok(source.includes('ctx.scale(1.45,.76)'));
+  assert.ok(source.includes('Nuvens elípticas e translúcidas'));
+  assert.equal(source.includes('const chunks=[];'),false);
+});
+
 test('a erosão orgânica e a duração cinematográfica são preservadas',()=>{
   assert.ok(source.includes('return clamp(.075+v*.52+(1-u)*.10'));
   assert.ok(source.includes('(u<.16?'));
