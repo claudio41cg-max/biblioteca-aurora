@@ -1,0 +1,53 @@
+name: Publicar prévia HTTPS da Biblioteca Aurora v114
+
+on:
+  push:
+    branches:
+      - laboratorio-integrado-3d-v114
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: biblioteca-aurora-pages-preview
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Publicar ambiente temporário de testes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Baixar código da versão de teste
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Habilitar GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Preparar o aplicativo completo
+        run: |
+          mkdir -p site
+          git archive HEAD | tar -x -C site
+          rm -rf site/.github site/tests site/.vercel site/node_modules
+          find site -type f \( -name '.env' -o -name '.env.*' -o -name '*.pem' -o -name '*.key' \) -delete
+          printf 'Biblioteca Aurora v114 - PREVIA TEMPORARIA\nCommit: %s\nBranch: %s\n' "$GITHUB_SHA" "$GITHUB_REF_NAME" > site/PREVIA-V114.txt
+
+      - name: Enviar site para hospedagem
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Publicar site HTTPS
+        id: deployment
+        uses: actions/deploy-pages@v4
