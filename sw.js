@@ -1,13 +1,13 @@
-const CACHE = 'aurora-v89';
+const CACHE = 'aurora-v114';
 // O cache inicial precisa ser leve para ativar o PWA rapidamente no celular.
 // Os demais arquivos da estante, do livro 3D e dos leitores são cacheados
 // quando usados. O conteúdo importado continua no armazenamento local.
 // As versões dos arquivos preservam no mesmo cache os leitores já baixados.
-const HOME = './index.html?v=110';
-const EDITOR = './nova-estante.html?v=110';
+const HOME = './index.html?v=114';
+const EDITOR = './nova-estante.html?v=114';
 const CORE = [
   HOME,
-  './manifest.webmanifest?v=110',
+  './manifest.webmanifest?v=114',
   './aurora-pwa.js?v=2',
   './aurora-pwa.css?v=2',
   './icons/aurora-192.png',

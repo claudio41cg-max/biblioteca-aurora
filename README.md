@@ -1,3 +1,51 @@
+## Laboratório integrado de desfragmentação 3D v114
+
+- O botão **Testar desfragmentação 3D** abre um exemplar temporário no mesmo visor WebGL, câmera, iluminação, volume, lombada e perspectiva usados pelos livros reais.
+- O livro de demonstração é criado apenas em memória; não é importado nem salvo no acervo.
+- A captura usa a mesma função da exclusão normal e o mesmo motor de erosão orgânica.
+- O laboratório acrescenta discretamente quadradinhos e poeira (escalas 1,12×), som sintetizado de dissolução e vibração tátil suave no Android.
+- O livro de teste não abre leitor, não chama a rotina de exclusão e reaparece ao final de cada animação.
+- O laboratório não acessa IndexedDB nem LocalStorage para criar, remover ou alterar livros.
+- Cache PWA isolado: `aurora-v114`.
+- Testes: `npm run test:catalogo` e `npm run test:desfragmentacao`.
+
+## Laboratório de desfragmentação v113 — baseado no efeito original
+
+- O motor recupera a erosão orgânica e a máscara de dissolução do efeito original v110.
+- Não usa a linha dourada de erosão nem a nuvem de centenas de blocos da experiência v112.
+- O laboratório acrescenta apenas uma camada discreta de quadradinhos recortados da capa, com tamanho inicial 1,35×, queda curta e rotação moderada.
+- A camada de quadradinhos só é ativada quando o laboratório define `snapshot.fragmentScale`; a exclusão normal não recebe esse parâmetro e mantém o comportamento original.
+- A página `teste-desfragmentacao.html` e a versão autossuficiente `teste-desfragmentacao-offline.html` continuam separadas do acervo.
+- Regressão: `npm run test:desfragmentacao`; catálogo/lombadas: `npm run test:catalogo`.
+- Cache PWA de teste: `aurora-v113`. Nenhum dado de livros é apagado.
+
+## Laboratório de desfragmentação v112
+
+- As páginas `teste-desfragmentacao.html` e `teste-desfragmentacao-offline.html` contêm somente um livro cenográfico, fora do acervo real. A segunda é um HTML autossuficiente para abrir localmente no Android, sem depender de outros arquivos.
+- O botão **Excluir livro de teste** executa a animação e restaura a mesma demonstração ao terminar. Não chama a rotina de exclusão da Aurora.
+- A página não usa IndexedDB, LocalStorage, importação, progresso de leitura ou arquivos do usuário.
+- A desfragmentação v112 começa no topo, desce em uma frente irregular e usa blocos maiores recortados da própria arte, com gravidade, rotação, poeira fina e uma linha de erosão iluminada.
+- O controle **Tamanho dos blocos** permite comparar a escala dos quadrados antes de aprovar a animação.
+- Regressão: `npm run test:desfragmentacao`; regressão de catálogo/lombadas: `npm run test:catalogo`.
+- O Service Worker usa cache isolado `aurora-v112`; os dados do acervo continuam em IndexedDB/LocalStorage e não são apagados.
+- O laboratório não aparece na navegação normal da biblioteca. O pacote de prévia é gerado no GitHub Actions; a hospedagem HTTPS pode ser ativada depois nas configurações do GitHub Pages, se necessário.
+
+## Prévia isolada v111
+
+- A regressão focada é executada por `npm run test:catalogo`; `npm test` continua disponível para a suíte completa.
+- Após os testes, o GitHub Actions empacota os arquivos estáticos da branch em um artefato de prévia com retenção de 7 dias.
+- O pacote é código estático, não uma URL hospedada. Para testar instalação PWA no Android, ele precisa ser servido por HTTPS; abrir o HTML diretamente como arquivo não valida o Service Worker.
+- O cache PWA da v112 usa `aurora-v112`. Os dados dos livros permanecem em IndexedDB/localStorage; o Service Worker só renova Cache Storage.
+
+## Atualização v111 — identificação da origem das lombadas no catálogo (24/11/2026)
+
+- O catálogo agora diferencia lombada original extraída do arquivo, lombada reconstruída a partir da capa, aproximação visual da capa e ausência de arte original.
+- A reconstrução continua sendo exibida no volume 3D do catálogo, mas recebe identificação explícita e não é apresentada como fotografia da edição.
+- A etiqueta é atualizada quando a estante termina de preparar a textura da lombada.
+- Alteração restrita ao catálogo e à identificação da arte. Não modifica o modelo 3D principal, os leitores, os arquivos importados, o IndexedDB ou o localStorage.
+- Testes focados de catálogo, lombadas e preservação: `npm run test:catalogo`.
+- Suíte completa do repositório: `npm test`. No primeiro diagnóstico da v111, ela executou 66 testes: 26 passaram, 23 falharam e 17 foram ignorados. Há expectativas antigas de versões anteriores e falhas de outras áreas; esse passivo permanece visível e precisa de triagem própria.
+
 ## Atualização v89 — instalação PWA no Android (21/11/2026)
 
 - Corrigida a instalação inicial: o Service Worker é registrado imediatamente, sem aguardar todos os recursos da página terminarem de carregar.
@@ -329,3 +377,6 @@ A prova v56 foi refinada no leitor PDF **somente de Razão e Sensibilidade**: a 
 
 O ensaio de **Razão e Sensibilidade** não desenha mais falsos filetes horizontais em CSS: agora as bordas direita e inferior recebem recortes da própria função `AuroraEditionSurfaces.paperEdgeCanvas('vertical'/'horizontal')`, que já gera as fibras finíssimas do volume WebGL. A base do miolo é lisa e opaca, e a curva esquerda usa sombra suave, papel no mesmo tom da página e uma dobra mais larga. Quando disponível, a capa de trás real do exemplar é usada por baixo do miolo; na ausência dela, mantém-se a capa original. Apenas este PDF em telefone recebe a experiência. StPageFlip, tempo de 900 ms, marcadores, progresso e demais formatos não foram alterados. O código compartilhado é carregado antes do leitor. Backup: `backup-aurora-v57-antes-miolo-3d-compartilhado-20261117`.
 
+
+## Integração Pages
+O laboratório v114 está preparado para entrar na publicação principal quando este pull request for integrado à branch `main`.

@@ -179,3 +179,14 @@ body.aurora-catalog-open{overflow:hidden}
 @media(prefers-reduced-motion:reduce){
   .aurora-catalog-volume{transition:none}
 }
+
+
+/* Identifica a procedência da arte da lombada sem confundir reconstrução com original. */
+.aurora-catalog-art-note{
+  display:block;min-height:1.25em;text-align:center;overflow-wrap:anywhere;
+  color:#bdae96;font:10px/1.25 system-ui,sans-serif;letter-spacing:.12px;
+}
+.aurora-catalog-art-note[data-spine-origin="original"]{color:#c8d9c1}
+.aurora-catalog-art-note[data-spine-origin="reconstructed"]{color:#e0c18f}
+.aurora-catalog-art-note[data-spine-origin="cover-fallback"]{color:#d0b99a}
+.aurora-catalog-art-note[data-spine-origin="unavailable"]{color:#a99c87}

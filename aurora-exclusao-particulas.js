@@ -105,6 +105,10 @@
   function canvas(w,h){const c=document.createElement('canvas');c.width=Math.max(1,Math.ceil(w));c.height=Math.max(1,Math.ceil(h));return c;}
   function prepare(snapshot,cinema){
     const {bounds,clip,image}=snapshot,w=clip.width,h=clip.height;
+    // Fragmentos adicionais só são ativados no laboratório; a exclusão normal mantém o efeito original.
+    const fragmentScale=clamp(Number(snapshot.fragmentScale)||0,0,1.8);
+    const fragmentCountScale=clamp(Number(snapshot.fragmentCountScale)||1,1,1.4);
+    const dustScale=clamp(Number(snapshot.dustScale)||1,1,1.4);
     const q=Math.min(1.5,900/Math.max(w,h)),original=canvas(w*q,h*q),oc=original.getContext('2d');
     oc.drawImage(image,(clip.left-bounds.left)/bounds.width*image.width,(clip.top-bounds.top)/bounds.height*image.height,
       w/bounds.width*image.width,h/bounds.height*image.height,0,0,original.width,original.height);
@@ -144,7 +148,8 @@
       gradient.addColorStop(1,'rgba('+rr+','+gg+','+bb+',0)');
       ac.fillStyle=gradient;ac.fillRect(x,y,16,16);return i;
     }
-    const particles=[],count=cinema?clamp(Math.round(w*h/33),1000,2350):clamp(Math.round(w*h/9),120,650);
+    const baseParticleCount=cinema?clamp(Math.round(w*h/33),1000,2350):clamp(Math.round(w*h/9),120,650);
+    const particles=[],count=clamp(Math.round(baseParticleCount*dustScale),cinema?1000:120,cinema?2800:780);
     const direction=clip.left+w/2>innerWidth*.67?-1:1,sizeScale=cinema?clamp(Math.sqrt(w*h/65000),.65,1.3):.7;
     for(let i=0;i<count*4&&particles.length<count;i++){
       const u=Math.random(),v=Math.random(),[r,g,b,a]=colorAt(u,v);if(a<35)continue;
@@ -155,11 +160,28 @@
         phase:Math.random()*6.283,spin:.9+Math.random()*2.3,drift:8+Math.random()*21,
         ax:p%12*16,ay:Math.floor(p/12)*16,opacity:.48+Math.random()*.48,dust});
     }
-    const haze=Array.from({length:cinema?24:8},()=>{
+    // Poucos quadradinhos recortados da própria capa: complemento discreto à erosão original.
+    const chunks=[];
+    if(fragmentScale>0){
+      const baseChunkCount=cinema?clamp(Math.round(w*h/350),85,155):clamp(Math.round(w*h/500),35,90);
+      const chunkCount=clamp(Math.round(baseChunkCount*fragmentCountScale),cinema?85:35,cinema?180:105);
+      for(let i=0;i<chunkCount*4&&chunks.length<chunkCount;i++){
+        const u=Math.random(),v=Math.random(),[r,g,b,a]=colorAt(u,v);if(a<35)continue;
+        const sw=Math.max(4,Math.round((7+Math.random()*5)*fragmentScale));
+        const sh=Math.max(4,Math.round((7+Math.random()*5)*fragmentScale));
+        const sx=Math.round(u*Math.max(0,original.width-sw)),sy=Math.round(v*Math.max(0,original.height-sh));
+        chunks.push({x:clip.left+u*w,y:clip.top+v*h,release:field(u,v),sx,sy,sw,sh,
+          width:sw/original.width*w,height:sh/original.height*h,
+          life:cinema?1.45+Math.random()*.85:.9+Math.random()*.45,
+          vx:(Math.random()-.5)*24,vy:5+Math.random()*16,gravity:cinema?24+Math.random()*22:16+Math.random()*16,
+          phase:Math.random()*6.283,spin:(Math.random()-.5)*3.2,opacity:.72+Math.random()*.25});
+      }
+    }
+    const haze=Array.from({length:Math.round((cinema?24:8)*dustScale)},()=>{
       const p=particles[Math.floor(Math.random()*particles.length)];
       return p?{...p,radius:cinema?9+Math.random()*19:5+Math.random()*8,life:cinema?2.2+Math.random()*1.2:1.2}:null;
     }).filter(Boolean);
-    return {original,mask,mc,md,edge,ec,ed,values,intact,ic,rim,rc,atlas,particles,haze,w,h};
+    return {original,mask,mc,md,edge,ec,ed,values,intact,ic,rim,rc,atlas,particles,chunks,haze,w,h};
   }
   function paintBook(ctx,e,clip,threshold){
     if(threshold<-.035){ctx.drawImage(e.original,clip.left,clip.top,e.w,e.h);return;}
@@ -186,6 +208,19 @@
       const radius=p.radius*(.55+a*1.5),g=ctx.createRadialGradient(x,y,0,x,y,radius);
       g.addColorStop(0,'rgba(156,133,107,'+(.055*Math.sin(Math.PI*a))+')');g.addColorStop(1,'rgba(156,133,107,0)');
       ctx.fillStyle=g;ctx.fillRect(x-radius,y-radius,radius*2,radius*2);
+    }
+    // Os quadradinhos caem perto do livro, sem formar uma faixa horizontal de pixels.
+    for(const p of e.chunks){
+      const t=elapsed-start-p.release*span;if(t<0||t>=p.life)continue;
+      const a=t/p.life,x=p.x+p.vx*t+Math.sin(p.phase+t*1.5)*p.width*.28;
+      const y=p.y+p.vy*t+.5*p.gravity*t*t;
+      const ww=p.width*(1-a*.22),hh=p.height*(1-a*.22);
+      ctx.save();ctx.translate(x,y);ctx.rotate(p.phase*.08+p.spin*t);
+      ctx.globalAlpha=p.opacity*smooth(t/.08)*Math.pow(1-a,.95);
+      ctx.shadowColor='rgba(12,9,7,.28)';ctx.shadowBlur=2;
+      ctx.drawImage(e.original,p.sx,p.sy,p.sw,p.sh,-ww/2,-hh/2,ww,hh);
+      ctx.shadowBlur=0;ctx.strokeStyle='rgba(244,226,190,.32)';ctx.lineWidth=.45;ctx.strokeRect(-ww/2,-hh/2,ww,hh);
+      ctx.restore();
     }
     for(const p of e.particles){
       const t=elapsed-start-p.release*span;if(t<0||t>=p.life)continue;

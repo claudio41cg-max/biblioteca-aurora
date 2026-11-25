@@ -60,5 +60,5 @@ function mount(root,getBook,handlers){
  };
  return {refresh,isBusy:()=>busy};
 }
-window.AuroraBookActions={keyOf,keyFor,isHidden,setHidden,mark,sync,reaction,setReaction,erase,mount};
+window.AuroraBookActions={keyOf,keyFor,isHidden,setHidden,mark,sync,reaction,setReaction,erase,capture,mount};
 })();
