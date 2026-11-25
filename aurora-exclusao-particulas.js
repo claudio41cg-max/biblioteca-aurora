@@ -163,12 +163,12 @@
     // Poucos quadradinhos recortados da própria capa: complemento discreto à erosão original.
     const chunks=[];
     if(cinema||fragmentScale>0){
-      const baseChunkCount=cinema?clamp(Math.round(w*h/3900),22,40):clamp(Math.round(w*h/4200),12,26);
-      const chunkCount=clamp(Math.round(baseChunkCount*(cinema?1:fragmentCountScale)),cinema?22:12,cinema?46:32);
+      const baseChunkCount=cinema?clamp(Math.round(w*h/7800),11,20):clamp(Math.round(w*h/8400),6,13);
+      const chunkCount=clamp(Math.round(baseChunkCount*(cinema?1:fragmentCountScale)),cinema?11:6,cinema?23:16);
       for(let i=0;i<chunkCount*4&&chunks.length<chunkCount;i++){
         const u=Math.random(),v=Math.random(),[r,g,b,a]=colorAt(u,v);if(a<35)continue;
-        const sw=Math.max(8,Math.round((cinema?15+Math.random()*21:9+Math.random()*12)*(fragmentScale||1)));
-        const sh=Math.max(8,Math.round((cinema?14+Math.random()*19:9+Math.random()*11)*(fragmentScale||1)));
+        const sw=Math.max(8,Math.round((cinema?8+Math.random()*11:5+Math.random()*7)*(fragmentScale||1)));
+        const sh=Math.max(8,Math.round((cinema?7+Math.random()*10:5+Math.random()*6)*(fragmentScale||1)));
         const sx=Math.round(u*Math.max(0,original.width-sw)),sy=Math.round(v*Math.max(0,original.height-sh));
         chunks.push({x:clip.left+u*w,y:clip.top+v*h,release:field(u,v),sx,sy,sw,sh,
           width:sw/original.width*w,height:sh/original.height*h,
@@ -238,18 +238,23 @@
       const AudioContextClass=window.AudioContext||window.webkitAudioContext;
       if(!AudioContextClass)return;
       const audio=new AudioContextClass();
-      const duration=1.35,length=Math.ceil(audio.sampleRate*duration),buffer=audio.createBuffer(1,length,audio.sampleRate),data=buffer.getChannelData(0);
-      for(let i=0;i<length;i++)data[i]=(Math.random()*2-1)*(.55+Math.random()*.45);
+      const duration=3.1,length=Math.ceil(audio.sampleRate*duration),buffer=audio.createBuffer(1,length,audio.sampleRate),data=buffer.getChannelData(0);
+      for(let i=0;i<length;i++){
+        const fade=Math.min(1,i/(audio.sampleRate*.16),(length-i)/(audio.sampleRate*.7));
+        data[i]=(Math.random()*2-1)*(.62+Math.random()*.38)*Math.max(0,fade);
+      }
       const source=audio.createBufferSource(),low=audio.createBiquadFilter(),high=audio.createBiquadFilter(),gain=audio.createGain();
-      source.buffer=buffer;low.type='lowpass';low.frequency.value=780;low.Q.value=.55;
-      high.type='highpass';high.frequency.value=170;high.Q.value=.5;
+      source.buffer=buffer;low.type='lowpass';low.frequency.value=1250;low.Q.value=.65;
+      high.type='highpass';high.frequency.value=230;high.Q.value=.55;
       gain.gain.setValueAtTime(.0001,audio.currentTime);
-      gain.gain.exponentialRampToValueAtTime(.018,audio.currentTime+.12);
+      gain.gain.exponentialRampToValueAtTime(.052,audio.currentTime+.18);
+      gain.gain.setValueAtTime(.052,audio.currentTime+1.15);
       gain.gain.exponentialRampToValueAtTime(.0001,audio.currentTime+duration);
       source.connect(low);low.connect(high);high.connect(gain);gain.connect(audio.destination);
       source.onended=()=>{source.disconnect();low.disconnect();high.disconnect();gain.disconnect();audio.close().catch(()=>{});};
-      const resumed=audio.state==='suspended'?audio.resume():Promise.resolve();
-      resumed.then(()=>source.start()).catch(()=>audio.close().catch(()=>{}));
+      // Inicia dentro do gesto do usuário; o navegador libera a reprodução assim que resume o contexto.
+      if(audio.state==='suspended')audio.resume().catch(()=>{});
+      source.start(audio.currentTime);
     } catch { /* Áudio opcional: a animação continua mesmo sem suporte. */ }
   }
   function addGentleHaptic() {
