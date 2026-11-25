@@ -48,7 +48,7 @@
   const launch=document.createElement('button');
   launch.type='button';launch.id='auroraLabLaunch';launch.className='aurora-lab-launch';
   launch.textContent='✦ Testar desfragmentação 3D';
-  launch.dataset.source='demo';launch.dataset.bookId='aurora-lab-demo-v115';launch.dataset.rawTitle='Livro de teste Aurora';
+  launch.dataset.source='demo';launch.dataset.bookId='aurora-lab-demo-v116';launch.dataset.rawTitle='Livro de teste Aurora';
   launch.setAttribute('aria-label','Abrir livro temporário no visor 3D para testar a desfragmentação');
   tools.append(launch);
 
@@ -62,7 +62,7 @@
       <strong>Laboratório de desfragmentação</strong>
       <small>Exemplar temporário • sem exclusão do acervo</small>
     </div>
-    <p class="aurora-lab-description">Este é o mesmo visor 3D usado pelos livros da sua estante. A animação usa a captura do volume real e dispersa somente poeira fina, sem pedaços sólidos recortados da capa.</p>
+    <p class="aurora-lab-description">Este é o mesmo visor 3D usado pelos livros da sua estante. Os pedaços sólidos da capa foram removidos; os grãos maiores de poeira foram reduzidos em cerca de 30%, mantendo os grãos pequenos.</p>
     <div class="aurora-lab-row">
       <label for="auroraLabDustSize">Tamanho da poeira fina</label>
       <output id="auroraLabDustValue" for="auroraLabDustSize">100%</output>
@@ -128,7 +128,7 @@
   }
   function createDemoBook(){
     return {
-      id:'aurora-lab-demo-v115',
+      id:'aurora-lab-demo-v116',
       name:'Livro de teste Aurora',
       title:'Livro de teste Aurora',
       author:'Laboratório visual da Biblioteca Aurora',
