@@ -28,13 +28,17 @@ test('fragmentos maiores e irregulares usam a textura original da capa',()=>{
 });
 
 test('fragmentos grandes ficam menores e menos numerosos sem reduzir a poeira fina',()=>{
-  assert.ok(source.includes('Math.round(w*h/3900),22,40'));
-  assert.ok(source.includes('cinema?15+Math.random()*21:9+Math.random()*12'));
+  assert.ok(source.includes('Math.round(w*h/7800),11,20'));
+  assert.ok(source.includes('Math.round(w*h/8400),6,13'));
+  assert.ok(source.includes('cinema?7+Math.random()*10:5+Math.random()*6'));
+  assert.ok(source.includes('const duration=3.1'));
+  assert.ok(source.includes('source.start(audio.currentTime)'));
+  assert.ok(source.includes('cinema?8+Math.random()*11:5+Math.random()*7'));
   assert.ok(source.includes('const baseParticleCount=cinema?clamp(Math.round(w*h/52)'));
 });
 test('som de desfragmentação e vibração são discretos e opcionais',()=>{
   assert.ok(source.includes('function playDissolveSound()'));
-  assert.ok(source.includes('gain.gain.exponentialRampToValueAtTime(.018'));
+  assert.ok(source.includes('gain.gain.exponentialRampToValueAtTime(.052'));
   assert.ok(source.includes('navigator.vibrate([8,34,7])'));
   assert.ok(source.includes('if(!reduced){playDissolveSound();addGentleHaptic();}'));
 });
