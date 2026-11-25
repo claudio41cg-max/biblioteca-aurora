@@ -22,9 +22,9 @@ async function erase({source,id,title,key}){
  if(source!=='online'){try{const k='aurora-hidden-books',a=new Set(read(k,[]));const norm=window.AuroraShelf?.normalize||(v=>String(v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\b(e|de|da|do|dos|das)\b/g,'').replace(/[^a-z0-9]/g,''));a.add(norm(title));write(k,[...a])}catch(e){if(source==='demo')throw e;console.warn(e)}}
  try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(!k?.startsWith(P))continue;const a=read(k,[]);if(!Array.isArray(a))continue;write(k,a.filter(m=>m.key!==key).map(m=>{if(m.pose?.stackOn!==key)return m;const pose={...m.pose,y:0,stackOffset:0};delete pose.stackOn;return {...m,pose}}))}setHidden(key,false);const a=read(R,{});delete a[key];write(R,a)}catch(e){console.warn('Referências serão atualizadas ao reabrir.',e)}
 }
-function capture(scene,css){
+function capture(scene,css,options={}){
  try{if(scene.classList.contains('three-ready')&&!scene.classList.contains('aurora-force-css')){
-  const frame=window.Aurora3D?.captureFrame?.();if(frame){
+  const frame=window.Aurora3D?.captureFrame?.(options);if(frame){
    const c=document.createElement('canvas'),s=Math.min(1,900/Math.max(frame.width,frame.height));c.width=Math.max(1,Math.round(frame.width*s));c.height=Math.max(1,Math.round(frame.height*s));
    const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(frame,0,0,c.width,c.height);
    const w=c.width,h=c.height,d=ctx.getImageData(0,0,w,h).data;let x0=w,y0=h,x1=-1,y1=-1;

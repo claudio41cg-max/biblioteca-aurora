@@ -1,3 +1,13 @@
+## Biblioteca Aurora v117 — fumaça difusa e captura com volume 3D
+
+- A nuvem de fumaça difusa foi ampliada moderadamente (58 elementos na animação cinematográfica, com raios ligeiramente maiores e opacidade suave de 0,07).
+- A fumaça é desenhada como nuvens elípticas translúcidas, com leve rotação e deslocamento ascendente; não são bolhas sólidas.
+- Os grãos pequenos e o ajuste de 70–100% permanecem preservados; os pedaços sólidos da capa continuam removidos.
+- A captura do laboratório agora usa temporariamente uma pose 3/4 (pitch 0,16; yaw 0,72), revelando a lombada, o bloco de páginas e a espessura do volume.
+- A função de captura restaura a pose anterior imediatamente após a imagem, sem alterar a posição normal do livro nem a rotina de exclusão real.
+- O ajuste de pose é solicitado somente pelo laboratório; a captura normal de exclusão continua com o ângulo atual.
+- Cache PWA: `aurora-v117`.
+
 ## Biblioteca Aurora v116 — poeira refinada e som CC0
 
 - Os fragmentos sólidos que pareciam pedaços da capa continuam removidos: o motor não gera nem desenha `chunks`.
@@ -401,4 +411,4 @@ O ensaio de **Razão e Sensibilidade** não desenha mais falsos filetes horizont
 
 
 ## Integração Pages
-O laboratório v114 está preparado para entrar na publicação principal quando este pull request for integrado à branch `main`.
+O laboratório integrado v114 e os refinamentos de poeira v116/v117 estão incorporados à publicação principal `main`.

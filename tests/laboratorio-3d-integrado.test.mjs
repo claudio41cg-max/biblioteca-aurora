@@ -6,6 +6,7 @@ import test from 'node:test';
 const lab=readFileSync(new URL('../aurora-desfragmentacao-lab.js',import.meta.url),'utf8');
 const engine=readFileSync(new URL('../aurora-exclusao-particulas.js',import.meta.url),'utf8');
 const actions=readFileSync(new URL('../aurora-acoes-livro.js',import.meta.url),'utf8');
+const three=readFileSync(new URL('../aurora-livro-3d.mjs',import.meta.url),'utf8');
 const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
 
 test('script do laboratório integrado tem sintaxe válida',()=>{
@@ -15,13 +16,18 @@ test('script do laboratório integrado tem sintaxe válida',()=>{
 test('laboratório abre o mesmo visor 3D da Biblioteca Aurora',()=>{
   assert.ok(lab.includes("window.AuroraShelfViewer.open(launch,createDemoBook())"));
   assert.ok(lab.includes("showcase.classList.add('aurora-lab-demo')"));
-  assert.ok(lab.includes("window.AuroraBookActions?.capture(scene,cssBook)"));
-  assert.ok(html.includes('aurora-desfragmentacao-lab.js?v=3'));
+  assert.ok(lab.includes("window.AuroraBookActions?.capture(scene,cssBook,{volumePose:true,pitch:.16,yaw:.72})"));
+  assert.ok(actions.includes('function capture(scene,css,options={})'));
+  assert.ok(actions.includes('captureFrame?.(options)'));
+  assert.ok(three.includes('function captureFrame(options={})'));
+  assert.ok(three.includes('const useVolumePose=Boolean(options.volumePose&&currentBook&&!opening)'));
+  assert.ok(three.includes('rotation={x:previous.x,y:previous.y}'));
+  assert.ok(html.includes('aurora-desfragmentacao-lab.js?v=4'));
 });
 
 test('livro de teste é um modelo 3D temporário e não é salvo no acervo',()=>{
   assert.ok(lab.includes("format:'demo'"));
-  assert.ok(lab.includes("id:'aurora-lab-demo-v116'"));
+  assert.ok(lab.includes("id:'aurora-lab-demo-v117'"));
   assert.ok(lab.includes('cover:drawCover(false),back:drawCover(true),spine:drawSpine()'));
   assert.ok(lab.includes("window.addEventListener('aurora:book-closed',cleanup)"));
   assert.equal(lab.includes('indexedDB'),false);
@@ -56,6 +62,7 @@ test('som externo e vibração são opcionais e controlados pelos checkboxes',()
 
 test('a captura do livro 3D é a mesma função usada na exclusão normal',()=>{
   assert.ok(actions.includes('window.AuroraBookActions={keyOf,keyFor,isHidden,setHidden,mark,sync,reaction,setReaction,erase,capture,mount}'));
-  assert.ok(actions.includes('function capture(scene,css)'));
+  assert.ok(actions.includes('function capture(scene,css,options={})'));
+  assert.ok(three.includes('if(frontHinge)frontHinge.rotation.y=previous.hinge'));
 });
 
