@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main, corrigir-identificacao-lombadas-v111, desfragmentacao-base-original-v113]
   push:
-    branches: [main, corrigir-identificacao-lombadas-v111, teste-desfragmentacao-cinematografica-v112, desfragmentacao-base-original-v113, laboratorio-integrado-3d-v114]
+    branches: [main, corrigir-identificacao-lombadas-v111, teste-desfragmentacao-cinematografica-v112, desfragmentacao-base-original-v113, laboratorio-integrado-3d-v114, remover-fragmentos-capa-som-suave-v115]
 
 permissions:
   contents: read
@@ -27,7 +27,7 @@ jobs:
   preview-package:
     name: Pacote de prévia Android
     needs: node-tests
-    if: github.event_name == 'pull_request' || (github.ref == 'refs/heads/corrigir-identificacao-lombadas-v111' || github.ref == 'refs/heads/teste-desfragmentacao-cinematografica-v112' || github.ref == 'refs/heads/desfragmentacao-base-original-v113' || github.ref == 'refs/heads/laboratorio-integrado-3d-v114')
+    if: github.event_name == 'pull_request' || (github.ref == 'refs/heads/corrigir-identificacao-lombadas-v111' || github.ref == 'refs/heads/teste-desfragmentacao-cinematografica-v112' || github.ref == 'refs/heads/desfragmentacao-base-original-v113' || github.ref == 'refs/heads/laboratorio-integrado-3d-v114' || github.ref == 'refs/heads/remover-fragmentos-capa-som-suave-v115')
     runs-on: ubuntu-latest
     steps:
       - name: Baixar código revisado
@@ -40,11 +40,11 @@ jobs:
           git archive HEAD | tar -x -C preview-site
           rm -rf preview-site/.github preview-site/tests preview-site/.vercel
           find preview-site -type f \( -name '.env' -o -name '.env.*' -o -name '*.pem' -o -name '*.key' \) -delete
-          printf 'Biblioteca Aurora v114\\nCommit: %s\\nBranch: %s\\n' "$GITHUB_SHA" "$GITHUB_REF_NAME" > preview-site/PREVIEW-INFO.txt
+          printf 'Biblioteca Aurora v115\\nCommit: %s\\nBranch: %s\\n' "$GITHUB_SHA" "$GITHUB_REF_NAME" > preview-site/PREVIEW-INFO.txt
       - name: Publicar pacote de prévia
         uses: actions/upload-artifact@v4
         with:
-          name: biblioteca-aurora-v114-laboratorio-integrado-3d
+          name: biblioteca-aurora-v115-poeira-som-suave
           path: preview-site/
           if-no-files-found: error
           retention-days: 7
