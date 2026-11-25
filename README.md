@@ -1,3 +1,14 @@
+## Laboratório integrado de desfragmentação 3D v114
+
+- O botão **Testar desfragmentação 3D** abre um exemplar temporário no mesmo visor WebGL, câmera, iluminação, volume, lombada e perspectiva usados pelos livros reais.
+- O livro de demonstração é criado apenas em memória; não é importado nem salvo no acervo.
+- A captura usa a mesma função da exclusão normal e o mesmo motor de erosão orgânica.
+- O laboratório acrescenta discretamente quadradinhos e poeira (escalas 1,12×), som sintetizado de dissolução e vibração tátil suave no Android.
+- O livro de teste não abre leitor, não chama a rotina de exclusão e reaparece ao final de cada animação.
+- O laboratório não acessa IndexedDB nem LocalStorage para criar, remover ou alterar livros.
+- Cache PWA isolado: `aurora-v114`.
+- Testes: `npm run test:catalogo` e `npm run test:desfragmentacao`.
+
 ## Laboratório de desfragmentação v113 — baseado no efeito original
 
 - O motor recupera a erosão orgânica e a máscara de dissolução do efeito original v110.
