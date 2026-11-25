@@ -105,10 +105,9 @@
   function canvas(w,h){const c=document.createElement('canvas');c.width=Math.max(1,Math.ceil(w));c.height=Math.max(1,Math.ceil(h));return c;}
   function prepare(snapshot,cinema){
     const {bounds,clip,image}=snapshot,w=clip.width,h=clip.height;
-    // Fragmentos adicionais só são ativados no laboratório; a exclusão normal mantém o efeito original.
-    const fragmentScale=clamp(Number(snapshot.fragmentScale)||0,0,1.8);
-    const fragmentCountScale=clamp(Number(snapshot.fragmentCountScale)||1,1,1.4);
+    // Somente poeira fina; escala ajustável no laboratório entre 70% e 100%.
     const dustScale=clamp(Number(snapshot.dustScale)||1,1,1.4);
+    const dustParticleScale=clamp(Number(snapshot.dustParticleScale)||1,.7,1);
     const q=Math.min(1.5,900/Math.max(w,h)),original=canvas(w*q,h*q),oc=original.getContext('2d');
     oc.drawImage(image,(clip.left-bounds.left)/bounds.width*image.width,(clip.top-bounds.top)/bounds.height*image.height,
       w/bounds.width*image.width,h/bounds.height*image.height,0,0,original.width,original.height);
@@ -153,35 +152,18 @@
     const direction=clip.left+w/2>innerWidth*.67?-1:1,sizeScale=cinema?clamp(Math.sqrt(w*h/52000),.9,1.55):.9;
     for(let i=0;i<count*4&&particles.length<count;i++){
       const u=Math.random(),v=Math.random(),[r,g,b,a]=colorAt(u,v);if(a<35)continue;
-      const rare=Math.random(),radius=(rare<.055?2.8+Math.random()*1.7:rare<.31?1.55+Math.random()*1.35:.72+Math.random()*1.05)*sizeScale;
+      const rare=Math.random(),radius=(rare<.055?2.8+Math.random()*1.7:rare<.31?1.55+Math.random()*1.35:.72+Math.random()*1.05)*sizeScale*dustParticleScale;
       const p=getColor(r,g,b),dust=rare>.83;
       particles.push({x:clip.left+u*w,y:clip.top+v*h,release:field(u,v),radius,life:cinema?1.7+Math.random()*2.3:.8+Math.random()*.9,
         vx:direction*(28+Math.random()*92)+(Math.random()-.5)*48,vy:(Math.random()-.5)*42-(dust?20:2),gravity:dust?-5:18+Math.random()*34,
         phase:Math.random()*6.283,spin:1.2+Math.random()*3.1,drift:10+Math.random()*27,
         ax:p%12*16,ay:Math.floor(p/12)*16,opacity:.48+Math.random()*.48,dust});
     }
-    // Poucos quadradinhos recortados da própria capa: complemento discreto à erosão original.
-    const chunks=[];
-    if(cinema||fragmentScale>0){
-      const baseChunkCount=cinema?clamp(Math.round(w*h/7800),11,20):clamp(Math.round(w*h/8400),6,13);
-      const chunkCount=clamp(Math.round(baseChunkCount*(cinema?1:fragmentCountScale)),cinema?11:6,cinema?23:16);
-      for(let i=0;i<chunkCount*4&&chunks.length<chunkCount;i++){
-        const u=Math.random(),v=Math.random(),[r,g,b,a]=colorAt(u,v);if(a<35)continue;
-        const sw=Math.max(8,Math.round((cinema?8+Math.random()*11:5+Math.random()*7)*(fragmentScale||1)));
-        const sh=Math.max(8,Math.round((cinema?7+Math.random()*10:5+Math.random()*6)*(fragmentScale||1)));
-        const sx=Math.round(u*Math.max(0,original.width-sw)),sy=Math.round(v*Math.max(0,original.height-sh));
-        chunks.push({x:clip.left+u*w,y:clip.top+v*h,release:field(u,v),sx,sy,sw,sh,
-          width:sw/original.width*w,height:sh/original.height*h,
-          life:cinema?1.45+Math.random()*.85:.9+Math.random()*.45,
-          vx:(Math.random()-.5)*24,vy:5+Math.random()*16,gravity:cinema?24+Math.random()*22:16+Math.random()*16,
-          phase:Math.random()*6.283,spin:(Math.random()-.5)*3.2,opacity:.78+Math.random()*.22,shape:(()=>{const sides=5+Math.floor(Math.random()*4);return Array.from({length:sides},(_,i)=>{const angle=i/sides*Math.PI*2+(Math.random()-.5)*.35,radius=.68+Math.random()*.38;return [Math.cos(angle)*radius,Math.sin(angle)*radius]})})()});
-      }
-    }
     const haze=Array.from({length:Math.round((cinema?48:12)*dustScale)},()=>{
       const p=particles[Math.floor(Math.random()*particles.length)];
-      return p?{...p,radius:cinema?15+Math.random()*27:7+Math.random()*12,life:cinema?2.5+Math.random()*1.7:1.5}:null;
+      return p?{...p,radius:(cinema?15+Math.random()*27:7+Math.random()*12)*dustParticleScale,life:cinema?2.5+Math.random()*1.7:1.5}:null;
     }).filter(Boolean);
-    return {original,mask,mc,md,edge,ec,ed,values,intact,ic,rim,rc,atlas,particles,chunks,haze,w,h};
+    return {original,mask,mc,md,edge,ec,ed,values,intact,ic,rim,rc,atlas,particles,haze,w,h};
   }
   function paintBook(ctx,e,clip,threshold){
     if(threshold<-.035){ctx.drawImage(e.original,clip.left,clip.top,e.w,e.h);return;}
@@ -209,19 +191,6 @@
       g.addColorStop(0,'rgba(156,133,107,'+(.055*Math.sin(Math.PI*a))+')');g.addColorStop(1,'rgba(156,133,107,0)');
       ctx.fillStyle=g;ctx.fillRect(x-radius,y-radius,radius*2,radius*2);
     }
-    // Os quadradinhos caem perto do livro, sem formar uma faixa horizontal de pixels.
-    for(const p of e.chunks){
-      const t=elapsed-start-p.release*span;if(t<0||t>=p.life)continue;
-      const a=t/p.life,x=p.x+p.vx*t+Math.sin(p.phase+t*1.5)*p.width*.28;
-      const y=p.y+p.vy*t+.5*p.gravity*t*t;
-      const ww=p.width*(1-a*.22),hh=p.height*(1-a*.22);
-      ctx.save();ctx.translate(x,y);ctx.rotate(p.phase*.08+p.spin*t);
-      ctx.globalAlpha=p.opacity*smooth(t/.08)*Math.pow(1-a,.95);
-      ctx.shadowColor='rgba(12,9,7,.32)';ctx.shadowBlur=4;
-      ctx.beginPath();p.shape.forEach((point,i)=>{const px=point[0]*ww/2,py=point[1]*hh/2;i?ctx.lineTo(px,py):ctx.moveTo(px,py)});ctx.closePath();ctx.clip();
-      ctx.drawImage(e.original,p.sx,p.sy,p.sw,p.sh,-ww/2,-hh/2,ww,hh);
-      ctx.restore();
-    }
     for(const p of e.particles){
       const t=elapsed-start-p.release*span;if(t<0||t>=p.life)continue;
       const a=t/p.life,curl=Math.sin(p.phase+t*p.spin)*p.drift*t*.55;
@@ -232,45 +201,44 @@
     }
     ctx.globalAlpha=1;
   }
-  // Ruído de papel e pó muito suave, sintetizado localmente sem arquivo externo. 
-  function playDissolveSound() {
-    try {
-      const AudioContextClass=window.AudioContext||window.webkitAudioContext;
-      if(!AudioContextClass)return;
-      const audio=new AudioContextClass();
-      const duration=3.1,length=Math.ceil(audio.sampleRate*duration),buffer=audio.createBuffer(1,length,audio.sampleRate),data=buffer.getChannelData(0);
-      for(let i=0;i<length;i++){
-        const fade=Math.min(1,i/(audio.sampleRate*.16),(length-i)/(audio.sampleRate*.7));
-        data[i]=(Math.random()*2-1)*(.62+Math.random()*.38)*Math.max(0,fade);
-      }
-      const source=audio.createBufferSource(),low=audio.createBiquadFilter(),high=audio.createBiquadFilter(),gain=audio.createGain();
-      source.buffer=buffer;low.type='lowpass';low.frequency.value=1250;low.Q.value=.65;
-      high.type='highpass';high.frequency.value=230;high.Q.value=.55;
-      gain.gain.setValueAtTime(.0001,audio.currentTime);
-      gain.gain.exponentialRampToValueAtTime(.052,audio.currentTime+.18);
-      gain.gain.setValueAtTime(.052,audio.currentTime+1.15);
-      gain.gain.exponentialRampToValueAtTime(.0001,audio.currentTime+duration);
-      source.connect(low);low.connect(high);high.connect(gain);gain.connect(audio.destination);
-      source.onended=()=>{source.disconnect();low.disconnect();high.disconnect();gain.disconnect();audio.close().catch(()=>{});};
-      // Inicia dentro do gesto do usuário; o navegador libera a reprodução assim que resume o contexto.
-      if(audio.state==='suspended')audio.resume().catch(()=>{});
-      source.start(audio.currentTime);
-    } catch { /* Áudio opcional: a animação continua mesmo sem suporte. */ }
+  // Woven SFX: swish-whoosh-large.wav (0,789 s), licença CC0 1.0.
+  // Quatro passagens curtas e decrescentes acompanham a descida da poeira, sem grave de suspense.
+  const DISSOLVE_SOUND_URL='https://assets.sfx.woven.video/sfx/swish-whoosh-large.wav';
+  function playDissolveSound(){
+    if(typeof Audio==='undefined')return null;
+    const players=[],timers=[];let stopped=false;
+    const cues=[{at:0,volume:.14},{at:2350,volume:.11},{at:4700,volume:.085},{at:7050,volume:.06}];
+    const playCue=volume=>{
+      if(stopped)return;
+      try{
+        const audio=new Audio(DISSOLVE_SOUND_URL);
+        audio.preload='auto';audio.volume=volume;
+        players.push(audio);
+        const promise=audio.play();
+        if(promise&&typeof promise.catch==='function')promise.catch(()=>{});
+      }catch{}
+    };
+    playCue(cues[0].volume);
+    for(const cue of cues.slice(1))timers.push(setTimeout(()=>playCue(cue.volume),cue.at));
+    return ()=>{
+      stopped=true;timers.forEach(clearTimeout);
+      players.forEach(audio=>{try{audio.pause();audio.currentTime=0;}catch{}});
+    };
   }
-  function addGentleHaptic() {
-    try { if(typeof navigator!=='undefined'&&typeof navigator.vibrate==='function')navigator.vibrate([8,34,7]); }
-    catch { /* Vibração opcional, sem afetar a exclusão. */ }
+  function addGentleHaptic(){
+    try{if(typeof navigator!=='undefined'&&typeof navigator.vibrate==='function')navigator.vibrate([8,34,7]);}
+    catch{/* Vibração opcional. */}
   }
 
   function play(snapshot) {
     return new Promise(resolve=>{
       if(!snapshot||document.hidden||active.size>=4){resolve();return;}
-      let overlay,frame,timer,finished=false,hidden=false;
+      let overlay,frame,timer,finished=false,hidden=false,stopAudio=null;
       const source=snapshot.element,prior=source?.style.getPropertyValue('visibility'),priority=source?.style.getPropertyPriority('visibility');
       const finish=()=>{
         if(finished)return;finished=true;cancelAnimationFrame(frame);clearTimeout(timer);
         document.removeEventListener('visibilitychange',onVisibility);window.removeEventListener('resize',finish);
-        overlay?.remove();active.delete(finish);
+        overlay?.remove();active.delete(finish);stopAudio?.();stopAudio=null;
         if(hidden&&source){if(prior)source.style.setProperty('visibility',prior,priority);else source.style.removeProperty('visibility');}
         resolve();
       };
@@ -287,7 +255,10 @@
         const cinema=Boolean(snapshot.cinematic||source?.id==='scene');
         const startRelease=cinema?.42:.10,span=cinema?5.2:1.55,duration=reduced?.18:cinema?8.7:3.2;
         const effect=reduced?null:prepare(snapshot,cinema);
-        if(!reduced){playDissolveSound();addGentleHaptic();}
+        if(!reduced){
+          if(snapshot.soundEnabled!==false)stopAudio=playDissolveSound();
+          if(snapshot.hapticEnabled!==false)addGentleHaptic();
+        }
         if(source?.isConnected){source.style.setProperty('visibility','hidden','important');hidden=true;}
         active.add(finish);document.addEventListener('visibilitychange',onVisibility);window.addEventListener('resize',finish,{once:true});
         timer=setTimeout(finish,duration*1000+500);
