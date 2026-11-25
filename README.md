@@ -1,4 +1,4 @@
-## Refino de desfragmentação v115
+## Refino de desfragmentação v115 — publicação principal
 
 - Remove completamente os fragmentos sólidos recortados da capa (polígonos/pedaços grandes). A erosão orgânica continua igual.
 - Preserva a poeira fina e as partículas pequenas; o laboratório permite ajustar seu tamanho de 70% a 100%, com 100% como padrão.
