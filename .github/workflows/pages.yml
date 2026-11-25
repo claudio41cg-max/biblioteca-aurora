@@ -1,0 +1,49 @@
+name: Publicar Biblioteca Aurora no GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: biblioteca-aurora-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Publicar site principal
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Baixar versão principal
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Preparar arquivos estáticos da Biblioteca Aurora
+        run: |
+          mkdir -p site
+          git archive HEAD | tar -x -C site
+          rm -rf site/.github site/tests site/.vercel site/node_modules
+          rm -f site/README.md site/package.json site/package-lock.json site/PREVIEW-INFO.txt
+          find site -type f \( -name '.env' -o -name '.env.*' -o -name '*.pem' -o -name '*.key' \) -delete
+
+      - name: Enviar arquivos para o GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Publicar Biblioteca Aurora
+        id: deployment
+        uses: actions/deploy-pages@v4
