@@ -107,6 +107,8 @@
     const {bounds,clip,image}=snapshot,w=clip.width,h=clip.height;
     // Fragmentos adicionais só são ativados no laboratório; a exclusão normal mantém o efeito original.
     const fragmentScale=clamp(Number(snapshot.fragmentScale)||0,0,1.8);
+    const fragmentCountScale=clamp(Number(snapshot.fragmentCountScale)||1,1,1.4);
+    const dustScale=clamp(Number(snapshot.dustScale)||1,1,1.4);
     const q=Math.min(1.5,900/Math.max(w,h)),original=canvas(w*q,h*q),oc=original.getContext('2d');
     oc.drawImage(image,(clip.left-bounds.left)/bounds.width*image.width,(clip.top-bounds.top)/bounds.height*image.height,
       w/bounds.width*image.width,h/bounds.height*image.height,0,0,original.width,original.height);
@@ -146,7 +148,8 @@
       gradient.addColorStop(1,'rgba('+rr+','+gg+','+bb+',0)');
       ac.fillStyle=gradient;ac.fillRect(x,y,16,16);return i;
     }
-    const particles=[],count=cinema?clamp(Math.round(w*h/33),1000,2350):clamp(Math.round(w*h/9),120,650);
+    const baseParticleCount=cinema?clamp(Math.round(w*h/33),1000,2350):clamp(Math.round(w*h/9),120,650);
+    const particles=[],count=clamp(Math.round(baseParticleCount*dustScale),cinema?1000:120,cinema?2800:780);
     const direction=clip.left+w/2>innerWidth*.67?-1:1,sizeScale=cinema?clamp(Math.sqrt(w*h/65000),.65,1.3):.7;
     for(let i=0;i<count*4&&particles.length<count;i++){
       const u=Math.random(),v=Math.random(),[r,g,b,a]=colorAt(u,v);if(a<35)continue;
@@ -160,7 +163,8 @@
     // Poucos quadradinhos recortados da própria capa: complemento discreto à erosão original.
     const chunks=[];
     if(fragmentScale>0){
-      const chunkCount=cinema?clamp(Math.round(w*h/350),85,155):clamp(Math.round(w*h/500),35,90);
+      const baseChunkCount=cinema?clamp(Math.round(w*h/350),85,155):clamp(Math.round(w*h/500),35,90);
+      const chunkCount=clamp(Math.round(baseChunkCount*fragmentCountScale),cinema?85:35,cinema?180:105);
       for(let i=0;i<chunkCount*4&&chunks.length<chunkCount;i++){
         const u=Math.random(),v=Math.random(),[r,g,b,a]=colorAt(u,v);if(a<35)continue;
         const sw=Math.max(4,Math.round((7+Math.random()*5)*fragmentScale));
@@ -173,7 +177,7 @@
           phase:Math.random()*6.283,spin:(Math.random()-.5)*3.2,opacity:.72+Math.random()*.25});
       }
     }
-    const haze=Array.from({length:cinema?24:8},()=>{
+    const haze=Array.from({length:Math.round((cinema?24:8)*dustScale)},()=>{
       const p=particles[Math.floor(Math.random()*particles.length)];
       return p?{...p,radius:cinema?9+Math.random()*19:5+Math.random()*8,life:cinema?2.2+Math.random()*1.2:1.2}:null;
     }).filter(Boolean);
