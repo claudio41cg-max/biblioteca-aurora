@@ -21,6 +21,8 @@ test('não cria nem desenha pedaços sólidos recortados da capa',()=>{
 test('mantém poeira fina e permite reduzir seu tamanho até 70%',()=>{
   assert.ok(source.includes('dustParticleScale=clamp(Number(snapshot.dustParticleScale)||1,.7,1)'));
   assert.ok(source.includes('*sizeScale*dustParticleScale'));
+  assert.ok(source.includes('rare<.055?1.95+Math.random()*1.2'));
+  assert.ok(source.includes('(cinema?10+Math.random()*19:5+Math.random()*8)*dustParticleScale'));
   assert.ok(source.includes('*dustParticleScale,life:cinema?2.5'));
   assert.ok(source.includes('const baseParticleCount=cinema?clamp(Math.round(w*h/52)'));
   assert.ok(source.includes('dustScale=clamp(Number(snapshot.dustScale)||1,1,1.4)'));
@@ -33,10 +35,14 @@ test('a erosão orgânica e a duração cinematográfica são preservadas',()=>{
   assert.equal(source.includes('function paintSweep'),false);
 });
 
-test('o som vem de um arquivo real da biblioteca Woven SFX sob CC0',()=>{
-  assert.ok(source.includes('Woven SFX: swish-whoosh-large.wav'));
-  assert.ok(source.includes('https://assets.sfx.woven.video/sfx/swish-whoosh-large.wav'));
-  assert.ok(source.includes('new Audio(DISSOLVE_SOUND_URL)'));
+test('o som usa efeitos externos SpritePilot CC0, leves e sem whoosh repetitivo',()=>{
+  assert.ok(source.includes('SpritePilot, biblioteca CC0 1.0'));
+  assert.ok(source.includes('https://spritepilot.com/free-assets/sound-effects/magic/spell-cast.ogg'));
+  assert.ok(source.includes('https://spritepilot.com/free-assets/sound-effects/magic/wind-spell.ogg'));
+  assert.ok(source.includes('https://spritepilot.com/free-assets/sound-effects/magic/buff.ogg'));
+  assert.ok(source.includes('const cues=['));
+  assert.ok(source.includes('new Audio(cue.url)'));
+  assert.equal(source.includes('assets.sfx.woven.video'),false);
   assert.equal(source.includes('AudioContext'),false);
 });
 
