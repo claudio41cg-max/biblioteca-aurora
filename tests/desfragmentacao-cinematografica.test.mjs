@@ -22,8 +22,8 @@ test('mantém poeira fina e permite reduzir seu tamanho até 70%',()=>{
   assert.ok(source.includes('dustParticleScale=clamp(Number(snapshot.dustParticleScale)||1,.7,1)'));
   assert.ok(source.includes('*sizeScale*dustParticleScale'));
   assert.ok(source.includes('rare<.055?1.95+Math.random()*1.2'));
-  assert.ok(source.includes('(cinema?10+Math.random()*19:5+Math.random()*8)*dustParticleScale'));
-  assert.ok(source.includes('*dustParticleScale,life:cinema?2.5'));
+  assert.ok(source.includes('(cinema?12+Math.random()*20:6+Math.random()*9)*dustParticleScale'));
+  assert.ok(source.includes('*dustParticleScale,life:cinema?2.7'));
   assert.ok(source.includes('const baseParticleCount=cinema?clamp(Math.round(w*h/52)'));
   assert.ok(source.includes('dustScale=clamp(Number(snapshot.dustScale)||1,1,1.4)'));
 });
