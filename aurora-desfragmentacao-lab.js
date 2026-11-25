@@ -48,6 +48,7 @@
   const launch=document.createElement('button');
   launch.type='button';launch.id='auroraLabLaunch';launch.className='aurora-lab-launch';
   launch.textContent='✦ Testar desfragmentação 3D';
+  launch.dataset.source='demo';launch.dataset.bookId='aurora-lab-demo-v114';launch.dataset.rawTitle='Livro de teste Aurora';
   launch.setAttribute('aria-label','Abrir livro temporário no visor 3D para testar a desfragmentação');
   tools.append(launch);
 
