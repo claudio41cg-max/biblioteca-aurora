@@ -160,9 +160,9 @@
         phase:Math.random()*6.283,spin:1.2+Math.random()*3.1,drift:10+Math.random()*27,
         ax:p%12*16,ay:Math.floor(p/12)*16,opacity:.48+Math.random()*.48,dust});
     }
-    const haze=Array.from({length:Math.round((cinema?48:12)*dustScale)},()=>{
+    const haze=Array.from({length:Math.round((cinema?58:14)*dustScale)},()=>{
       const p=particles[Math.floor(Math.random()*particles.length)];
-      return p?{...p,radius:(cinema?10+Math.random()*19:5+Math.random()*8)*dustParticleScale,life:cinema?2.5+Math.random()*1.7:1.5}:null;
+      return p?{...p,radius:(cinema?12+Math.random()*20:6+Math.random()*9)*dustParticleScale,life:cinema?2.7+Math.random()*1.8:1.6}:null;
     }).filter(Boolean);
     return {original,mask,mc,md,edge,ec,ed,values,intact,ic,rim,rc,atlas,particles,haze,w,h};
   }
@@ -187,10 +187,16 @@
   function paintDust(ctx,e,elapsed,start,span){
     for(const p of e.haze){
       const t=elapsed-start-p.release*span;if(t<=0||t>=p.life)continue;
-      const a=t/p.life,x=p.x+p.vx*t*.56+Math.sin(p.phase+t*1.4)*12*t,y=p.y-18*t+Math.cos(p.phase+t)*8*t;
-      const radius=p.radius*(.55+a*1.5),g=ctx.createRadialGradient(x,y,0,x,y,radius);
-      g.addColorStop(0,'rgba(156,133,107,'+(.055*Math.sin(Math.PI*a))+')');g.addColorStop(1,'rgba(156,133,107,0)');
-      ctx.fillStyle=g;ctx.fillRect(x-radius,y-radius,radius*2,radius*2);
+      const a=t/p.life,drift=Math.sin(p.phase+t*1.35);
+      const x=p.x+p.vx*t*.48+drift*15*t,y=p.y-21*t+Math.cos(p.phase+t)*9*t;
+      const radius=p.radius*(.55+a*1.6),opacity=.07*Math.sin(Math.PI*a);
+      // Nuvens elípticas e translúcidas: fumaça difusa, não bolhas ou grãos sólidos.
+      ctx.save();ctx.translate(x,y);ctx.rotate(drift*.17);ctx.scale(1.45,.76);
+      const g=ctx.createRadialGradient(0,0,0,0,0,radius);
+      g.addColorStop(0,'rgba(156,133,107,'+opacity+')');
+      g.addColorStop(.46,'rgba(156,133,107,'+(opacity*.42)+')');
+      g.addColorStop(1,'rgba(156,133,107,0)');
+      ctx.fillStyle=g;ctx.fillRect(-radius,-radius,radius*2,radius*2);ctx.restore();
     }
     for(const p of e.particles){
       const t=elapsed-start-p.release*span;if(t<0||t>=p.life)continue;
