@@ -19,6 +19,7 @@ const txt=shelfCore;
 const pdf=read('aurora-pdf-import.js');
 const formats=read('aurora-novos-formatos.js');
 const onlineSearch=read('aurora-online.js');
+const onlineEstante=read('aurora-online-estante.js');
 const manifest=JSON.parse(read('manifest.webmanifest'));
 const sw=read('sw.js');
 const settings=read('configuracoes.html');
