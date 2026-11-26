@@ -270,11 +270,23 @@
       } catch {
         alert('O livro é grande para o armazenamento local. Ele ficará disponível somente nesta sessão.');
       }
-      draw();
+      const categoryId=getCategory(txtCategories[title],title);
+      const row=$('shelf-'+categoryId);
+      const button=makeSpine({title,author:'Meu arquivo',source:'txt'});
+      const openSharedTxt=()=>{location.href='./ler-epub.html?txt='+encodeURIComponent(title)+'&v=8';};
+      button.addEventListener('click',()=>{
+        if(!window.AuroraShelfViewer?.open){openSharedTxt();return;}
+        window.AuroraShelfViewer.open(button,{
+          id:'txt:'+normalize(title),format:'txt',title,name:title,author:'Meu arquivo',
+          category:categoryId,total:Math.max(1,Math.ceil((texts[title]||'').length/560)),ratio:.72,
+          cover:'',coverSource:'generated',openReader:openSharedTxt
+        });
+      });
+      row?.append(button);refreshCount(categoryId);
       toggleMenu(false);
       const status=$('pdfImportStatus');
       status.hidden=false;
-      status.textContent='“'+title+'” foi adicionado ao catálogo em '+categories.find(item=>item.id===txtCategories[title])?.name+'. Escolha uma estante quando quiser.';
+      status.textContent='“'+title+'” foi adicionado ao catálogo. Escolha uma estante quando quiser.';
       window.LibriaCatalogo?.open();
     } catch(error) {
       alert('Não foi possível importar o TXT: '+(error.message||error));
