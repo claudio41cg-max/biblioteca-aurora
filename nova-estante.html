@@ -7,10 +7,10 @@
 <link rel="stylesheet" href="./aurora-livros-estante.css?v=1">
 <link rel="stylesheet" href="./aurora-volume-estante.css?v=1">
 <link rel="stylesheet" href="./aurora-catalogos.css?v=2">
-<link rel="stylesheet" href="./aurora-estante-exemplares.css?v=6">
+<link rel="stylesheet" href="./aurora-estante-exemplares.css?v=7">
 <link rel="stylesheet" href="./aurora-estante-capa.css?v=1">
 <link rel="stylesheet" href="./aurora-ambiente.css?v=3">
-<link rel="stylesheet" href="./aurora-nova-estante.css?v=9">
+<link rel="stylesheet" href="./aurora-nova-estante.css?v=10">
 <link rel="stylesheet" href="./aurora-estante-cena.css?v=2">
 <link rel="stylesheet" href="./aurora-chamas.css?v=1">
 <link rel="stylesheet" href="./aurora-aquario.css?v=1">
@@ -44,7 +44,7 @@
     <div class="dock-foot"><span id="dockStatus" role="status">Rascunho da estante</span><button id="undoButton" class="dock-undo" type="button">↶ Desfazer</button></div>
   </section>
 </main>
-<dialog id="nameDialog" class="aurora-dialog"><form method="dialog"><label for="shelfNameInput">Nome da estante</label><input id="shelfNameInput" maxlength="36" placeholder="Ex.: Meu cantinho"><div class="dialog-actions"><button value="cancel">Cancelar</button><button id="saveShelfName" value="default">Salvar</button></div></form></dialog>
+<dialog id="nameDialog" class="aurora-dialog"><form method="dialog"><label for="shelfNameInput">Nome da estante</label><input id="shelfNameInput" maxlength="36" placeholder="Ex.: Meu cantinho" required><label for="shelfGenreInput">Gênero literário desta estante</label><select id="shelfGenreInput" required><option value="">Escolha um gênero</option></select><p class="genre-dialog-help">Todos os livros desta estante seguirão este único gênero. O catálogo geral continuará com todos os gêneros.</p><div class="dialog-actions"><button value="cancel">Cancelar</button><button id="saveShelfName" value="default">Salvar</button></div></form></dialog>
 <dialog id="settingsDialog" class="aurora-dialog"><form method="dialog"><h2>Ajustes da estante</h2><label class="switch-row"><span>Brilho ambiente</span><input id="lightRange" type="range" min="35" max="120" value="85"></label><label class="switch-row"><span>Mostrar ajuda inicial</span><input id="helpToggle" type="checkbox" checked></label><div class="dialog-actions"><button value="cancel">Fechar</button><button id="resetShelf" value="default">Recomeçar</button></div></form></dialog>
 <dialog id="layersDialog" class="aurora-dialog"><form method="dialog"><h2>Camadas da estante</h2><div id="layersContent" class="layers-content"></div><div class="dialog-actions"><button value="cancel">Fechar</button></div></form></dialog>
 <script src="./aurora-titulos.js?v=1" defer></script>
@@ -58,12 +58,12 @@
 <script src="./aurora-estante-capa.js?v=1" defer></script>
 <script src="./aurora-volume-estante.js?v=2" defer></script>
 <script src="./aurora-exclusao-particulas.js?v=7" defer></script>
-<script src="./aurora-estante-exemplares.js?v=11" defer></script>
+<script src="./aurora-estante-exemplares.js?v=12" defer></script>
 <script src="./aurora-estantes-salvas.js?v=1" defer></script>
 <script src="./aurora-chamas.js?v=1" defer></script>
 <script src="./aurora-aquario.js?v=1" defer></script>
 <script src="./aurora-estante-cena.js?v=3" defer></script>
-<script src="./aurora-nova-estante.js?v=14" defer></script>
+<script src="./aurora-nova-estante.js?v=15" defer></script>
 <script src="./aurora-mover-exemplar.js?v=5" defer></script>
 <script src="./aurora-medidas-livro.js?v=6" defer></script>
 <script src="./aurora-ajustar-objetos.js?v=3" defer></script>

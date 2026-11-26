@@ -2,8 +2,8 @@
   const savedShelves=window.AuroraEstantesSalvas;
   const params=new URLSearchParams(location.search);
   const isNew=params.get('nova')==='1';
-  const DEFAULT_SHELF_ID='libria-estante-principal-v1';
-  const defaults={name:params.get('id')===DEFAULT_SHELF_ID?'Minha primeira estante':'Minha estante',wall:'tijolos',wallTone:'noite',wood:'nogueira',shelfTone:'natural',theme:'',light:85,sections:1,showHelp:true,objects:[]};
+  const DEFAULT_SHELF_ID='libria-estante-principal-v2';
+  const defaults={name:'Minha estante',genre:'',wall:'tijolos',wallTone:'noite',wood:'nogueira',shelfTone:'natural',theme:'',light:85,sections:1,showHelp:true,objects:[]};
   const makeId=()=>crypto.randomUUID?.()||Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);
   let shelves=[];
   try{shelves=savedShelves.read();}catch{/* O aviso de gravação permanece visível no editor. */}
@@ -12,6 +12,7 @@
   const shelfId=found?.id||(!isNew&&requestedId)||makeId();
   if(isNew||!requestedId)window.history.replaceState(null,'',location.pathname+'?id='+encodeURIComponent(shelfId));
   let state={...defaults,...found,id:shelfId,published:found?.published===true};
+  state.genre=String(state.genre||'');
   state.sections=Math.max(0,Math.min(8,Math.trunc(Number(state.sections)||0)));
   if(!Array.isArray(state.objects))state.objects=[];
   state.wall=({charcoal:'tijolos',navy:'ripas',botanical:'botanico',stone:'reboco',cream:'original'}[state.wall]||state.wall);
@@ -110,6 +111,7 @@
     }
   }
   function finish(chooseBooks=false){
+    if(!state.name?.trim()||!state.genre){$('nameDialog').showModal();notify('Informe o nome e o gênero desta estante antes de concluir.');return;}
     if(!save(true)){notify($('dockStatus').textContent);return;}
     const url=new URL('./index.html',location.href);
     url.searchParams.set('estante',shelfId);
@@ -403,8 +405,18 @@
   }
   document.addEventListener('aurora:shelf-books-changed',()=>{if($('layersDialog').open)showLayers();});
   function labelFor(v){return ({noite:'Noite',azul:'Azul',verde:'Verde',petroleo:'Petróleo',lilas:'Lilás',rosa:'Rosa',calor:'Âmbar',natural:'Natural',tijolos:'Tijolos escuros',ripas:'Madeira ripada',reboco:'Reboco vintage',botanico:'Botânico',rose:'Rosé clássico',original:'Original',nogueira:'Nogueira',carvalho:'Carvalho claro',mogno:'Mogno',marmore:'Mármore',metal:'Metal escovado'})[v]||v}
-  $('shelfNameButton').addEventListener('click',()=>{$('shelfNameInput').value=state.name;$('nameDialog').showModal()});
-  $('saveShelfName').addEventListener('click',e=>{e.preventDefault();state.name=$('shelfNameInput').value.trim()||'Minha estante';const saved=paint();$('nameDialog').close();notify(saved?'Nome da estante salvo':$('dockStatus').textContent)});
+  const genreInput=$('shelfGenreInput');
+  const shelfCategories=window.AuroraShelf?.categories||[];
+  genreInput.replaceChildren(new Option('Escolha um gênero',''),...shelfCategories.map(category=>new Option(category.name,category.id)));
+  $('shelfNameButton').addEventListener('click',()=>{$('shelfNameInput').value=state.name;$('shelfGenreInput').value=state.genre;$('nameDialog').showModal()});
+  $('saveShelfName').addEventListener('click',e=>{
+    e.preventDefault();
+    const name=$('shelfNameInput').value.trim(),genre=$('shelfGenreInput').value;
+    if(!name){notify('Digite um nome para a estante.');$('shelfNameInput').focus();return;}
+    if(!genre){notify('Escolha um gênero literário para a estante.');$('shelfGenreInput').focus();return;}
+    remember();state.name=name;state.genre=genre;
+    const saved=paint();$('nameDialog').close();notify(saved?'Nome e gênero salvos':$('dockStatus').textContent);
+  });
   $('editorSettingsButton').addEventListener('click',()=>{$('lightRange').value=state.light;$('helpToggle').checked=state.showHelp;$('settingsDialog').showModal()});
   $('lightRange').addEventListener('input',e=>{state.light=+e.target.value;paint()});
   $('helpToggle').addEventListener('change',e=>{state.showHelp=e.target.checked;$('emptyHint').hidden=!state.showHelp||state.sections===0;save()});
@@ -473,6 +485,7 @@
   });
   $('shelfNameInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('saveShelfName').click()}});
     paint();renderNav();renderTray();
+  if(!state.name?.trim()||!state.genre)requestAnimationFrame(()=>$('nameDialog').showModal());
   window.AuroraObjectEditor={
     items:()=>state.objects,
     commit(changes,removed=new Set()){

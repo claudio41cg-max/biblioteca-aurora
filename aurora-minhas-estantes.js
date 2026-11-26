@@ -1,9 +1,10 @@
 (() => {
   'use strict';
   const listKey = 'aurora-estantes-personalizadas-v1';
-  const DEFAULT_SHELF_ID = 'libria-estante-principal-v1';
+  const DEFAULT_SHELF_ID = 'libria-estante-principal-v2';
+  const LEGACY_DEFAULT_SHELF_ID = 'libria-estante-principal-v1';
   const DEFAULT_SHELF = Object.freeze({
-    id:DEFAULT_SHELF_ID,name:'Minha primeira estante',wall:'tijolos',wallTone:'noite',
+    id:DEFAULT_SHELF_ID,name:'Minha estante',genre:'',wall:'tijolos',wallTone:'noite',
     wood:'nogueira',shelfTone:'natural',light:85,sections:1,objects:[],published:true
   });
   const byId = id => document.getElementById(id);
@@ -19,7 +20,7 @@
   function readPublished() {
     try {
       const stored = window.AuroraEstantesSalvas.read();
-      return stored.filter(shelf => shelf?.id && shelf.id !== DEFAULT_SHELF_ID && shelf.published === true)
+      return stored.filter(shelf => shelf?.id && shelf.id !== DEFAULT_SHELF_ID && shelf.id !== LEGACY_DEFAULT_SHELF_ID && shelf.published === true)
         .sort((a, b) => (a.publishedAt || 0) - (b.publishedAt || 0));
     } catch { return []; }
   }
@@ -54,8 +55,9 @@
     previous.hidden = next.hidden = total === 1;
     previous.disabled = position === 0;
     next.disabled = position === total - 1;
-    byId('shelfTitle').textContent = shelf.name || 'Minha primeira estante';
-    byId('shelfPosition').textContent = total > 1 ? 'Estante ' + (position + 1) + ' de ' + total : '';
+    byId('shelfTitle').textContent = shelf.name || 'Minha estante';
+    const genreName = (window.AuroraShelf?.categories || []).find(item => item.id === shelf.genre)?.name || '';
+    byId('shelfPosition').textContent = [total > 1 ? 'Estante ' + (position + 1) + ' de ' + total : '',genreName].filter(Boolean).join(' · ');
     byId('shelfSwitcher').hidden = false;
     if (shelf && byId('arrangeButton').getAttribute('aria-pressed') === 'true') byId('arrangeButton').click();
     if (shelf && !byId('roomPanel').hidden) byId('roomButton').click();
@@ -79,7 +81,7 @@
       const sections = Math.max(0, Math.min(8, Number(shelf.sections) || 0));
       const objects = Array.isArray(shelf.objects) ? shelf.objects : [];
       for (let i = 0; i < sections; i++) scene.append(window.AuroraShelfScene.section(objects, i));
-      addBook.disabled = !sections;
+      addBook.disabled = !sections || !shelf.genre;
       if (!sections) {
         const link = document.createElement('a');
         link.className = 'create-first-section';
