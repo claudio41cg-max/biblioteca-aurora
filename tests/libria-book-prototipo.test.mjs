@@ -18,6 +18,7 @@ const epubAudioImport=read('aurora-novos-formatos.js');
 const txt=shelfCore;
 const pdf=read('aurora-pdf-import.js');
 const formats=read('aurora-novos-formatos.js');
+const onlineSearch=read('aurora-online.js');
 const manifest=JSON.parse(read('manifest.webmanifest'));
 const sw=read('sw.js');
 const settings=read('configuracoes.html');
@@ -31,6 +32,7 @@ test('scripts novos do protótipo têm sintaxe JavaScript válida',()=>{
   assert.doesNotThrow(()=>new Script(shelfCore));
   assert.doesNotThrow(()=>new Script(pdfImport));
   assert.doesNotThrow(()=>new Script(epubAudioImport));
+  assert.doesNotThrow(()=>new Script(onlineSearch));
 });
 
 test('a identidade LIBRIA - BOOK está no cabeçalho e no PWA',()=>{
@@ -41,7 +43,7 @@ test('a identidade LIBRIA - BOOK está no cabeçalho e no PWA',()=>{
   assert.ok(settings.includes('Configurações • LIBRIA - BOOK'));
 });
 
-test('o menu concentra busca, conexão por link, leituras e configurações',()=>{
+test('o menu mantém os atalhos principais e oculta os controles antigos',()=>{
   assert.ok(html.includes('id="libriaMenuToggle"'));
   assert.ok(html.includes('id="libriaAppMenu"'));
   assert.ok(html.includes('href="./explorar-livros.html">⌕ <span>Buscar livros</span>'));
@@ -58,7 +60,7 @@ test('o catálogo geral é único e pode ser aberto pela home e por cada estante
   assert.ok(html.includes('id="shelfCatalogButton"'));
   assert.ok(html.includes('id="libriaCatalogHome"'));
   assert.ok(catalog.includes("$('openCatalogButton')?.addEventListener('click',open)"));
-  assert.ok(catalog.includes("$('shelfCatalogButton')?.addEventListener('click',open)"));
+  assert.ok(catalog.includes("$('shelfCatalogButton')?.addEventListener('click',()=>window.AuroraEstanteExemplares?.openPicker())"));
   assert.ok(catalog.includes('window.AuroraCatalogos?.open(category)'));
   assert.ok(catalog.includes('window.AuroraShelf.categories'));
   assert.ok(html.includes('class="library libria-catalog-source"'));
@@ -81,7 +83,30 @@ test('a primeira estante é vazia, editável e usa o mesmo editor das demais',()
   assert.ok(shelves.includes('window.AuroraEstanteExemplares.render(shelf, scene)'));
   assert.ok(shelves.includes("edit.href = './nova-estante.html?id=' + encodeURIComponent(shelf.id)"));
   assert.ok(shelves.includes("byId('library').hidden = false"));
-  assert.ok(shelves.includes("byId('personalShelf').hidden = addBook.hidden = edit.hidden = false"));
+  assert.ok(shelves.includes("byId('personalShelf').hidden = edit.hidden = false"));
+  assert.ok(shelves.includes('addBook.hidden = true'));
+});
+
+test('cada estante abre seu catálogo filtrado pelo gênero escolhido',()=>{
+  assert.ok(catalog.includes("$('shelfCatalogButton')?.addEventListener('click',()=>window.AuroraEstanteExemplares?.openPicker())"));
+  assert.ok(shelfPicker.includes('active.genre && book.category === active.genre'));
+  assert.ok(shelfPicker.includes("element('h2','','Catálogo da estante')"));
+  assert.ok(shelfPicker.includes("placed?'Retirar':'Adicionar'"));
+});
+
+test('toda importação exige gênero e a busca online não classifica automaticamente',()=>{
+  assert.ok(html.includes('<select id="importCategory" required>'));
+  assert.ok(html.includes('<option value="" selected disabled>Selecione o gênero...</option>'));
+  assert.ok(pdfImport.includes('if(!category.value)'));
+  assert.ok(epubAudioImport.includes('if(!category.value)'));
+  assert.ok(shelfCore.includes('if(!importCategory.value)'));
+  assert.ok(onlineSearch.includes('Gênero no catálogo: '));
+  assert.ok(onlineSearch.includes('＋ Adicionar ao catálogo'));
+  assert.ok(onlineSearch.includes('if(!selector.value)'));
+  assert.ok(onlineSearch.includes('O arquivo não foi baixado para o aparelho.'));
+  assert.equal(onlineSearch.includes('selector.value=category(item.title,item.author)'),false);
+  assert.ok(onlineSearch.includes("['filmes','Filmes inspirado em livros']"));
+  assert.ok(onlineSearch.includes("['veterinaria','Medicina Veterinária']"));
 });
 
 test('a configuração inicial é simples, local e não interrompe acervos antigos',()=>{
@@ -106,8 +131,8 @@ test('importações entram no catálogo e não abrem automaticamente a leitura',
 });
 
 test('a versão de cache do protótipo não substitui o aplicativo publicado',()=>{
-  assert.equal(sw.includes("const CACHE = 'libria-v119';"),true);
-  assert.ok(sw.includes("const HOME = './index.html?v=119';"));
-  assert.ok(sw.includes("const EDITOR = './nova-estante.html?v=119';"));
-  assert.ok(html.includes('./manifest.webmanifest?v=119'));
+  assert.equal(sw.includes("const CACHE = 'libria-v120';"),true);
+  assert.ok(sw.includes("const HOME = './index.html?v=120';"));
+  assert.ok(sw.includes("const EDITOR = './nova-estante.html?v=120';"));
+  assert.ok(html.includes('./manifest.webmanifest?v=120'));
 });
