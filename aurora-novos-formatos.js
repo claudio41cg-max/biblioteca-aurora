@@ -55,8 +55,8 @@
       try{
         const book=await importFile(file,format);
         selectedAudioCover=null;$('audioCoverFile').value='';
-        report('“'+book.name+'” foi importado. Abrindo '+(format==='epub'?'a leitura':'o áudio')+'…');
-        location.href='./'+(format==='epub'?'ler-epub.html':'ouvir-livro.html')+'?livro='+encodeURIComponent(book.id)+'&v=1';
+        report('“'+book.name+'” foi adicionado ao catálogo. Escolha uma estante quando quiser.');
+        location.href='./index.html?catalogo=1&importado='+encodeURIComponent(book.id);
       }catch(error){
         report('Não foi possível importar: '+(error?.message||String(error)));
       }finally{input.value='';trigger.disabled=false;}
