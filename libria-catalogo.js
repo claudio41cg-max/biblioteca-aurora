@@ -4,6 +4,20 @@
   'use strict';
   const $=id=>document.getElementById(id);
   const overlay=$('libriaCatalogHome'),grid=$('libriaGenreGrid'),search=$('libriaGenreSearch');
+  const menu=$('libriaAppMenu'),menuToggle=$('libriaMenuToggle');
+  function closeMenu(){if(!menu||!menuToggle)return;menu.hidden=true;menuToggle.setAttribute('aria-expanded','false');}
+  menuToggle?.addEventListener('click',()=>{
+    if(!menu)return;
+    menu.hidden=!menu.hidden;
+    menuToggle.setAttribute('aria-expanded',String(!menu.hidden));
+  });
+  menu?.addEventListener('click',event=>{
+    if(event.target.closest('a')||event.target.closest('#statsButton'))closeMenu();
+  });
+  document.addEventListener('click',event=>{
+    if(menu&&!menu.hidden&&!menu.contains(event.target)&&!menuToggle?.contains(event.target))closeMenu();
+  });
+  document.addEventListener('keydown',event=>{if(event.key==='Escape')closeMenu();});
   const countLabel=$('libriaCatalogTotal');
   if(!overlay||!grid||!window.AuroraShelf)return;
   const icons={romance:'♡',adulto:'✦',ficcao:'◇',brasileiros:'✒',filmes:'▣',veterinaria:'♧'};
