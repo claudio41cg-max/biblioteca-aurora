@@ -61,11 +61,11 @@ test('o catálogo atualiza textura e identificação sem reconstruir o cartão d
   assert.match(source,/new MutationObserver\(\(\)=>\{if\(current&&!overlay\.hidden\)render\(\);\}\)/);
 });
 
-test('service worker abre a v114 e cria cache isolado da versão anterior',()=>{
+test('service worker abre a v118 e cria cache isolado da versão anterior',()=>{
   const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
-  assert.ok(sw.includes("const CACHE = 'aurora-v117';"));
-  assert.ok(sw.includes("const HOME = './index.html?v=117';"));
-  assert.ok(sw.includes("const EDITOR = './nova-estante.html?v=117';"));
-  assert.ok(sw.includes("'./manifest.webmanifest?v=117'"));
+  assert.ok(sw.includes("const CACHE = 'libria-v118';"));
+  assert.ok(sw.includes("const HOME = './index.html?v=118';"));
+  assert.ok(sw.includes("const EDITOR = './nova-estante.html?v=118';"));
+  assert.ok(sw.includes("'./manifest.webmanifest?v=118'"));
   assert.doesNotMatch(sw,/indexedDB\.deleteDatabase|localStorage\.clear\(/);
 });
