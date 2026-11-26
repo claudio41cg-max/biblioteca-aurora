@@ -1,6 +1,11 @@
 (() => {
   'use strict';
   const listKey = 'aurora-estantes-personalizadas-v1';
+  const DEFAULT_SHELF_ID = 'libria-estante-principal-v1';
+  const DEFAULT_SHELF = Object.freeze({
+    id:DEFAULT_SHELF_ID,name:'Minha primeira estante',wall:'tijolos',wallTone:'noite',
+    wood:'nogueira',shelfTone:'natural',light:85,sections:1,objects:[],published:true
+  });
   const byId = id => document.getElementById(id);
   const canvas = byId('personalCanvas');
   const scene = byId('personalScene');
