@@ -90,8 +90,8 @@
     report('Preparando '+file.name+'…');
     try{
       const id=await importPDF(file,category.value);
-      // O visor 3D é mantido. Ao voltar, o usuário encontra a estante única.
-      location.href='./meus-livros.html?v=32&livro='+encodeURIComponent(id);
+      // O livro fica no catálogo central; a pessoa decide depois em qual estante colocá-lo.
+      location.href='./index.html?catalogo=1&importado='+encodeURIComponent(id);
     }catch(error){
       report('Não foi possível importar o PDF: '+(error.message||String(error)));
     }finally{trigger.disabled=false;input.value='';}
