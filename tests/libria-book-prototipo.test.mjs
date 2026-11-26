@@ -7,6 +7,7 @@ const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const html=read('index.html');
 const css=read('libria-book.css');
 const catalog=read('libria-catalogo.js');
+const catalog3d=read('aurora-catalogos.js');
 const onboarding=read('libria-onboarding.js');
 const shelves=read('aurora-minhas-estantes.js');
 const shelfEditor=read('aurora-nova-estante.js');
@@ -19,12 +20,14 @@ const txt=shelfCore;
 const pdf=read('aurora-pdf-import.js');
 const formats=read('aurora-novos-formatos.js');
 const onlineSearch=read('aurora-online.js');
+const onlineEstante=read('aurora-online-estante.js');
 const manifest=JSON.parse(read('manifest.webmanifest'));
 const sw=read('sw.js');
 const settings=read('configuracoes.html');
 
 test('scripts novos do protótipo têm sintaxe JavaScript válida',()=>{
   assert.doesNotThrow(()=>new Script(catalog));
+  assert.doesNotThrow(()=>new Script(catalog3d));
   assert.doesNotThrow(()=>new Script(onboarding));
   assert.doesNotThrow(()=>new Script(shelves));
   assert.doesNotThrow(()=>new Script(shelfEditor));
@@ -63,11 +66,12 @@ test('o catálogo geral é único e pode ser aberto pela home e por cada estante
   assert.ok(catalog.includes("$('shelfCatalogButton')?.addEventListener('click',()=>window.AuroraEstanteExemplares?.openPicker())"));
   assert.ok(catalog.includes('window.AuroraCatalogPreview?.homeCardFor(button)'));
   assert.ok(html.includes('id="libriaGoShelves"'));
-  assert.match(css,/\.libria-home-books\{display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+  assert.match(css,/\.libria-home-book-grid\{display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
   assert.ok(html.indexOf('id="libriaGenreGrid"')<html.indexOf('id="libriaGoShelves"'));
   assert.ok(!html.includes('id="libriaCatalogClose"'));
   assert.ok(catalog.includes('window.AuroraShelf.categories'));
   assert.ok(html.includes('class="library libria-catalog-source"'));
+  assert.equal(html.includes('id="libriaCatalogMore"'),false);
   assert.ok(css.includes('.libria-catalog-source'));
 });
 
@@ -112,6 +116,11 @@ test('toda importação exige gênero e a busca online não classifica automatic
   assert.equal(onlineSearch.includes('selector.value=category(item.title,item.author)'),false);
   assert.ok(onlineSearch.includes("['filmes','Filmes inspirado em livros']"));
   assert.ok(onlineSearch.includes("['veterinaria','Medicina Veterinária']"));
+  assert.ok(pdfImport.includes('category:chosenCategory'));
+  assert.ok(epubAudioImport.includes('category:category.value'));
+  assert.ok(shelfCore.includes('txtCategories[title]=importCategory.value'));
+  assert.ok(onlineSearch.includes('category:selector.value'));
+  assert.ok(onlineEstante.includes('shelf.getCategory(book.category,book.title)'));
 });
 
 test('a configuração inicial é simples, local e não interrompe acervos antigos',()=>{
@@ -136,32 +145,58 @@ test('importações entram no catálogo e não abrem automaticamente a leitura',
 });
 
 test('a versão de cache do protótipo não substitui o aplicativo publicado',()=>{
-  assert.equal(sw.includes("const CACHE = 'libria-v123';"),true);
-  assert.ok(sw.includes("const HOME = './index.html?v=123';"));
-  assert.ok(sw.includes("const EDITOR = './nova-estante.html?v=123';"));
-  assert.ok(html.includes('./manifest.webmanifest?v=123'));
+  assert.equal(sw.includes("const CACHE = 'libria-v124';"),true);
+  assert.ok(sw.includes("const HOME = './index.html?v=124';"));
+  assert.ok(sw.includes("const EDITOR = './nova-estante.html?v=124';"));
+  assert.ok(html.includes('./manifest.webmanifest?v=124'));
 });
 
-test('a tela inicial mostra livros reais do acervo, filtra e navega para as estantes',()=>{
+test('todos os livros da home usam o volume 3D completo e abrem o mesmo leitor',()=>{
+  assert.ok(catalog3d.includes('const {holder,wasTurning}=volumeFor(button,title,card)'));
+  assert.ok(catalog3d.includes("holder.classList.add('libria-home-cover')"));
+  assert.ok(catalog3d.includes("button.__auroraCatalogOrigin=holder.getBoundingClientRect()"));
+  assert.ok(catalog3d.includes("button.__auroraCatalogFocus=card"));
+  assert.ok(catalog3d.includes('card.append(holder,name,author,type)'));
+  assert.ok(catalog3d.includes('aurora-catalog-pages'));
+  assert.ok(catalog3d.includes('aurora-catalog-spine'));
+  assert.ok(catalog3d.includes('aurora-catalog-back-face'));
+  assert.ok(css.includes('.libria-home-cover{position:relative;display:block'));
+});
+
+test('cada gênero mostra 30 livros por lote e pagina separadamente',()=>{
+  assert.ok(catalog.includes('const PAGE_SIZE=30'));
+  assert.ok(catalog.includes('const visibleByGenre=new Map()'));
+  assert.ok(catalog.includes('more.dataset.moreGenre=category.id'));
+  assert.ok(catalog.includes('visibleByGenre.set(id,(visibleByGenre.get(id)||PAGE_SIZE)+PAGE_SIZE)'));
+  assert.ok(catalog.includes('Mostrar mais '));
+});
+
+test('o catálogo inicial agrupa livros por gênero, filtra e navega para as estantes',()=>{
   class Node {
-    constructor(tag='div'){this.tagName=tag;this.children=[];this.dataset={};this.attrs={};this.listeners={};this.hidden=false;this.value='';this.textContent='';}
+    constructor(tag='div'){
+      this.tagName=tag;this.children=[];this.dataset={};this.attrs={};this.listeners={};
+      this.hidden=false;this.value='';this.textContent='';this.className='';this.classList={add(){},remove(){},toggle(){}};
+    }
     append(...items){this.children.push(...items);}
     replaceChildren(...items){this.children=[...items];}
     setAttribute(k,v){this.attrs[k]=v;}
     addEventListener(k,fn){(this.listeners[k]??=[]).push(fn);}
-    fire(k,target=this){for(const fn of this.listeners[k]||[])fn({target,key:''});}
-    closest(){return this;}
-    contains(node){return this.children.includes(node)||node===this;}
-    querySelectorAll(){return this.children;}
+    fire(k,target=this){for(const fn of this.listeners[k]||[])fn({target,key:'',preventDefault(){}});}
+    closest(selector){
+      if(selector==='button[data-genre]'&&this.dataset.genre!==undefined)return this;
+      if(selector==='button[data-more-genre]'&&this.dataset.moreGenre!==undefined)return this;
+      return null;
+    }
+    contains(node){return node===this||this.children.some(child=>child?.contains?.(node)||child===node);}
+    querySelectorAll(selector){return selector==='.book-spine'?this.children:[];}
     querySelector(){return null;}
     focus(){}
   }
-  const ids=Object.fromEntries(['libriaCatalogHome','libriaGenreGrid','libriaHomeBooks','libriaGenreSearch','libriaHomeSearchWrap','libriaSearchToggle','libriaCatalogMore','libriaCatalogTotal','libriaCatalogHeading','libriaAppMenu','libriaMenuToggle','openCatalogButton','libriaGoShelves','shelfCatalogButton','shelf-romance','shelf-ficcao','library'].map(id=>[id,new Node()]));
-  ids.libriaAppMenu.hidden=true;
-  ids.libriaHomeSearchWrap.hidden=true;
-  const book=(title,author,source,id)=>{const n=new Node('button');n.dataset={rawTitle:title,author,source,bookId:id};return n;};
-  ids['shelf-romance'].append(book('Razão e Sensibilidade','Jane Austen','pdf','a'),book('Noite de amor','Autora','epub','b'));
-  ids['shelf-ficcao'].append(book('A Máquina do Tempo','H. G. Wells','epub','c'),book('A Máquina do Tempo','H. G. Wells','epub','c'));
+  const ids=Object.fromEntries(['libriaCatalogHome','libriaGenreGrid','libriaHomeBooks','libriaGenreSearch','libriaHomeSearchWrap','libriaSearchToggle','libriaCatalogTotal','libriaCatalogHeading','libriaAppMenu','libriaMenuToggle','openCatalogButton','libriaGoShelves','shelfCatalogButton','shelf-romance','shelf-ficcao','library'].map(id=>[id,new Node()]));
+  ids.libriaAppMenu.hidden=true;ids.libriaHomeSearchWrap.hidden=true;
+  const book=(title,author,source,id)=>{const n=new Node('button');n.className='book-spine';n.dataset={rawTitle:title,author,source,bookId:id};return n;};
+  for(let i=1;i<=65;i++)ids['shelf-romance'].append(book('Romance '+String(i).padStart(3,'0'),'Autora','pdf','r'+i));
+  ids['shelf-ficcao'].append(book('A Máquina do Tempo','H. G. Wells','epub','f1'),book('A Ilha Misteriosa','Jules Verne','epub','f2'));
   const classes=new Set(),doc=new Node();
   doc.getElementById=id=>ids[id]||null;
   doc.createElement=tag=>new Node(tag);
@@ -175,16 +210,31 @@ test('a tela inicial mostra livros reais do acervo, filtra e navega para as esta
   window.AuroraMinhasEstantes={refresh:()=>refreshed++};
   window.AuroraEstanteExemplares={layout(){},openPicker:()=>picked++};
   window.scrollTo=()=>{};
-  runInNewContext(catalog,{document:doc,window,location,history,URL,URLSearchParams,requestAnimationFrame:fn=>{fn();return 0;},console});
+  runInNewContext(catalog,{document:doc,window,location,history,URL,URLSearchParams,requestAnimationFrame:fn=>{fn();return 1;},console});
   assert.equal(ids.libriaCatalogHome.hidden,false);
-  assert.equal(ids.libriaHomeBooks.children.length,3);
-  assert.equal(ids.libriaCatalogTotal.textContent,'3 livros');
-  assert.equal(ids.libriaGenreGrid.children[0].textContent,'Todos');
-  ids.libriaGenreGrid.fire('click',ids.libriaGenreGrid.children[1]);
-  assert.deepEqual(ids.libriaHomeBooks.children.map(n=>n.textContent),['Razão e Sensibilidade','Noite de amor']);
-  ids.libriaGenreSearch.value='razao';ids.libriaGenreSearch.fire('input');
+  assert.equal(ids.libriaCatalogTotal.textContent,'67 livros');
+  assert.equal(ids.libriaHomeBooks.children.length,2);
+  const romanceSection=ids.libriaHomeBooks.children.find(section=>section.dataset.genreSection==='romance');
+  const fictionSection=ids.libriaHomeBooks.children.find(section=>section.dataset.genreSection==='ficcao');
+  assert.equal(romanceSection.children[1].children.length,30);
+  assert.equal(romanceSection.children[2].textContent,'Mostrar mais 30 livros');
+  assert.equal(fictionSection.children[1].children.length,2);
+  ids.libriaHomeBooks.fire('click',romanceSection.children[2]);
+  const romanceAfterOneMore=ids.libriaHomeBooks.children.find(section=>section.dataset.genreSection==='romance');
+  assert.equal(romanceAfterOneMore.children[1].children.length,60);
+  assert.equal(romanceAfterOneMore.children[2].textContent,'Mostrar mais 5 livros');
+  ids.libriaHomeBooks.fire('click',romanceAfterOneMore.children[2]);
+  const romanceComplete=ids.libriaHomeBooks.children.find(section=>section.dataset.genreSection==='romance');
+  assert.equal(romanceComplete.children[1].children.length,65);
+  assert.equal(romanceComplete.children.length,2);
+  assert.equal(ids.libriaHomeBooks.children.find(section=>section.dataset.genreSection==='ficcao').children[1].children.length,2);
+  const romanceTab=ids.libriaGenreGrid.children.find(tab=>tab.dataset.genre==='romance');
+  ids.libriaGenreGrid.fire('click',romanceTab);
+  assert.equal(ids.libriaHomeBooks.children.length,1);
+  assert.equal(ids.libriaCatalogTotal.textContent,'65 livros');
+  ids.libriaGenreSearch.value='romance 001';ids.libriaGenreSearch.fire('input');
   assert.equal(ids.libriaCatalogTotal.textContent,'1 livro');
-  assert.equal(ids.libriaHomeBooks.children[0].textContent,'Razão e Sensibilidade');
+  assert.equal(ids.libriaHomeBooks.children[0].children[1].children.length,1);
   ids.libriaGoShelves.fire('click');
   assert.equal(new URL(location.href).searchParams.get('estantes'),'1');
   assert.equal(ids.libriaCatalogHome.hidden,true);
@@ -194,10 +244,9 @@ test('a tela inicial mostra livros reais do acervo, filtra e navega para as esta
   ids.openCatalogButton.fire('click');
   assert.equal(ids.libriaCatalogHome.hidden,false);
   assert.equal(new URL(location.href).searchParams.has('estantes'),false);
-  assert.equal(ids.libriaCatalogTotal.textContent,'1 livro');
   window.LibriaCatalogo.open();
-  assert.equal(ids.libriaCatalogTotal.textContent,'3 livros');
-  ids['shelf-romance'].append(book('Livro novo','Autor','pdf','new'));
+  assert.equal(ids.libriaCatalogTotal.textContent,'67 livros');
+  ids['shelf-romance'].append(book('Romance 066','Autora','pdf','r66'));
   doc.fire('aurora:library-data');
-  assert.equal(ids.libriaCatalogTotal.textContent,'4 livros');
+  assert.equal(ids.libriaCatalogTotal.textContent,'68 livros');
 });

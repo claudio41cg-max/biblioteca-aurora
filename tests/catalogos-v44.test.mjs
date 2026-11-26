@@ -22,13 +22,15 @@ assert.match(catalog,/button\.click\(\)/,'As capas abrem exatamente o livro 3D d
 assert.match(catalog,/MutationObserver/);
 assert.match(catalog,/subtree:true,childList:true/);
 assert.match(catalog,/const PAGE_SIZE=9/);
+assert.match(catalog,/function homeCardFor\(button\)/);
+assert.match(catalog,/const \{holder,wasTurning\}=volumeFor\(button,title,card\)/);
 assert.match(catalog,/visible\+=PAGE_SIZE/);
 assert.match(css,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
 assert.match(css,/#library \.section-title::after\{display:none\}/);
 assert.match(html,/id="auroraCatalogOverlay"[^>]*role="dialog"[^>]*aria-modal="true"/);
-assert.match(html,/aurora-catalogos\.js\?v=8/);
+assert.match(html,/aurora-catalogos\.js\?v=9/);
 assert.match(html,/aurora-catalogos\.css\?v=4/);
-assert.match(sw,/libria-v123/);
-assert.match(sw,/const HOME = '\.\/index\.html\?v=123'/);
+assert.match(sw,/libria-v124/);
+assert.match(sw,/const HOME = '\.\/index\.html\?v=124'/);
 
 console.log('V44/V53: catálogos, capas, volumes físicos e abertura do mesmo livro confirmados.');
