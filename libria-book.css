@@ -74,3 +74,26 @@
  .libria-genre-icon{width:31px;height:31px;flex-basis:31px;font-size:18px}
  .libria-genre-info strong{font-size:12px}
 }
+
+
+/* Cabeçalho inicial mais compacto e catálogo individual ao lado do nome da estante. */
+.tophead{padding:20px 14px 12px}
+.eyebrow{font-size:9px;letter-spacing:3px}
+.libria-brand{font-size:clamp(26px,6vw,40px);letter-spacing:-1px;margin:6px 0 4px}
+.subtitle{font-size:12px;margin:0 0 14px}
+.libria-home-actions{gap:7px;margin-bottom:10px}
+.libria-catalog-main,.libria-link-main{min-height:41px;padding:8px 13px;font-size:12px;border-radius:9px}
+.shelf-heading{min-width:0}
+.shelf-heading-main{display:flex;align-items:center;justify-content:center;gap:9px;min-width:0}
+#shelfTitle{font-size:clamp(20px,4.7vw,29px)}
+.shelf-heading-main #shelfCatalogButton{flex:none;min-height:34px;padding:6px 10px;border:1px solid #c5a06c;border-radius:9px;background:linear-gradient(180deg,#e4c18a,#c69a60);color:#2d2117;font:600 12px/1.1 Georgia,serif;letter-spacing:.2px;text-decoration:none;cursor:pointer;white-space:nowrap}
+.shelf-heading-main #shelfCatalogButton:hover{filter:brightness(1.06)}
+@media(max-width:420px){
+  .tophead{padding:17px 11px 10px}
+  .libria-brand{font-size:clamp(25px,6.3vw,32px)}
+  .subtitle{font-size:11px;margin-bottom:11px}
+  .shelf-switcher-row{gap:7px;grid-template-columns:38px minmax(0,1fr) 38px}
+  .shelf-arrow{width:38px;height:38px}
+  .shelf-heading-main{gap:6px;flex-wrap:wrap}
+  .shelf-heading-main #shelfCatalogButton{min-height:31px;padding:5px 9px;font-size:11px}
+}
