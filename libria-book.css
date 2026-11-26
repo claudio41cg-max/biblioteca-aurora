@@ -97,3 +97,49 @@
   .shelf-heading-main{gap:6px;flex-wrap:wrap}
   .shelf-heading-main #shelfCatalogButton{min-height:31px;padding:5px 9px;font-size:11px}
 }
+
+/* v123 — catálogo inicial permanente: três capas por linha, gêneros roláveis. */
+body.libria-shell{background:#10201c;color:#f3e8d5}
+body.libria-shell.libria-catalog-view{background:#101916}
+.libria-shell .tophead{position:relative;z-index:20;background:#15231f;padding:calc(11px + env(safe-area-inset-top)) 13px 11px;text-align:left;border-bottom:1px solid #dac39924}
+.libria-topbar{position:relative;width:min(100%,940px);margin:auto;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.libria-topbar .libria-brand{display:flex;justify-content:flex-start;align-items:baseline;margin:0;padding:0;font-size:clamp(21px,6vw,33px);letter-spacing:-1px;white-space:nowrap;line-height:1.05;min-width:0}
+.libria-topbar .libria-brand-book{font-size:.72em;letter-spacing:-.5px}
+.libria-header-actions{display:flex;align-items:center;gap:4px;flex:0 0 auto}
+.libria-shell .libria-icon-button{position:static;inset:auto;transform:none;display:grid;place-items:center;width:40px;height:44px;padding:0;border:0;border-radius:9px;background:transparent;color:#f1e7d5;box-shadow:none;cursor:pointer}
+.libria-shell .libria-icon-button svg,.libria-go-shelves svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.libria-shell .libria-icon-button:hover,.libria-shell .libria-icon-button[aria-expanded=true]{background:#ffffff10;color:#e5bf85}
+.libria-shell .libria-icon-button:focus-visible,.libria-genre-tab:focus-visible,.libria-go-shelves:focus-visible,.libria-home-book:focus-visible{outline:2px solid #e5bf85;outline-offset:2px}
+.libria-shell .import-area{position:static;display:flex}
+.libria-shell .import-menu{left:auto;right:0;top:calc(100% + 8px);transform:none;width:min(310px,calc(100vw - 26px));z-index:90}
+.libria-shell .libria-app-menu{right:13px;top:calc(100% + 4px)}
+.libria-shell .libria-catalog-home{position:relative;inset:auto;z-index:auto;overflow:visible;background:none;padding:0 0 22px;margin:auto;width:min(100%,940px);font-family:system-ui,sans-serif}
+.libria-shell .libria-catalog-panel{width:auto;max-width:940px;margin:0 auto;padding:19px 13px 0}
+.libria-catalog-view #shelfSwitcher,.libria-catalog-view #personalShelf{display:none!important}
+.libria-catalog-nav{position:sticky;top:0;z-index:10;display:flex;align-items:stretch;gap:0;min-height:51px;padding:0 0 0 12px;background:#172520;border-bottom:1px solid #d9ae702e}
+.libria-shell .libria-genre-grid{display:flex;flex:1 1 0;min-width:0;align-items:stretch;gap:16px;overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain;touch-action:pan-x}
+.libria-shell .libria-genre-grid::-webkit-scrollbar{display:none}
+.libria-genre-tab{flex:0 0 auto;position:relative;min-height:51px;padding:0 1px;border:0;border-bottom:3px solid transparent;background:none;color:#bcbcb0;font:600 13px/1.2 system-ui,sans-serif;white-space:nowrap;cursor:pointer}
+.libria-genre-tab[aria-pressed=true]{color:#f4d9a8;border-bottom-color:#e3bb7f}
+.libria-go-shelves{flex:0 0 auto;display:flex;gap:3px;align-items:center;justify-content:center;padding:0 11px;border:0;border-left:1px solid #d9ae7045;background:#1a2e27;color:#eacb98;font:700 12px system-ui,sans-serif;white-space:nowrap;cursor:pointer}
+.libria-go-shelves svg{width:17px;height:17px;stroke-width:2.2}
+.libria-catalog-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 17px}
+.libria-catalog-heading h2{font:600 clamp(23px,6vw,32px)/1.15 Georgia,serif;color:#f3e6cd;margin:0}
+.libria-catalog-heading>span{color:#b6b7a9;font:12px system-ui,sans-serif;white-space:nowrap}
+.libria-home-search{display:block;margin:0 0 17px}
+.libria-home-search[hidden],.libria-home-more[hidden]{display:none!important}
+.libria-home-search>span{display:block;color:#cbbfa9;font-size:12px;margin-bottom:6px}
+.libria-home-search input{box-sizing:border-box;width:100%;min-height:44px;padding:0 12px;background:#22312b;color:#f5e8d6;border:1px solid #9e896367;border-radius:9px;font:14px system-ui,sans-serif}
+.libria-home-books{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px 11px;align-items:start}
+.libria-home-book{display:flex;flex-direction:column;min-width:0;width:100%;padding:0;text-align:left;border:0;border-radius:7px;background:none;color:inherit;cursor:pointer}
+.libria-home-cover{display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%;aspect-ratio:2/3;overflow:hidden;border:1px solid #d5c2a220;border-radius:7px;background:#222c26;box-shadow:0 5px 12px #0006}
+.libria-home-cover img{display:block;width:100%;height:100%;object-fit:contain}
+.libria-home-cover .aurora-catalog-fallback{padding:7px;font:600 12px/1.35 Georgia,serif;color:#d7c49e;text-align:center}
+.libria-home-book-title{margin-top:8px;color:#f4ecdf;font:600 12px/1.35 system-ui,sans-serif;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere}
+.libria-home-book-author{margin-top:3px;color:#b7b8ac;font:10px/1.25 system-ui,sans-serif;max-width:100%;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+.libria-home-book-author:empty{display:none}
+.libria-home-book-type{margin-top:4px;color:#c9b48d;font:10px/1.2 system-ui,sans-serif}
+.libria-home-more{display:block;margin:24px auto 0;padding:12px 20px;border:1px solid #94794e;border-radius:9px;color:#e9d4ae;background:#23352e;cursor:pointer;font:600 13px system-ui,sans-serif}
+.libria-back-catalog{display:inline-flex;align-items:center;margin:0 0 12px;min-height:38px;border:1px solid #b4936570;border-radius:9px;padding:6px 12px;background:#1d3028;color:#eed1a1;cursor:pointer;font:600 13px system-ui,sans-serif}
+@media(min-width:650px){.libria-home-books{gap:26px 20px}.libria-home-book-title{font-size:15px}.libria-home-book-author,.libria-home-book-type{font-size:12px}.libria-catalog-nav{padding-left:20px}.libria-shell .libria-catalog-panel{padding:24px 20px 0}}
+@media(max-width:350px){.libria-shell .tophead{padding-left:10px;padding-right:10px}.libria-topbar .libria-brand{font-size:20px}.libria-header-actions{gap:0}.libria-shell .libria-icon-button{width:36px}.libria-shell .libria-catalog-panel{padding-left:10px;padding-right:10px}.libria-home-books{column-gap:8px}.libria-go-shelves{padding:0 8px}}

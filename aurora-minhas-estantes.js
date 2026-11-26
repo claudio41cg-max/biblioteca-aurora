@@ -35,6 +35,7 @@
   function navigateTo(index) {
     const url = new URL(location.href);
     const shelf = published[index - 1];
+    url.searchParams.set('estantes','1');
     if (index > 0 && shelf) url.searchParams.set('estante', shelf.id);
     else url.searchParams.delete('estante');
     url.searchParams.delete('livros');
@@ -94,13 +95,11 @@
       if (chooseBook && sections) window.AuroraEstanteExemplares.openPicker();
     }
     window.AuroraLombadas?.processAll();
-    if (chooseBook || (id && foundIndex < 0 && !isDefault)) {
-      url.searchParams.delete('livros');
-      if (!isDefault) url.searchParams.delete('estante');
-      history.replaceState(history.state, '', url);
-    } else if (isDefault && id === DEFAULT_SHELF_ID) {
-      url.searchParams.delete('estante');
-      history.replaceState(history.state, '', url);
+    if (id || chooseBook || url.searchParams.get('estantes') === '1') {
+      url.searchParams.set('estantes','1');
+      if (chooseBook) url.searchParams.delete('livros');
+      if (isDefault || foundIndex < 0) url.searchParams.delete('estante');
+      if (url.href !== location.href) history.replaceState(history.state, '', url);
     }
   }
 
@@ -116,5 +115,6 @@
   window.addEventListener('storage', event => {
     if (event.key === listKey || event.key === null) showCurrentShelf();
   });
+  window.AuroraMinhasEstantes={refresh:showCurrentShelf};
   showCurrentShelf();
 })();

@@ -119,7 +119,7 @@
     document.body.classList.remove('aurora-showcase-open');
     window.__auroraSelectedBook=null;
     if(!fromHistory && history.state?.auroraViewerId===session.book.id)history.back();
-    session.button.focus({preventScroll:true});
+    (session.catalogFocus?.isConnected?session.catalogFocus:session.button).focus({preventScroll:true});
   }
 
   function enterReader(){
@@ -190,6 +190,7 @@
     const sourceButton=button;
     button=window.AuroraEstanteExemplares?.originFor(button)||button;
     const catalogOrigin=sourceButton.__auroraCatalogOrigin;delete sourceButton.__auroraCatalogOrigin;
+    const catalogFocus=sourceButton.__auroraCatalogFocus;delete sourceButton.__auroraCatalogFocus;
     // Toda edição adicionada passa pelo mesmo visor, mesmo quando não traz capa.
     if(book&&!book.cover&&window.AuroraFormats?.createDigitalCover){
       book.cover=window.AuroraFormats.createDigitalCover(window.AuroraTitles?.display(book.title||book.name)||book.title||book.name,book.author,book.format);
@@ -197,7 +198,7 @@
     }
     if(!book?.cover){location.href=editionURL(book);return;}
     const origin=button.getBoundingClientRect();
-    const session={button,sourceButton,book,origin:origin.width&&origin.height?origin:catalogOrigin||{left:innerWidth/2-30,top:innerHeight/2-60,width:60,height:120},started:false,finished:false};
+    const session={button,sourceButton,book,catalogFocus,origin:catalogOrigin||(origin.width&&origin.height?origin:{left:innerWidth/2-30,top:innerHeight/2-60,width:60,height:120}),started:false,finished:false};
     active=session;
     showcase.hidden=false;
     showcase.classList.remove('arriving','settled');

@@ -1,3 +1,7 @@
+## LIBRIA - BOOK v123 — catálogo inicial
+
+O catálogo geral passa a ser a tela inicial, com três capas por linha, gêneros em faixa horizontal, pesquisa por título ou autor, importação e acesso fixo às estantes. As capas usam o acervo existente e abrem o mesmo leitor 3D. O editor de estantes e o catálogo individual filtrado por gênero são preservados. Não são criadas cópias dos livros.
+
 ## LIBRIA - BOOK v122 — catálogo central e estantes por gênero
 
 - O catálogo geral permanece como fonte central de todos os livros e gêneros. Cada estante guarda apenas referências aos livros existentes no catálogo, sem duplicar arquivos nem importar livros diretamente para a estante.
