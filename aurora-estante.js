@@ -256,6 +256,7 @@
   $('txtFile').addEventListener('change',async event=>{
     const file=event.target.files?.[0];
     if (!file) return;
+    if(!importCategory.value){const status=$('pdfImportStatus');status.hidden=false;status.textContent='Escolha o gênero do livro no campo “Guardar na categoria” antes de importar.';return;}
     const title=file.name.replace(/\.txt$/i,'').replace(/[_-]+/g,' ').trim();
     try {
       const content=await file.text();
