@@ -282,7 +282,11 @@
           cover:'',coverSource:'generated',openReader:openSharedTxt
         });
       });
-      row?.append(button);refreshCount(categoryId);
+      const duplicate=Array.from(row?.querySelectorAll('.book-spine')||[]).find(node=>
+        node.dataset.title===normalize(title)&&!['pdf','epub','audio'].includes(node.dataset.source)
+      );
+      if(duplicate)duplicate.replaceWith(button);else row?.append(button);
+      refreshCount(categoryId);
       toggleMenu(false);
       const status=$('pdfImportStatus');
       status.hidden=false;
