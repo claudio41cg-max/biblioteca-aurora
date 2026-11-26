@@ -1,3 +1,13 @@
+## LIBRIA - BOOK v122 — catálogo central e estantes por gênero
+
+- O catálogo geral permanece como fonte central de todos os livros e gêneros. Cada estante guarda apenas referências aos livros existentes no catálogo, sem duplicar arquivos nem importar livros diretamente para a estante.
+- O botão **Catálogo**, ao lado do nome da estante, abre o seletor de livros filtrado pelo gênero fixo daquela estante. A pessoa pode pesquisar, adicionar ou retirar livros daquele gênero; os demais gêneros não aparecem nessa seleção.
+- O botão **Meu catálogo** continua abrindo a visão geral de todos os gêneros e livros.
+- PDF, EPUB, audiolivro e TXT exigem a escolha explícita do gênero antes da importação. O livro entra primeiro no catálogo geral.
+- A busca online também exige a escolha do gênero. Ela registra uma referência de leitura online; não representa o download do arquivo para o aparelho.
+- Os controles antigos de organização, ambiente e leituras permanecem ocultos, com os módulos internos preservados para compatibilidade.
+- Cache PWA: `libria-v122`.
+
 ## Biblioteca Aurora v117 — fumaça difusa e captura com volume 3D
 
 - A nuvem de fumaça difusa foi ampliada moderadamente (58 elementos na animação cinematográfica, com raios ligeiramente maiores e opacidade suave de 0,07).
