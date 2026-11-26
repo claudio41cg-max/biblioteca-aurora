@@ -80,4 +80,11 @@
     document.addEventListener(name,()=>{if(!overlay.hidden)render();});
   }
   window.LibriaCatalogo={open,close,refresh:render};
+  const params=new URLSearchParams(location.search);
+  if(params.get('catalogo')==='1'){
+    params.delete('catalogo');params.delete('importado');
+    const clean=location.pathname+(params.toString()?'?'+params.toString():'')+location.hash;
+    history.replaceState(history.state,'',clean);
+    requestAnimationFrame(open);
+  }
 })();
