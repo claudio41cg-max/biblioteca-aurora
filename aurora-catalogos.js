@@ -282,24 +282,26 @@
     render();overlay.scrollTop=0;
     $('auroraCatalogBack').focus({preventScroll:true});
   }
-  // A seleção de livros usa exatamente o mesmo volume do catálogo principal.
-  // A grade inicial usa a capa da mesma edição e abre o leitor já existente.
+  // A home reutiliza o mesmo volume tridimensional dos catálogos anteriores:
+  // capa, lombada, espessura, páginas, contracapa e gesto de rotação.
   function homeCardFor(button){
     const title=window.AuroraTitles?.display(button.dataset.rawTitle)||getTitle(button);
     const card=document.createElement('button');
     card.type='button';card.className='libria-home-book';
-    card.setAttribute('aria-label','Abrir '+title);
-    const cover=document.createElement('span');cover.className='libria-home-cover';
-    fillImage(cover,button,title);
+    const info=catalogSpineInfo(button);
+    card.setAttribute('aria-label','Abrir '+title+' em 3D. Arraste para girar e ver a lombada e a contracapa. '+info.description);
+    const {holder,wasTurning}=volumeFor(button,title,card);
+    holder.classList.add('libria-home-cover');
     const name=document.createElement('span');name.className='libria-home-book-title';name.textContent=title;
     const author=document.createElement('span');author.className='libria-home-book-author';
     author.textContent=button.dataset.author||'';
     const type=document.createElement('span');type.className='libria-home-book-type';
     const labels={demo:'Amostra',pdf:'PDF',epub:'EPUB',txt:'TXT',audio:'Audiolivro',online:'Online'};
     type.textContent=labels[button.dataset.source]||'Livro';
-    card.append(cover,name,author,type);
-    card.addEventListener('click',()=>{
-      button.__auroraCatalogOrigin=cover.getBoundingClientRect();
+    card.append(holder,name,author,type);
+    card.addEventListener('click',event=>{
+      if(wasTurning()){event.preventDefault();return;}
+      button.__auroraCatalogOrigin=holder.getBoundingClientRect();
       button.__auroraCatalogFocus=card;
       button.click();
     });

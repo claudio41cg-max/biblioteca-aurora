@@ -1,3 +1,11 @@
+## LIBRIA - BOOK v124 — catálogo 3D e paginação por gênero
+
+- Todos os livros da tela inicial reutilizam o volume 3D já existente: capa, lombada, espessura, páginas, contracapa e rotação por gesto. Ao tocar, o mesmo livro abre no leitor 3D.
+- Cada gênero apresenta no máximo 30 livros por lote. O botão **Mostrar mais** carrega os próximos 30 somente daquele gênero, sem alterar a paginação dos demais.
+- Na visão **Todos**, cada gênero aparece em sua própria seção; ao selecionar um gênero, a tela mostra somente os livros daquela categoria.
+- A entrada continua centralizada: PDF recebe o gênero escolhido, EPUB e audiolivro guardam a categoria escolhida, TXT registra a categoria escolhida e os livros online usam a categoria selecionada. A renderização lê os mesmos registros do acervo, sem cópias.
+- Cache PWA: `libria-v124`.
+
 ## LIBRIA - BOOK v123 — catálogo inicial
 
 O catálogo geral passa a ser a tela inicial, com três capas por linha, gêneros em faixa horizontal, pesquisa por título ou autor, importação e acesso fixo às estantes. As capas usam o acervo existente e abrem o mesmo leitor 3D. O editor de estantes e o catálogo individual filtrado por gênero são preservados. Não são criadas cópias dos livros.
