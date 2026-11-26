@@ -25,6 +25,6 @@ assert.match(js,/document\.addEventListener\('aurora:book-cover-updated'/);
 assert.match(html,/Arraste a capa para ver a lombada e a contracapa/);
 assert.match(html,/aurora-catalogos\.css\?v=3/);
 assert.match(html,/aurora-catalogos\.js\?v=6/);
-assert.match(sw,/libria-v118/);
-assert.match(sw,/const HOME = '\.\/index\.html\?v=118'/);
+assert.match(sw,/libria-v119/);
+assert.match(sw,/const HOME = '\.\/index\.html\?v=119'/);
 console.log('V53: capas em 3D, contracapa original ou ilustrativa, gesto, acessibilidade e cache.');
