@@ -2,9 +2,9 @@ name: Testes automatizados
 
 on:
   pull_request:
-    branches: [main, corrigir-identificacao-lombadas-v111, desfragmentacao-base-original-v113]
+    branches: [main, corrigir-identificacao-lombadas-v111, desfragmentacao-base-original-v113, desenvolvimento/libria-book-prototipo]
   push:
-    branches: [main, corrigir-identificacao-lombadas-v111, teste-desfragmentacao-cinematografica-v112, desfragmentacao-base-original-v113, laboratorio-integrado-3d-v114, remover-fragmentos-capa-som-suave-v115, poeira-fina-som-cc0-v116, mais-fumaca-volume-3d-v117, desenvolvimento/libria-book-prototipo, trabalho/libria-estantes-genero-unico-2026-11-26]
+    branches: [main, corrigir-identificacao-lombadas-v111, teste-desfragmentacao-cinematografica-v112, desfragmentacao-base-original-v113, laboratorio-integrado-3d-v114, remover-fragmentos-capa-som-suave-v115, poeira-fina-som-cc0-v116, mais-fumaca-volume-3d-v117, desenvolvimento/libria-book-prototipo, trabalho/libria-estantes-genero-unico-2026-11-26, trabalho/libria-menu-inicial-limpo-2026-11-26]
 
 permissions:
   contents: read
@@ -27,7 +27,7 @@ jobs:
   preview-package:
     name: Pacote de prévia Android
     needs: node-tests
-    if: github.event_name == 'pull_request' || (github.ref == 'refs/heads/corrigir-identificacao-lombadas-v111' || github.ref == 'refs/heads/teste-desfragmentacao-cinematografica-v112' || github.ref == 'refs/heads/desfragmentacao-base-original-v113' || github.ref == 'refs/heads/laboratorio-integrado-3d-v114' || github.ref == 'refs/heads/remover-fragmentos-capa-som-suave-v115' || github.ref == 'refs/heads/poeira-fina-som-cc0-v116' || github.ref == 'refs/heads/mais-fumaca-volume-3d-v117' || github.ref == 'refs/heads/desenvolvimento/libria-book-prototipo' || github.ref == 'refs/heads/trabalho/libria-estantes-genero-unico-2026-11-26')
+    if: github.event_name == 'pull_request' || (github.ref == 'refs/heads/corrigir-identificacao-lombadas-v111' || github.ref == 'refs/heads/teste-desfragmentacao-cinematografica-v112' || github.ref == 'refs/heads/desfragmentacao-base-original-v113' || github.ref == 'refs/heads/laboratorio-integrado-3d-v114' || github.ref == 'refs/heads/remover-fragmentos-capa-som-suave-v115' || github.ref == 'refs/heads/poeira-fina-som-cc0-v116' || github.ref == 'refs/heads/mais-fumaca-volume-3d-v117' || github.ref == 'refs/heads/desenvolvimento/libria-book-prototipo' || github.ref == 'refs/heads/trabalho/libria-estantes-genero-unico-2026-11-26' || github.ref == 'refs/heads/trabalho/libria-menu-inicial-limpo-2026-11-26')
     runs-on: ubuntu-latest
     steps:
       - name: Baixar código revisado
@@ -40,11 +40,11 @@ jobs:
           git archive HEAD | tar -x -C preview-site
           rm -rf preview-site/.github preview-site/tests preview-site/.vercel
           find preview-site -type f \( -name '.env' -o -name '.env.*' -o -name '*.pem' -o -name '*.key' \) -delete
-          printf 'LIBRIA - BOOK protótipo v119\\nCommit: %s\\nBranch: %s\\n' "$GITHUB_SHA" "$GITHUB_REF_NAME" > preview-site/PREVIEW-INFO.txt
+          printf 'LIBRIA - BOOK protótipo v122\\nCommit: %s\\nBranch: %s\\n' "$GITHUB_SHA" "$GITHUB_REF_NAME" > preview-site/PREVIEW-INFO.txt
       - name: Publicar pacote de prévia
         uses: actions/upload-artifact@v4
         with:
-          name: libria-book-prototipo-v119
+          name: libria-book-prototipo-v122
           path: preview-site/
           if-no-files-found: error
           retention-days: 7
