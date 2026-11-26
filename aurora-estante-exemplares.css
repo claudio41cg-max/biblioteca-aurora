@@ -156,3 +156,5 @@ body.new-shelf-page .editor-book-row > .book-spine[data-has-real-cover]:is(:hove
 .shelf-picker-images .shelf-picker-genre {grid-column:1/-1;border:0;border-radius:0;background:none;padding:12px 0 0}
 .shelf-picker-genre h3 {margin:0;font:normal 1.25rem/1.2 Georgia,serif;color:#f2dba8}
 .shelf-picker-images .shelf-picker-empty {grid-column:1/-1}
+
+.shelf-picker-genre-fixed{display:flex;align-items:center;min-height:40px;padding:7px 10px;border:1px solid #8b7048;border-radius:8px;background:#302719;color:#f1d9a8;font-size:.88rem;font-weight:600}
