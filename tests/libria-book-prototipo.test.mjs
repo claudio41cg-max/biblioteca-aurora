@@ -9,7 +9,10 @@ const css=read('libria-book.css');
 const catalog=read('libria-catalogo.js');
 const onboarding=read('libria-onboarding.js');
 const shelves=read('aurora-minhas-estantes.js');
-const txt=read('aurora-estante.js');
+const shelfCore=read('aurora-estante.js');
+const pdfImport=read('aurora-pdf-import.js');
+const epubAudioImport=read('aurora-novos-formatos.js');
+const txt=shelfCore;
 const pdf=read('aurora-pdf-import.js');
 const formats=read('aurora-novos-formatos.js');
 const manifest=JSON.parse(read('manifest.webmanifest'));
@@ -20,6 +23,9 @@ test('scripts novos do protótipo têm sintaxe JavaScript válida',()=>{
   assert.doesNotThrow(()=>new Script(catalog));
   assert.doesNotThrow(()=>new Script(onboarding));
   assert.doesNotThrow(()=>new Script(shelves));
+  assert.doesNotThrow(()=>new Script(shelfCore));
+  assert.doesNotThrow(()=>new Script(pdfImport));
+  assert.doesNotThrow(()=>new Script(epubAudioImport));
 });
 
 test('a identidade LIBRIA - BOOK está no cabeçalho e no PWA',()=>{
@@ -78,7 +84,8 @@ test('a configuração inicial é simples, local e não interrompe acervos antig
 test('importações entram no catálogo e não abrem automaticamente a leitura',()=>{
   assert.ok(pdf.includes("location.href='./index.html?catalogo=1&importado='+encodeURIComponent(id)"));
   assert.ok(formats.includes("location.href='./index.html?catalogo=1&importado='+encodeURIComponent(book.id)"));
-  assert.ok(txt.includes("row?.append(button);refreshCount(categoryId)"));
+  assert.ok(txt.includes("if(duplicate)duplicate.replaceWith(button);else row?.append(button)"));
+  assert.ok(txt.includes("window.LibriaCatalogo?.open()"));
   assert.ok(txt.includes("window.LibriaCatalogo?.open()"));
   assert.equal(txt.includes('draw();\n      toggleMenu(false);'),false);
   assert.ok(catalog.includes("if(params.get('catalogo')==='1')"));
