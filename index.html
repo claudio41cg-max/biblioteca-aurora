@@ -270,6 +270,18 @@
       <button class="btn" id="next" type="button">Próxima →</button>
     </div>
   </section>
+  <dialog class="libria-welcome" id="libriaWelcome" aria-labelledby="libriaWelcomeTitle">
+    <form class="libria-welcome-form" id="libriaWelcomeForm">
+      <div class="libria-welcome-brand"><strong>LIBRIA<span> - BOOK</span></strong><small>SEU UNIVERSO DE LEITURA</small></div>
+      <h2 id="libriaWelcomeTitle">Vamos preparar sua biblioteca</h2>
+      <p>Uma configuração rápida para deixar o aplicativo do seu jeito.</p>
+      <label class="libria-welcome-field"><span>Como podemos chamar você? (opcional)</span><input id="libriaWelcomeName" type="text" maxlength="48" autocomplete="name" placeholder="Seu nome"></label>
+      <label class="libria-welcome-field"><span>País</span><select id="libriaWelcomeCountry"><option value="BR">Brasil</option><option value="PT">Portugal</option><option value="US">Estados Unidos</option><option value="OTHER">Outro</option></select></label>
+      <label class="libria-welcome-field"><span>Idioma</span><select id="libriaWelcomeLanguage"><option value="pt-BR">Português (Brasil)</option><option value="pt-PT">Português (Portugal)</option><option value="en">English</option><option value="es">Español</option></select></label>
+      <p id="libriaWelcomeStatus" role="status" aria-live="polite"></p>
+      <div class="libria-welcome-actions"><button type="submit">Começar</button><button type="button" id="libriaWelcomeSkip">Agora não</button></div>
+    </form>
+  </dialog>
   <script src="./aurora-titulos.js?v=1" defer></script>
   <script src="./aurora-sinopses.js?v=3" defer></script>
   <script src="./aurora-som-folhas.js?v=2" defer></script>
