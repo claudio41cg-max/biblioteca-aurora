@@ -59,7 +59,7 @@
     const genreName = (window.AuroraShelf?.categories || []).find(item => item.id === shelf.genre)?.name || '';
     byId('shelfPosition').textContent = [total > 1 ? 'Estante ' + (position + 1) + ' de ' + total : '',genreName].filter(Boolean).join(' · ');
     byId('shelfSwitcher').hidden = false;
-    if (shelf && byId('arrangeButton').getAttribute('aria-pressed') === 'true') byId('arrangeButton').click();
+    if (shelf && byId('arrangeButton')?.getAttribute('aria-pressed') === 'true') byId('arrangeButton').click();
     if (shelf && !byId('roomPanel').hidden) byId('roomButton').click();
     document.body.classList.add('personal-shelf-open');
     // A estante de exibição é independente do catálogo. O catálogo permanece no DOM,
