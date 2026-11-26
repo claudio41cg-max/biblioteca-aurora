@@ -64,11 +64,7 @@
     returnFocus=null;
   }
   $('openCatalogButton')?.addEventListener('click',open);
-  $('shelfCatalogButton')?.addEventListener('click',()=>{
-    const shelfId=new URL(location.href).searchParams.get('estante')||'libria-estante-principal-v2';
-    const shelfName=$('shelfTitle')?.textContent?.trim()||'Minha estante';
-    window.AuroraCatalogos?.openShelf(shelfId,shelfName);
-  });
+  $('shelfCatalogButton')?.addEventListener('click',()=>window.AuroraEstanteExemplares?.openPicker());
   $('libriaCatalogClose')?.addEventListener('click',close);
   search.addEventListener('input',render);
   grid.addEventListener('click',event=>{
