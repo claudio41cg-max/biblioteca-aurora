@@ -86,6 +86,7 @@
   input.addEventListener('change',async event=>{
     const file=event.target.files?.[0];
     if(!file)return;
+    if(!category.value){report('Escolha o gênero do livro no campo “Guardar na categoria” antes de importar.');input.value='';return;}
     trigger.disabled=true;
     report('Preparando '+file.name+'…');
     try{
