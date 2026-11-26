@@ -61,7 +61,7 @@
         description:subject.length>50?subject.slice(0,2800):'',
         created:Date.now(),page:0,category:chosenCategory,
         ratio:faces.ratio||Math.max(.59,Math.min(.84,size.width/size.height)),status:'quero-ler'};
-      report('Guardando o livro na estante principal…');
+      report('Guardando o livro no catálogo…');
       database=await openDatabase();
       await new Promise((resolve,reject)=>{
         const tx=database.transaction('books','readwrite');
