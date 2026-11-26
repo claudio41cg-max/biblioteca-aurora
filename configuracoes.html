@@ -5,13 +5,14 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#171b1b">
   <link rel="stylesheet" href="./aurora-configuracoes.css?v=1">
-  <title>Configurações • Biblioteca Aurora</title>
+  <link rel="stylesheet" href="./libria-book.css?v=1">
+  <title>Configurações • LIBRIA - BOOK</title>
 </head>
 <body class="config-page">
   <main class="config-shell">
     <header class="config-header">
       <a class="config-back" href="./index.html" aria-label="Voltar para a estante">‹</a>
-      <div><h1>Configurações</h1><p>Seu espaço, do seu jeito</p></div>
+      <div><h1>Configurações</h1><p>LIBRIA - BOOK · Seu espaço, do seu jeito</p></div>
     </header>
 
     <section aria-labelledby="profileHeading">
@@ -26,6 +27,17 @@
           </div>
         </div>
         <p class="config-note" id="nameStatus">Ainda sem nome. Você pode adicionar ou alterar quando quiser.</p>
+      </div>
+    </section>
+
+    <section aria-labelledby="localeHeading">
+      <h2 class="config-label" id="localeHeading">Preferências</h2>
+      <div class="config-card config-profile libria-profile-preferences">
+        <label for="profileCountry">País</label>
+        <select id="profileCountry"><option value="BR">Brasil</option><option value="PT">Portugal</option><option value="US">Estados Unidos</option><option value="OTHER">Outro</option></select>
+        <label for="profileLanguage">Idioma</label>
+        <select id="profileLanguage"><option value="pt-BR">Português (Brasil)</option><option value="pt-PT">Português (Portugal)</option><option value="en">English</option><option value="es">Español</option></select>
+        <p class="config-note">Preferências salvas neste aparelho nesta versão de protótipo.</p>
       </div>
     </section>
 
@@ -54,7 +66,14 @@
   <script>
     (() => {
       const key = 'aurora-perfil-nome';
+      const profileKey = 'libria-profile-v1';
       const input = document.getElementById('profileName');
+      const country = document.getElementById('profileCountry');
+      const language = document.getElementById('profileLanguage');
+      let profile = {};
+      try { profile = JSON.parse(localStorage.getItem(profileKey) || '{}') || {}; } catch (_) {}
+      country.value = profile.country || 'BR';
+      language.value = profile.language || 'pt-BR';
       const status = document.getElementById('nameStatus');
       const actionStatus = document.getElementById('actionStatus');
       try {
@@ -67,11 +86,15 @@
         try {
           if (name) localStorage.setItem(key, name);
           else localStorage.removeItem(key);
-          status.textContent = name ? 'Nome salvo neste aparelho.' : 'Nome removido. Você pode adicionar quando quiser.';
+          profile = {...profile,name,country:country.value,language:language.value,setupComplete:true};
+          localStorage.setItem(profileKey,JSON.stringify(profile));
+          status.textContent = name ? 'Perfil salvo neste aparelho.' : 'Preferências salvas neste aparelho.';
         } catch (_) {
           status.textContent = 'Não foi possível salvar neste aparelho.';
         }
       });
+      country.addEventListener('change',()=>{profile={...profile,country:country.value,language:language.value};try{localStorage.setItem(profileKey,JSON.stringify(profile));}catch(_){}});
+      language.addEventListener('change',()=>{profile={...profile,country:country.value,language:language.value};try{localStorage.setItem(profileKey,JSON.stringify(profile));}catch(_){}});
       const list=document.getElementById('savedShelves');
       const listHeading=document.getElementById('savedShelvesHeading');
       function readShelves(){

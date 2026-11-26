@@ -3,7 +3,7 @@
   'use strict';
   const $=id=>document.getElementById(id);
   const STORE='aurora-online-books-v1';
-  const shelves=[['romance','Romances'],['adulto','Romances picantes'],['ficcao','Ficção e aventuras'],['brasileiros','Autores brasileiros']];
+  const shelves=[['romance','Romances'],['adulto','Romance hot'],['ficcao','Ficção e aventuras'],['brasileiros','Autores brasileiros'],['filmes','Filmes inspirado em livros'],['veterinaria','Medicina Veterinária']];
   const titleAliases={'persuasao':'Persuasion','orgulho e preconceito':'Pride and Prejudice','razao e sensibilidade':'Sense and Sensibility','a maquina do tempo':'The Time Machine'};
   const allowedWikis=['pt.wikisource.org','pt.wikibooks.org','en.wikisource.org'];
   let mode='book',token=0,results=[],shown=12;
@@ -18,12 +18,6 @@
   const element=(tag,cls,value)=>{const node=document.createElement(tag);if(cls)node.className=cls;if(value!==undefined)node.textContent=value;return node;};
   const status=s=>{$('searchStatus').textContent=s;};
   const saved=()=>{try{const value=JSON.parse(localStorage.getItem(STORE)||'[]');return Array.isArray(value)?value:[];}catch{return [];}};
-  const category=(title,author)=>{
-    const name=norm(title+' '+author);
-    if(/machado de assis|aluisio azevedo|jose de alencar|dom casmurro|memorias postumas|o cortico|iracema/.test(name))return 'brasileiros';
-    if(/austen|orgulho|preconceito|sensibilidade|moreninha|romance|amor|persuasao|persuasion|pride and prejudice|sense and sensibility/.test(name))return 'romance';
-    return 'ficcao';
-  };
   const readerURL=item=>{
     const q=new URLSearchParams();
     if(item.source==='wikisource'||item.source==='wikibooks'){
@@ -119,19 +113,24 @@
     badges.append(element('span','language-badge',item.language||'Idioma não verificado'),element('span','format-badge',item.kind==='audio'?'♫ Áudio':'▤ Leitura online'));
     body.append(badges,element('h2','',item.title),element('p','result-author',item.author));
     if(item.duration)body.append(element('p','',item.duration));
-    const label=element('label','result-category-label','Guardar na estante: '),selector=element('select');
+    const label=element('label','result-category-label','Gênero no catálogo: '),selector=element('select');
+    const placeholder=element('option','','Selecione o gênero');
+    placeholder.value='';placeholder.disabled=true;placeholder.selected=true;selector.append(placeholder);
     for(const [id,name] of shelves){const option=element('option','',name);option.value=id;selector.append(option);}
-    selector.value=category(item.title,item.author);label.append(selector);body.append(label);
+    label.append(selector);body.append(label);
     const actions=element('div','result-actions'),open=element('a','',item.kind==='audio'?'♫ Ouvir na Aurora':'▤ Ler na Aurora');
     open.href=readerURL(item);
-    const save=element('button','secondary','＋ Adicionar à estante');save.type='button';
-    const mark=()=>{save.textContent='✓ Na estante';save.disabled=true;save.classList.add('added');};
-    if(saved().some(x=>x.key===item.key))mark();
+    const save=element('button','secondary','＋ Adicionar ao catálogo');save.type='button';save.disabled=true;
+    const existing=saved().find(x=>x.key===item.key);
+    const mark=()=>{save.textContent='✓ No catálogo';save.disabled=true;save.classList.add('added');};
+    if(existing){selector.value=existing.category||'';mark();}
+    selector.addEventListener('change',()=>{if(!existing)save.disabled=!selector.value;});
     save.addEventListener('click',()=>{
+      if(!selector.value){status('Escolha o gênero do livro antes de adicioná-lo ao catálogo.');return;}
       try{const records=saved();if(!records.some(x=>x.key===item.key)){
-        records.push({...item,category:selector.value,addedAt:Date.now()});
+        records.push({...item,category:selector.value,catalogType:'online',addedAt:Date.now()});
         localStorage.setItem(STORE,JSON.stringify(records));
-      }mark();status('“'+item.title+'” foi adicionado à estante. Nenhum arquivo foi baixado.');
+      }mark();status('“'+item.title+'” foi adicionado ao catálogo como leitura online. O arquivo não foi baixado para o aparelho.');
       }catch{status('Não foi possível salvar o livro no celular. Verifique o armazenamento.');}
     });
     actions.append(open,save);body.append(actions);card.append(cover,body);return card;

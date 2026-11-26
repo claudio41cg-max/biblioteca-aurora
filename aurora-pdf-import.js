@@ -61,7 +61,7 @@
         description:subject.length>50?subject.slice(0,2800):'',
         created:Date.now(),page:0,category:chosenCategory,
         ratio:faces.ratio||Math.max(.59,Math.min(.84,size.width/size.height)),status:'quero-ler'};
-      report('Guardando o livro na estante principal…');
+      report('Guardando o livro no catálogo…');
       database=await openDatabase();
       await new Promise((resolve,reject)=>{
         const tx=database.transaction('books','readwrite');
@@ -86,12 +86,13 @@
   input.addEventListener('change',async event=>{
     const file=event.target.files?.[0];
     if(!file)return;
+    if(!category.value){report('Escolha o gênero do livro no campo “Guardar na categoria” antes de importar.');input.value='';return;}
     trigger.disabled=true;
     report('Preparando '+file.name+'…');
     try{
       const id=await importPDF(file,category.value);
-      // O visor 3D é mantido. Ao voltar, o usuário encontra a estante única.
-      location.href='./meus-livros.html?v=32&livro='+encodeURIComponent(id);
+      // O livro fica no catálogo central; a pessoa decide depois em qual estante colocá-lo.
+      location.href='./index.html?catalogo=1&importado='+encodeURIComponent(id);
     }catch(error){
       report('Não foi possível importar o PDF: '+(error.message||String(error)));
     }finally{trigger.disabled=false;input.value='';}

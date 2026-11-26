@@ -85,3 +85,6 @@ button.shelf-object:active{cursor:grabbing}
 .layer-object-row button {min-height:42px}
 .layer-book-row [data-remove-book],.layer-object-row [data-remove-object] {flex:none;color:#ffd3c3}
 .layers-content h3 {margin:12px 0 3px;font-size:15px;color:#e8d8c2}
+
+/* Campos de identificação da estante LIBRIA BOOK. */
+.aurora-dialog select{width:100%;min-height:44px;padding:10px 12px;border:1px solid #5d513e;border-radius:12px;background:#161719;color:#f4e6cf;font:inherit}.aurora-dialog select:focus-visible,.aurora-dialog input:focus-visible{outline:2px solid #e4bd7c;outline-offset:2px}.genre-dialog-help{margin:-5px 0 0;color:#b9b0a2;font-size:12px;line-height:1.45}

@@ -897,7 +897,7 @@
       return;
     }
     clear();
-    active = {scene,key,editor,members:[],drafts:new Map(),session:null,books:new Map(),copies:new Map(),stacks:stackGraph([]),request:0};
+    active = {scene,key,editor,genre:String(shelf.genre||''),members:[],drafts:new Map(),session:null,books:new Map(),copies:new Map(),stacks:stackGraph([]),request:0};
     void refresh();
   }
 
@@ -931,7 +931,7 @@
     dialog.id = 'shelfBookPicker';
     dialog.setAttribute('aria-labelledby','shelfBookPickerTitle');
     const header = element('header');
-    const title = element('h2','','Adicionar livros');
+    const title = element('h2','','Catálogo da estante');
     title.id = 'shelfBookPickerTitle';
     const close = element('button','shelf-picker-close','Fechar');
     close.type = 'button';
@@ -939,9 +939,9 @@
     header.append(title,close);
     const controls = element('div','shelf-picker-fields');
     const section = choose('Prateleira','section');
-    const category = choose('Gênero','category');
+    const genreLabel = element('div','shelf-picker-genre-fixed');
     const searchLabel = element('label','shelf-picker-search');
-    searchLabel.append(element('span','','Buscar no acervo'));
+    searchLabel.append(element('span','','Buscar no catálogo'));
     const search = element('input');
     search.type = 'search'; search.placeholder = 'Título ou autor';
     searchLabel.append(search);
@@ -960,19 +960,18 @@
       });
       views.append(button);
     }
-    controls.append(section.control,category.control,searchLabel,views);
+    controls.append(section.control,genreLabel,searchLabel,views);
     const list = element('ul','shelf-picker-books');
     const status = element('p','shelf-picker-status');
     status.setAttribute('role','status');
     dialog.append(header,controls,list,status);
-    category.select.addEventListener('change',updatePicker);
     search.addEventListener('input',updatePicker);
     list.addEventListener('click', event => {
       const action = event.target.closest('button[data-book-key]');
       if (action) changeMembership(action.dataset.bookKey,action.dataset.add === 'true');
     });
     document.body.append(dialog);
-    return {dialog,section:section.select,category:category.select,search,list,status,views,mode:'az',pending:new Set()};
+    return {dialog,section:section.select,genreLabel,search,list,status,views,mode:'az',pending:new Set()};
   }
 
   function openPicker() {
@@ -981,8 +980,6 @@
     if (picker.dialog.open) return;
     const sections = active.scene.querySelectorAll('.shelf-section');
     picker.section.replaceChildren(...Array.from(sections,(_,i) => new Option('Prateleira '+(i+1),String(i))));
-    picker.category.replaceChildren(new Option('Todos os gêneros',''),
-      ...(window.AuroraShelf?.categories || []).map(cat => new Option(cat.name,cat.id)));
     picker.search.value = '';
     picker.status.textContent = '';
     updatePicker();
@@ -992,9 +989,11 @@
   function updatePicker() {
     if (!active || !picker) return;
     const saved = new Map(read(active.key).map(item => [item.key,item.section]));
-    const books = [...catalog().values()].filter(book => (!picker.category.value || picker.category.value === book.category) &&
+    const books = [...catalog().values()].filter(book => active.genre && book.category === active.genre &&
       normalize(book.title+' '+book.author).includes(normalize(picker.search.value).trim()));
     const categories = window.AuroraShelf?.categories || [];
+    const selectedGenre = categories.find(category => category.id === active.genre);
+    picker.genreLabel.textContent = 'Gênero desta estante: ' + (selectedGenre?.name || 'não definido');
     const visual = picker.mode === 'images';
     const categoryOrder = new Map(categories.map((category,index) => [category.id,index]));
     books.sort((a,b) => (visual ? (categoryOrder.get(a.category) ?? 999)-(categoryOrder.get(b.category) ?? 999) : 0) || a.title.localeCompare(b.title,'pt-BR'));
@@ -1034,7 +1033,9 @@
     }
     if (!books.length) items.append(element('li','shelf-picker-empty','Nenhum livro encontrado.'));
     picker.list.replaceChildren(items);
-    if (!count) picker.status.textContent = 'Adicione uma prateleira no editor para colocar livros aqui.';
+    if (!active.genre) picker.status.textContent = 'Escolha o gênero desta estante nas configurações antes de adicionar livros.';
+    else if (!count) picker.status.textContent = 'Adicione uma prateleira no editor para colocar livros aqui.';
+    else picker.status.textContent = 'O catálogo geral continua completo. Aqui aparecem apenas livros do gênero desta estante.';
     focusAfter?.focus({preventScroll:true});
   }
 

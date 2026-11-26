@@ -256,6 +256,7 @@
   $('txtFile').addEventListener('change',async event=>{
     const file=event.target.files?.[0];
     if (!file) return;
+    if(!importCategory.value){const status=$('pdfImportStatus');status.hidden=false;status.textContent='Escolha o gênero do livro no campo “Guardar na categoria” antes de importar.';event.target.value='';return;}
     const title=file.name.replace(/\.txt$/i,'').replace(/[_-]+/g,' ').trim();
     try {
       const content=await file.text();
@@ -270,12 +271,28 @@
       } catch {
         alert('O livro é grande para o armazenamento local. Ele ficará disponível somente nesta sessão.');
       }
-      draw();
+      const categoryId=getCategory(txtCategories[title],title);
+      const row=$('shelf-'+categoryId);
+      const button=makeSpine({title,author:'Meu arquivo',source:'txt'});
+      const openSharedTxt=()=>{location.href='./ler-epub.html?txt='+encodeURIComponent(title)+'&v=8';};
+      button.addEventListener('click',()=>{
+        if(!window.AuroraShelfViewer?.open){openSharedTxt();return;}
+        window.AuroraShelfViewer.open(button,{
+          id:'txt:'+normalize(title),format:'txt',title,name:title,author:'Meu arquivo',
+          category:categoryId,total:Math.max(1,Math.ceil((texts[title]||'').length/560)),ratio:.72,
+          cover:'',coverSource:'generated',openReader:openSharedTxt
+        });
+      });
+      const duplicate=Array.from(row?.querySelectorAll('.book-spine')||[]).find(node=>
+        node.dataset.title===normalize(title)&&!['pdf','epub','audio'].includes(node.dataset.source)
+      );
+      if(duplicate)duplicate.replaceWith(button);else row?.append(button);
+      refreshCount(categoryId);
       toggleMenu(false);
-      const row=$('shelf-'+getCategory(txtCategories[title],title));
-      const added=Array.from(row?.querySelectorAll('.book-spine')||[]).find(button=>
-        button.dataset.source==='txt'&&button.dataset.title===normalize(title));
-      if(added)added.click();else openText(title);
+      const status=$('pdfImportStatus');
+      status.hidden=false;
+      status.textContent='“'+title+'” foi adicionado ao catálogo. Escolha uma estante quando quiser.';
+      window.LibriaCatalogo?.open();
     } catch(error) {
       alert('Não foi possível importar o TXT: '+(error.message||error));
     } finally {event.target.value='';}

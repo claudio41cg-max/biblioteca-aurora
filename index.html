@@ -8,16 +8,16 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Aurora">
+  <meta name="apple-mobile-web-app-title" content="LIBRIA - BOOK">
   <link rel="apple-touch-icon" href="./icons/aurora-192.png">
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/aurora-192.png">
-  <link rel="manifest" href="./manifest.webmanifest?v=117">
+  <link rel="manifest" href="./manifest.webmanifest?v=122">
   <link rel="stylesheet" href="./aurora-estante.css?v=23">
   <link rel="stylesheet" href="./aurora-livros-estante.css?v=1">
   <link rel="stylesheet" href="./aurora-avancado.css?v=5">
   <link rel="stylesheet" href="./aurora-ambiente.css?v=3">
   <link rel="stylesheet" href="./aurora-estante-realista.css?v=10">
-  <link rel="stylesheet" href="./aurora-catalogos.css?v=3">
+  <link rel="stylesheet" href="./aurora-catalogos.css?v=4">
   <link rel="stylesheet" href="./aurora-configuracoes.css?v=1">
   <link rel="stylesheet" href="./aurora-sala-3d.css?v=7">
   <link rel="stylesheet" href="./aurora-online.css?v=8">
@@ -29,23 +29,35 @@
   <link rel="stylesheet" href="./aurora-volume-estante.css?v=1">
   <link rel="stylesheet" href="./aurora-estante-exemplares.css?v=6">
   <link rel="stylesheet" href="./aurora-estante-capa.css?v=1">
-  <title>Biblioteca Aurora • Minha estante</title>
+  <link rel="stylesheet" href="./libria-book.css?v=2">
+  <title>LIBRIA - BOOK • Minha estante</title>
 <link rel="stylesheet" href="./aurora-exclusao-particulas.css?v=1">
 <link rel="stylesheet" href="./aurora-acoes-livro.css?v=1">
 </head>
 <body>
   <header class="tophead">
-    <a class="settings-trigger" href="./configuracoes.html" aria-label="Abrir configurações" title="Configurações"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg></a>
-    <p class="eyebrow">ACERVO PARTICULAR</p>
-    <h1>Biblioteca <em>Aurora</em></h1>
+    <button class="settings-trigger" type="button" id="libriaMenuToggle" aria-label="Abrir menu" title="Menu" aria-expanded="false" aria-controls="libriaAppMenu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
+    <nav class="libria-app-menu" id="libriaAppMenu" aria-label="Menu principal" hidden>
+      <a href="./explorar-livros.html">⌕ <span>Buscar livros</span></a>
+      <a href="./minha-biblioteca-privada.html">↗ <span>Conectar catálogo por link</span></a>
+      <a href="./configuracoes.html">⚙ <span>Configurações</span></a>
+      <button type="button" id="auroraInstallButton" class="aurora-install-button" hidden>⌂ <span>Instalar aplicativo</span></button>
+    </nav>
+    <p class="eyebrow">SEU UNIVERSO DE LEITURA</p>
+    <h1 class="libria-brand"><span>LIBRIA</span><span class="libria-brand-book"> - BOOK</span></h1>
     <p class="subtitle">Histórias para guardar. Mundos para descobrir.</p>
+    <div class="libria-home-actions">
+      <button type="button" class="libria-catalog-main" id="openCatalogButton">▤ Meu catálogo</button>
+      <a class="libria-link-main" href="./minha-biblioteca-privada.html">＋ Conectar catálogo por link</a>
+    </div>
     <div class="import-area" id="importArea">
       <button class="import-trigger" type="button" id="importTrigger" aria-expanded="false" aria-controls="importMenu">
         <span class="import-plus" aria-hidden="true">＋</span> Importar livros <span aria-hidden="true">⌄</span>
       </button>
       <div class="import-menu" id="importMenu" hidden>
-        <label class="menu-label" for="importCategory">Guardar na categoria</label>
-        <select id="importCategory">
+        <label class="menu-label" for="importCategory">Escolha o gênero do livro</label>
+        <select id="importCategory" required>
+          <option value="" selected disabled>Selecione o gênero...</option>
           <option value="romance">Romances</option>
           <option value="adulto">Romance hot</option>
           <option value="ficcao">Ficção e aventuras</option>
@@ -67,14 +79,11 @@
         <p id="pdfImportStatus" class="pdf-import-status" role="status" aria-live="polite" hidden></p>
       </div>
     </div>
-    <nav class="library-tools" aria-label="Ferramentas da biblioteca">
-      <a class="explore-link" href="./explorar-livros.html" aria-label="Buscar livros e audiolivros gratuitos na internet">⌕ Buscar livros</a>
-      <a class="explore-link" href="./minha-biblioteca-privada.html" aria-label="Abrir meu catálogo particular de livros">▤ Minha biblioteca particular</a>
+    <div class="libria-legacy-controls" hidden aria-hidden="true">
       <button type="button" id="arrangeButton" aria-pressed="false">Organizar livros</button>
       <button type="button" id="roomButton" aria-expanded="false">Meu ambiente</button>
-      <button type="button" id="statsButton" aria-expanded="false">Minhas leituras</button>
-      <button type="button" id="auroraInstallButton" class="aurora-install-button" hidden>⌂ Instalar aplicativo</button>
-    </nav>
+      <button type="button" id="statsButton" aria-expanded="false">▤ <span>Minhas leituras</span></button>
+    </div>
     <p id="auroraInstallHelp" class="aurora-install-help" role="status" hidden></p>
     <section id="roomPanel" class="utility-panel" hidden aria-label="Personalizar ambiente">
       <div class="utility-heading"><h2>Personalizar a estante</h2><button type="button" class="back-to-shelf">← Estante</button></div>
@@ -155,12 +164,24 @@
     </section>
   </header>
 
+  <section class="libria-catalog-home" id="libriaCatalogHome" role="dialog" aria-modal="true" aria-labelledby="libriaCatalogHeading" hidden>
+    <div class="libria-catalog-panel">
+      <header class="libria-catalog-header">
+        <button type="button" id="libriaCatalogClose" aria-label="Fechar catálogo">← Estante</button>
+        <div><p>LIBRIA - BOOK</p><h2 id="libriaCatalogHeading">Meu catálogo</h2></div>
+        <span id="libriaCatalogTotal">0 livros</span>
+      </header>
+      <label class="libria-catalog-search"><span>Buscar gênero</span><input id="libriaGenreSearch" type="search" placeholder="Digite o nome do gênero..."></label>
+      <p class="libria-catalog-intro">Todos os seus livros, organizados por gênero. Escolha uma categoria para abrir suas capas.</p>
+      <div class="libria-genre-grid" id="libriaGenreGrid"></div>
+    </div>
+  </section>
   <nav class="shelf-switcher" id="shelfSwitcher" aria-label="Minhas estantes" hidden>
     <div class="shelf-switcher-row">
       <button type="button" class="shelf-arrow" id="shelfPrevious" aria-label="Estante anterior">‹</button>
       <div class="shelf-heading" aria-live="polite" aria-atomic="true">
         <span id="shelfPosition"></span>
-        <h2 id="shelfTitle">Estante principal</h2>
+        <div class="shelf-heading-main"><h2 id="shelfTitle">Estante principal</h2><button type="button" id="shelfCatalogButton" class="shelf-catalog-button">Catálogo</button></div>
       </div>
       <button type="button" class="shelf-arrow" id="shelfNext" aria-label="Próxima estante">›</button>
     </div>
@@ -176,7 +197,7 @@
       <div class="shelf-scene" id="personalScene"></div>
     </div>
   </main>
-  <main class="library" id="library" aria-label="Estantes por categoria"></main>
+  <main class="library libria-catalog-source" id="library" aria-label="Base do catálogo geral" aria-hidden="true"></main>
   <section id="auroraCatalogOverlay" class="aurora-catalog-overlay" role="dialog" aria-modal="true" aria-labelledby="auroraCatalogTitle" hidden>
     <div class="aurora-catalog-panel">
       <header class="aurora-catalog-head">
@@ -270,11 +291,23 @@
       <button class="btn" id="next" type="button">Próxima →</button>
     </div>
   </section>
+  <dialog class="libria-welcome" id="libriaWelcome" aria-labelledby="libriaWelcomeTitle">
+    <form class="libria-welcome-form" id="libriaWelcomeForm">
+      <div class="libria-welcome-brand"><strong>LIBRIA<span> - BOOK</span></strong><small>SEU UNIVERSO DE LEITURA</small></div>
+      <h2 id="libriaWelcomeTitle">Vamos preparar sua biblioteca</h2>
+      <p>Uma configuração rápida para deixar o aplicativo do seu jeito.</p>
+      <label class="libria-welcome-field"><span>Como podemos chamar você? (opcional)</span><input id="libriaWelcomeName" type="text" maxlength="48" autocomplete="name" placeholder="Seu nome"></label>
+      <label class="libria-welcome-field"><span>País</span><select id="libriaWelcomeCountry"><option value="BR">Brasil</option><option value="PT">Portugal</option><option value="US">Estados Unidos</option><option value="OTHER">Outro</option></select></label>
+      <label class="libria-welcome-field"><span>Idioma</span><select id="libriaWelcomeLanguage"><option value="pt-BR">Português (Brasil)</option><option value="pt-PT">Português (Portugal)</option><option value="en">English</option><option value="es">Español</option></select></label>
+      <p id="libriaWelcomeStatus" role="status" aria-live="polite"></p>
+      <div class="libria-welcome-actions"><button type="submit">Começar</button><button type="button" id="libriaWelcomeSkip">Agora não</button></div>
+    </form>
+  </dialog>
   <script src="./aurora-titulos.js?v=1" defer></script>
   <script src="./aurora-sinopses.js?v=3" defer></script>
   <script src="./aurora-som-folhas.js?v=2" defer></script>
   <script src="./aurora-acoes-livro.js?v=3" defer></script>
-  <script src="./aurora-estante.js?v=31" defer></script>
+  <script src="./aurora-estante.js?v=33" defer></script>
   <script src="./aurora-edition-surfaces.js?v=12" defer></script>
   <script src="./aurora-lombadas.js?v=9" defer></script>
   <script src="./aurora-sala-3d.js?v=36" defer></script>
@@ -284,11 +317,11 @@
   <script src="./vendor/jszip.min.js" defer></script>
   <script src="./aurora-artes.js?v=1" defer></script>
   <script src="./aurora-formatos.js?v=11" defer></script>
-  <script src="./aurora-catalogos.js?v=6" defer></script>
-  <script src="./aurora-novos-formatos.js?v=6" defer></script>
+  <script src="./aurora-catalogos.js?v=7" defer></script>
+  <script src="./aurora-novos-formatos.js?v=7" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
   <script src="./aurora-pdf-covers.js?v=2" defer></script>
-  <script src="./aurora-pdf-import.js?v=7" defer></script>
+  <script src="./aurora-pdf-import.js?v=8" defer></script>
   <script src="./aurora-importados.js?v=32" defer></script>
   <script src="./aurora-estante-3d.js?v=6" defer></script>
   <script type="module" src="./aurora-livro-3d.mjs?v=23"></script>
@@ -297,10 +330,12 @@
   <script src="./aurora-estante-cena.js?v=3" defer></script>
   <script src="./aurora-estante-capa.js?v=1" defer></script>
   <script src="./aurora-volume-estante.js?v=2" defer></script>
-  <script src="./aurora-estante-exemplares.js?v=12" defer></script>
+  <script src="./aurora-estante-exemplares.js?v=14" defer></script>
   <script src="./aurora-estantes-salvas.js?v=1" defer></script>
-  <script src="./aurora-minhas-estantes.js?v=1" defer></script>
+  <script src="./aurora-minhas-estantes.js?v=4" defer></script>
   <script src="./aurora-pwa.js?v=2" defer></script>
+  <script src="./libria-catalogo.js?v=3" defer></script>
+  <script src="./libria-onboarding.js?v=1" defer></script>
   <script src="./aurora-desfragmentacao-lab.js?v=4" defer></script>
 </body>
 </html>

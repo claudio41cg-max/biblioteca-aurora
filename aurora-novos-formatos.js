@@ -42,7 +42,7 @@
       description:details.description||'',format,mime:file.type|| (format==='audio'?'audio/mpeg':'application/epub+zip'),
       data,cover,coverSource:details.coverSource||(details.cover?'original':'generated'),back:details.back||'',editionArtVersion:1,coverCheckedVersion:52,backChecked:true,spine:details.spine||'',spineAspect:details.spineAspect||0,total:details.total,ratio,category:category.value,
       status:'quero-ler',created:Date.now(),page:0};
-    report('Guardando na estante do seu aparelho…');
+    report('Guardando no catálogo do seu aparelho…');
     await formats.saveRecord('books',item);
     return item;
   };
@@ -51,12 +51,13 @@
     input?.addEventListener('change',async event=>{
       const file=event.target.files?.[0];
       if(!file)return;
+      if(!category.value){report('Escolha o gênero do livro no campo “Guardar na categoria” antes de importar.');input.value='';return;}
       trigger.disabled=true;
       try{
         const book=await importFile(file,format);
         selectedAudioCover=null;$('audioCoverFile').value='';
-        report('“'+book.name+'” foi importado. Abrindo '+(format==='epub'?'a leitura':'o áudio')+'…');
-        location.href='./'+(format==='epub'?'ler-epub.html':'ouvir-livro.html')+'?livro='+encodeURIComponent(book.id)+'&v=1';
+        report('“'+book.name+'” foi adicionado ao catálogo. Escolha uma estante quando quiser.');
+        location.href='./index.html?catalogo=1&importado='+encodeURIComponent(book.id);
       }catch(error){
         report('Não foi possível importar: '+(error?.message||String(error)));
       }finally{input.value='';trigger.disabled=false;}

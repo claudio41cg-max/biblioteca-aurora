@@ -1,0 +1,99 @@
+/* Identidade inicial e navegação simplificada do LIBRIA - BOOK. */
+:root{--libria-gold:#d9ae70;--libria-cream:#f6ead4;--libria-ink:#0a1e1c}
+.libria-brand{display:flex;justify-content:center;align-items:baseline;gap:0;white-space:nowrap;font-size:clamp(30px,7.8vw,52px);letter-spacing:-1.4px;font-weight:500}
+.libria-brand>span:first-child{color:#f4e6cc}
+.libria-brand-book{color:#e8c18a;font-style:normal;font-size:.78em;letter-spacing:-.7px}
+.libria-home-actions{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:9px;margin:0 auto 13px}
+.libria-catalog-main,.libria-link-main{min-height:47px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 18px;border:1px solid #c49a64;border-radius:11px;background:linear-gradient(180deg,#e5c48f,#c79c63);color:#2c2117;text-decoration:none;font:700 14px system-ui,sans-serif;box-shadow:0 5px 15px #0003;cursor:pointer}
+.libria-link-main{background:#1c342d;color:#ecd5af;border-color:#8b714f;font-weight:600}
+.libria-catalog-main:focus-visible,.libria-link-main:focus-visible{outline:2px solid #ffdb9e;outline-offset:3px}
+.settings-trigger{cursor:pointer}
+.libria-app-menu[hidden]{display:none!important}
+.libria-app-menu{position:absolute;z-index:80;top:62px;right:14px;width:min(290px,calc(100vw - 28px));padding:8px;border:1px solid #aa8758;border-radius:14px;background:linear-gradient(155deg,#233b33,#101f1c);box-shadow:0 18px 42px #000b;text-align:left}
+.libria-app-menu a,.libria-app-menu button{width:100%;min-height:46px;display:flex;align-items:center;gap:12px;padding:10px 12px;border:0;border-radius:9px;background:transparent;color:#f2e2c7;text-align:left;text-decoration:none;font:600 13px system-ui,sans-serif;cursor:pointer}
+.libria-app-menu a:hover,.libria-app-menu button:hover{background:#ffffff12}
+.libria-app-menu a:first-child{border-bottom:1px solid #d9ae7030;border-radius:9px 9px 0 0}
+.libria-app-menu .aurora-install-button[hidden]{display:none!important}
+.libria-app-menu .aurora-install-button:not([hidden]){background:#d8b77f;color:#2b2116;margin-top:5px}
+.libria-legacy-controls[hidden]{display:none!important}
+#statsButton{font:600 13px system-ui,sans-serif}
+.libria-catalog-source{position:absolute!important;left:-220vw!important;top:0!important;width:min(940px,100vw)!important;max-width:940px!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;z-index:-1!important;margin:0!important}
+.libria-catalog-home[hidden]{display:none!important}
+.libria-catalog-home{position:fixed;inset:0;z-index:3400;overflow:auto;overscroll-behavior:contain;padding:env(safe-area-inset-top) 14px calc(28px + env(safe-area-inset-bottom));background:radial-gradient(ellipse at 50% 0%,#2b4942 0%,#122722 48%,#081715 100%);color:#f4e4c9;font-family:Georgia,"Times New Roman",serif}
+.libria-catalog-panel{width:min(100%,780px);margin:0 auto}
+.libria-catalog-header{position:sticky;top:0;z-index:2;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;padding:16px 0 13px;background:#10241ff0;border-bottom:1px solid #d9ae7040;backdrop-filter:blur(10px)}
+.libria-catalog-header>button{border:0;background:transparent;color:#e8c995;font:italic 16px Georgia,serif;white-space:nowrap}
+.libria-catalog-header>div{text-align:center;min-width:0}
+.libria-catalog-header>div p{margin:0 0 3px;color:#cda66f;font:700 9px system-ui,sans-serif;letter-spacing:2px}
+.libria-catalog-header h2{margin:0;color:#f4e3c7;font:normal clamp(22px,5vw,30px) Georgia,serif}
+.libria-catalog-header>span{color:#d6bd97;font:11px system-ui,sans-serif;white-space:nowrap}
+.libria-catalog-search{display:block;margin:19px 0 0}
+.libria-catalog-search span{display:block;margin:0 0 6px;color:#d9bd91;font:600 11px system-ui,sans-serif}
+.libria-catalog-search input{width:100%;height:44px;padding:0 13px;border:1px solid #8d7756;border-radius:10px;background:#142a24;color:#f5e6cb;font:14px system-ui,sans-serif}
+.libria-catalog-intro{margin:15px 0 18px;color:#c9c3b3;text-align:center;font:italic 14px/1.45 Georgia,serif}
+.libria-genre-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.libria-genre-card{min-width:0;min-height:90px;display:flex;align-items:center;gap:12px;padding:13px;border:1px solid #a9895d55;border-radius:13px;background:linear-gradient(145deg,#1b342c,#10221e);color:#f3e4ca;text-align:left;cursor:pointer}
+.libria-genre-card:hover,.libria-genre-card:focus-visible{border-color:#e1bd82;background:#294237}
+.libria-genre-icon{width:37px;height:37px;flex:0 0 37px;display:grid;place-items:center;border-radius:11px;background:#d6b57c1c;color:#e3bf83;font-size:21px}
+.libria-genre-info{min-width:0;flex:1}
+.libria-genre-info strong{display:block;overflow-wrap:anywhere;font:600 14px/1.25 Georgia,serif}
+.libria-genre-info small{display:block;margin-top:5px;color:#c7b797;font:11px system-ui,sans-serif}
+.libria-genre-arrow{color:#d5b77e;font-size:20px}
+.libria-catalog-empty{grid-column:1/-1;padding:24px;text-align:center;color:#d4c3a7;font:14px system-ui,sans-serif}
+.shelf-actions #shelfCatalogButton{min-height:44px;padding:8px 15px;border:1px solid #c5a06c;border-radius:10px;background:linear-gradient(180deg,#e4c18a,#c69a60);color:#2d2117;text-decoration:none;font:italic 700 15px Georgia,serif;letter-spacing:1.2px;cursor:pointer}
+.shelf-actions #shelfCatalogButton:hover{filter:brightness(1.06)}
+.libria-welcome[hidden]{display:none!important}
+.libria-welcome{width:min(460px,calc(100vw - 28px));max-width:none;max-height:min(90dvh,760px);padding:0;border:1px solid #b49365;border-radius:20px;background:#142a25;color:#f5e8d2;box-shadow:0 25px 80px #000c}
+.libria-welcome::backdrop{background:#020907d9;backdrop-filter:blur(5px)}
+.libria-welcome-form{padding:25px 21px 21px}
+.libria-welcome-brand{text-align:center;margin-bottom:22px}
+.libria-welcome-brand strong{display:block;color:#f4e5c9;font:600 30px Georgia,serif;letter-spacing:-.7px}
+.libria-welcome-brand strong span{color:#dfba81;font-size:.8em}
+.libria-welcome-brand small{display:block;margin-top:7px;color:#c7b38e;font:700 9px system-ui,sans-serif;letter-spacing:2px}
+.libria-welcome-form h2{margin:0 0 6px;color:#f1dfc0;text-align:center;font:normal 23px Georgia,serif}
+.libria-welcome-form>p{margin:0 0 19px;color:#c9c4b7;text-align:center;font:13px/1.45 system-ui,sans-serif}
+.libria-welcome-field{display:block;margin:13px 0}
+.libria-welcome-field span{display:block;margin-bottom:6px;color:#e1c69a;font:600 12px system-ui,sans-serif}
+.libria-welcome-field input,.libria-welcome-field select{width:100%;height:45px;padding:0 12px;border:1px solid #8b7656;border-radius:9px;background:#0f211d;color:#f5e9d4;font:14px system-ui,sans-serif}
+.libria-welcome-actions{display:grid;grid-template-columns:1fr auto;gap:9px;margin-top:20px}
+.libria-welcome-actions button{min-height:46px;padding:9px 15px;border:1px solid #c6a16b;border-radius:10px;background:#d8b67d;color:#2c2116;font:700 13px system-ui,sans-serif}
+.libria-welcome-actions button[type=button]{background:transparent;color:#e4cfad;border-color:#816d50}
+.libria-profile-preferences{grid-template-columns:1fr 1fr;gap:9px 12px}
+.libria-profile-preferences label{margin:0;color:#e5cda6;font-size:12px}
+.libria-profile-preferences select{width:100%;height:40px;padding:0 9px;border:1px solid #4a4741;border-radius:9px;background:#17191a;color:#f4ead8;font:13px system-ui,sans-serif}
+.libria-profile-preferences .config-note{grid-column:1/-1;margin:3px 0 0}
+@media(max-width:420px){
+ .libria-brand{font-size:clamp(27px,7.2vw,34px);letter-spacing:-1.1px}
+ .libria-home-actions{gap:7px}
+ .libria-catalog-main,.libria-link-main{min-height:44px;padding:9px 12px;font-size:12px}
+ .libria-catalog-header{grid-template-columns:auto minmax(0,1fr) auto;gap:6px}
+ .libria-catalog-header>button{font-size:14px}
+ .libria-catalog-header>span{font-size:10px}
+ .libria-genre-grid{gap:8px}
+ .libria-genre-card{min-height:83px;padding:10px 8px;gap:8px}
+ .libria-genre-icon{width:31px;height:31px;flex-basis:31px;font-size:18px}
+ .libria-genre-info strong{font-size:12px}
+}
+
+
+/* Cabeçalho inicial mais compacto e catálogo individual ao lado do nome da estante. */
+.tophead{padding:20px 14px 12px}
+.eyebrow{font-size:9px;letter-spacing:3px}
+.libria-brand{font-size:clamp(26px,6vw,40px);letter-spacing:-1px;margin:6px 0 4px}
+.subtitle{font-size:12px;margin:0 0 14px}
+.libria-home-actions{gap:7px;margin-bottom:10px}
+.libria-catalog-main,.libria-link-main{min-height:41px;padding:8px 13px;font-size:12px;border-radius:9px}
+.shelf-heading{min-width:0}
+.shelf-heading-main{display:flex;align-items:center;justify-content:center;gap:9px;min-width:0}
+#shelfTitle{font-size:clamp(20px,4.7vw,29px)}
+.shelf-heading-main #shelfCatalogButton{flex:none;min-height:34px;padding:6px 10px;border:1px solid #c5a06c;border-radius:9px;background:linear-gradient(180deg,#e4c18a,#c69a60);color:#2d2117;font:600 12px/1.1 Georgia,serif;letter-spacing:.2px;text-decoration:none;cursor:pointer;white-space:nowrap}
+.shelf-heading-main #shelfCatalogButton:hover{filter:brightness(1.06)}
+@media(max-width:420px){
+  .tophead{padding:17px 11px 10px}
+  .libria-brand{font-size:clamp(25px,6.3vw,32px)}
+  .subtitle{font-size:11px;margin-bottom:11px}
+  .shelf-switcher-row{gap:7px;grid-template-columns:38px minmax(0,1fr) 38px}
+  .shelf-arrow{width:38px;height:38px}
+  .shelf-heading-main{gap:6px;flex-wrap:wrap}
+  .shelf-heading-main #shelfCatalogButton{min-height:31px;padding:5px 9px;font-size:11px}
+}

@@ -1,13 +1,13 @@
-const CACHE = 'aurora-v117';
+const CACHE = 'libria-v122';
 // O cache inicial precisa ser leve para ativar o PWA rapidamente no celular.
 // Os demais arquivos da estante, do livro 3D e dos leitores são cacheados
 // quando usados. O conteúdo importado continua no armazenamento local.
 // As versões dos arquivos preservam no mesmo cache os leitores já baixados.
-const HOME = './index.html?v=117';
-const EDITOR = './nova-estante.html?v=117';
+const HOME = './index.html?v=122';
+const EDITOR = './nova-estante.html?v=122';
 const CORE = [
   HOME,
-  './manifest.webmanifest?v=117',
+  './manifest.webmanifest?v=122',
   './aurora-pwa.js?v=2',
   './aurora-pwa.css?v=2',
   './icons/aurora-192.png',
