@@ -272,10 +272,10 @@
       }
       draw();
       toggleMenu(false);
-      const row=$('shelf-'+getCategory(txtCategories[title],title));
-      const added=Array.from(row?.querySelectorAll('.book-spine')||[]).find(button=>
-        button.dataset.source==='txt'&&button.dataset.title===normalize(title));
-      if(added)added.click();else openText(title);
+      const status=$('pdfImportStatus');
+      status.hidden=false;
+      status.textContent='“'+title+'” foi adicionado ao catálogo em '+categories.find(item=>item.id===txtCategories[title])?.name+'. Escolha uma estante quando quiser.';
+      window.LibriaCatalogo?.open();
     } catch(error) {
       alert('Não foi possível importar o TXT: '+(error.message||error));
     } finally {event.target.value='';}
