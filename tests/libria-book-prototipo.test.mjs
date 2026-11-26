@@ -9,6 +9,9 @@ const css=read('libria-book.css');
 const catalog=read('libria-catalogo.js');
 const onboarding=read('libria-onboarding.js');
 const shelves=read('aurora-minhas-estantes.js');
+const shelfEditor=read('aurora-nova-estante.js');
+const shelfPicker=read('aurora-estante-exemplares.js');
+const shelfEditorHtml=read('nova-estante.html');
 const shelfCore=read('aurora-estante.js');
 const pdfImport=read('aurora-pdf-import.js');
 const epubAudioImport=read('aurora-novos-formatos.js');
@@ -61,9 +64,18 @@ test('o catálogo geral é único e pode ser aberto pela home e por cada estante
 });
 
 test('a primeira estante é vazia, editável e usa o mesmo editor das demais',()=>{
-  assert.ok(shelves.includes("DEFAULT_SHELF_ID = 'libria-estante-principal-v1'"));
-  assert.ok(shelves.includes("name:'Minha primeira estante'"));
+  assert.ok(shelves.includes("DEFAULT_SHELF_ID = 'libria-estante-principal-v2'"));
+  assert.ok(shelves.includes("LEGACY_DEFAULT_SHELF_ID = 'libria-estante-principal-v1'"));
+  assert.ok(shelves.includes("name:'Minha estante',genre:''"));
   assert.ok(shelves.includes('sections:1,objects:[]'));
+  assert.ok(shelves.includes('shelf.id !== LEGACY_DEFAULT_SHELF_ID'));
+  assert.ok(shelfEditor.includes("const DEFAULT_SHELF_ID='libria-estante-principal-v2'"));
+  assert.ok(shelfEditorHtml.includes('id="shelfGenreInput"'));
+  assert.ok(shelfEditor.includes("genreInput.replaceChildren"));
+  assert.ok(shelfEditor.includes("if(!state.name?.trim()||!state.genre)"));
+  assert.ok(shelfPicker.includes('active.genre && book.category === active.genre'));
+  assert.equal(shelfPicker.includes("choose('Gênero','category')"),false);
+  assert.equal(shelfPicker.includes('picker.category'),false);
   assert.ok(shelves.includes('window.AuroraEstanteExemplares.render(shelf, scene)'));
   assert.ok(shelves.includes("edit.href = './nova-estante.html?id=' + encodeURIComponent(shelf.id)"));
   assert.ok(shelves.includes("byId('library').hidden = false"));
@@ -92,8 +104,8 @@ test('importações entram no catálogo e não abrem automaticamente a leitura',
 });
 
 test('a versão de cache do protótipo não substitui o aplicativo publicado',()=>{
-  assert.equal(sw.includes("const CACHE = 'libria-v118';"),true);
-  assert.ok(sw.includes("const HOME = './index.html?v=118';"));
-  assert.ok(sw.includes("const EDITOR = './nova-estante.html?v=118';"));
-  assert.ok(html.includes('./manifest.webmanifest?v=118'));
+  assert.equal(sw.includes("const CACHE = 'libria-v119';"),true);
+  assert.ok(sw.includes("const HOME = './index.html?v=119';"));
+  assert.ok(sw.includes("const EDITOR = './nova-estante.html?v=119';"));
+  assert.ok(html.includes('./manifest.webmanifest?v=119'));
 });
