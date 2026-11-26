@@ -931,7 +931,7 @@
     dialog.id = 'shelfBookPicker';
     dialog.setAttribute('aria-labelledby','shelfBookPickerTitle');
     const header = element('header');
-    const title = element('h2','','Adicionar livros');
+    const title = element('h2','','Catálogo da estante');
     title.id = 'shelfBookPickerTitle';
     const close = element('button','shelf-picker-close','Fechar');
     close.type = 'button';
@@ -941,7 +941,7 @@
     const section = choose('Prateleira','section');
     const genreLabel = element('div','shelf-picker-genre-fixed');
     const searchLabel = element('label','shelf-picker-search');
-    searchLabel.append(element('span','','Buscar no acervo'));
+    searchLabel.append(element('span','','Buscar no catálogo'));
     const search = element('input');
     search.type = 'search'; search.placeholder = 'Título ou autor';
     searchLabel.append(search);
