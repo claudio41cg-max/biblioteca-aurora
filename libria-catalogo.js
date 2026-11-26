@@ -12,7 +12,7 @@
     menuToggle.setAttribute('aria-expanded',String(!menu.hidden));
   });
   menu?.addEventListener('click',event=>{
-    if(event.target.closest('a')||event.target.closest('#statsButton'))closeMenu();
+    if(event.target.closest('a'))closeMenu();
   });
   document.addEventListener('click',event=>{
     if(menu&&!menu.hidden&&!menu.contains(event.target)&&!menuToggle?.contains(event.target))closeMenu();
@@ -64,7 +64,7 @@
     returnFocus=null;
   }
   $('openCatalogButton')?.addEventListener('click',open);
-  $('shelfCatalogButton')?.addEventListener('click',open);
+  $('shelfCatalogButton')?.addEventListener('click',()=>window.AuroraEstanteExemplares?.openPicker());
   $('libriaCatalogClose')?.addEventListener('click',close);
   search.addEventListener('input',render);
   grid.addEventListener('click',event=>{
