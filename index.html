@@ -11,13 +11,13 @@
   <meta name="apple-mobile-web-app-title" content="LIBRIA - BOOK">
   <link rel="apple-touch-icon" href="./icons/aurora-192.png">
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/aurora-192.png">
-  <link rel="manifest" href="./manifest.webmanifest?v=119">
+  <link rel="manifest" href="./manifest.webmanifest?v=121">
   <link rel="stylesheet" href="./aurora-estante.css?v=23">
   <link rel="stylesheet" href="./aurora-livros-estante.css?v=1">
   <link rel="stylesheet" href="./aurora-avancado.css?v=5">
   <link rel="stylesheet" href="./aurora-ambiente.css?v=3">
   <link rel="stylesheet" href="./aurora-estante-realista.css?v=10">
-  <link rel="stylesheet" href="./aurora-catalogos.css?v=3">
+  <link rel="stylesheet" href="./aurora-catalogos.css?v=4">
   <link rel="stylesheet" href="./aurora-configuracoes.css?v=1">
   <link rel="stylesheet" href="./aurora-sala-3d.css?v=7">
   <link rel="stylesheet" href="./aurora-online.css?v=8">
@@ -29,7 +29,7 @@
   <link rel="stylesheet" href="./aurora-volume-estante.css?v=1">
   <link rel="stylesheet" href="./aurora-estante-exemplares.css?v=6">
   <link rel="stylesheet" href="./aurora-estante-capa.css?v=1">
-  <link rel="stylesheet" href="./libria-book.css?v=1">
+  <link rel="stylesheet" href="./libria-book.css?v=2">
   <title>LIBRIA - BOOK • Minha estante</title>
 <link rel="stylesheet" href="./aurora-exclusao-particulas.css?v=1">
 <link rel="stylesheet" href="./aurora-acoes-livro.css?v=1">
@@ -175,12 +175,11 @@
       <button type="button" class="shelf-arrow" id="shelfPrevious" aria-label="Estante anterior">‹</button>
       <div class="shelf-heading" aria-live="polite" aria-atomic="true">
         <span id="shelfPosition"></span>
-        <h2 id="shelfTitle">Estante principal</h2>
+        <div class="shelf-heading-main"><h2 id="shelfTitle">Estante principal</h2><button type="button" id="shelfCatalogButton" class="shelf-catalog-button">Catálogo</button></div>
       </div>
       <button type="button" class="shelf-arrow" id="shelfNext" aria-label="Próxima estante">›</button>
     </div>
     <div class="shelf-actions">
-      <button type="button" id="shelfCatalogButton" class="shelf-catalog-button">CATÁLOGO</button>
       <button type="button" id="addShelfBook" hidden>Adicionar livro</button>
       <a id="editPersonalShelf" hidden>Editar estante</a>
       <a id="createShelf" href="./nova-estante.html?nova=1"><span aria-hidden="true">＋</span> Nova estante</a>
@@ -312,7 +311,7 @@
   <script src="./vendor/jszip.min.js" defer></script>
   <script src="./aurora-artes.js?v=1" defer></script>
   <script src="./aurora-formatos.js?v=11" defer></script>
-  <script src="./aurora-catalogos.js?v=6" defer></script>
+  <script src="./aurora-catalogos.js?v=7" defer></script>
   <script src="./aurora-novos-formatos.js?v=6" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
   <script src="./aurora-pdf-covers.js?v=2" defer></script>
@@ -329,7 +328,7 @@
   <script src="./aurora-estantes-salvas.js?v=1" defer></script>
   <script src="./aurora-minhas-estantes.js?v=3" defer></script>
   <script src="./aurora-pwa.js?v=2" defer></script>
-  <script src="./libria-catalogo.js?v=1" defer></script>
+  <script src="./libria-catalogo.js?v=2" defer></script>
   <script src="./libria-onboarding.js?v=1" defer></script>
   <script src="./aurora-desfragmentacao-lab.js?v=4" defer></script>
 </body>
