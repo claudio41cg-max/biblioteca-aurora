@@ -42,7 +42,7 @@
       description:details.description||'',format,mime:file.type|| (format==='audio'?'audio/mpeg':'application/epub+zip'),
       data,cover,coverSource:details.coverSource||(details.cover?'original':'generated'),back:details.back||'',editionArtVersion:1,coverCheckedVersion:52,backChecked:true,spine:details.spine||'',spineAspect:details.spineAspect||0,total:details.total,ratio,category:category.value,
       status:'quero-ler',created:Date.now(),page:0};
-    report('Guardando na estante do seu aparelho…');
+    report('Guardando no catálogo do seu aparelho…');
     await formats.saveRecord('books',item);
     return item;
   };
