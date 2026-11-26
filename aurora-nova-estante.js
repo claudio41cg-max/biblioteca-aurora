@@ -2,7 +2,8 @@
   const savedShelves=window.AuroraEstantesSalvas;
   const params=new URLSearchParams(location.search);
   const isNew=params.get('nova')==='1';
-  const defaults={name:'Minha estante',wall:'tijolos',wallTone:'noite',wood:'nogueira',shelfTone:'natural',theme:'',light:85,sections:1,showHelp:true,objects:[]};
+  const DEFAULT_SHELF_ID='libria-estante-principal-v1';
+  const defaults={name:params.get('id')===DEFAULT_SHELF_ID?'Minha primeira estante':'Minha estante',wall:'tijolos',wallTone:'noite',wood:'nogueira',shelfTone:'natural',theme:'',light:85,sections:1,showHelp:true,objects:[]};
   const makeId=()=>crypto.randomUUID?.()||Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);
   let shelves=[];
   try{shelves=savedShelves.read();}catch{/* O aviso de gravação permanece visível no editor. */}
