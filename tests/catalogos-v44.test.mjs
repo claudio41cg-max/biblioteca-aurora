@@ -29,6 +29,6 @@ assert.match(html,/id="auroraCatalogOverlay"[^>]*role="dialog"[^>]*aria-modal="t
 assert.match(html,/aurora-catalogos\.js\?v=6/);
 assert.match(html,/aurora-catalogos\.css\?v=3/);
 assert.match(sw,/libria-v122/);
-assert.match(sw,/const HOME = '\.\/index\.html\?v=119'/);
+assert.match(sw,/const HOME = '\.\/index\.html\?v=122'/);
 
 console.log('V44/V53: catálogos, capas, volumes físicos e abertura do mesmo livro confirmados.');
