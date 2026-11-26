@@ -92,7 +92,11 @@ test('a primeira estante é vazia, editável e usa o mesmo editor das demais',()
   assert.ok(shelves.includes("edit.href = './nova-estante.html?id=' + encodeURIComponent(shelf.id)"));
   assert.ok(shelves.includes("byId('library').hidden = false"));
   assert.ok(shelves.includes("byId('personalShelf').hidden = edit.hidden = false"));
-  assert.ok(shelves.includes('addBook.hidden = true'));
+  assert.ok(shelves.includes('addBook.hidden = !sections || !shelf.genre'));
+  assert.ok(shelves.includes("addBook.textContent = 'Adicionar livros'"));
+  assert.ok(css.includes('#shelfSwitcher .shelf-actions #addShelfBook'));
+  assert.ok(css.includes('background:transparent!important'));
+  assert.ok(css.includes('text-decoration:underline!important'));
 });
 
 test('cada estante abre o catálogo geral filtrado pelo gênero e permite adicionar ou retirar',()=>{
@@ -145,10 +149,10 @@ test('importações entram no catálogo e não abrem automaticamente a leitura',
 });
 
 test('a versão de cache do protótipo não substitui o aplicativo publicado',()=>{
-  assert.equal(sw.includes("const CACHE = 'libria-v124';"),true);
-  assert.ok(sw.includes("const HOME = './index.html?v=124';"));
-  assert.ok(sw.includes("const EDITOR = './nova-estante.html?v=124';"));
-  assert.ok(html.includes('./manifest.webmanifest?v=124'));
+  assert.equal(sw.includes("const CACHE = 'libria-v125';"),true);
+  assert.ok(sw.includes("const HOME = './index.html?v=125';"));
+  assert.ok(sw.includes("const EDITOR = './nova-estante.html?v=125';"));
+  assert.ok(html.includes('./manifest.webmanifest?v=125'));
 });
 
 test('todos os livros da home usam o volume 3D completo e abrem o mesmo leitor',()=>{

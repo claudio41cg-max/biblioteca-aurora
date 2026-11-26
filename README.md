@@ -1,3 +1,9 @@
+## LIBRIA - BOOK v125 — ações compactas da estante
+
+- O atalho **Adicionar livros** fica na mesma linha visual de **Editar estante** e **Nova estante**, com estilo de link simples, sem fundo, caixa, borda ou bloco bege grande.
+- O atalho aparece somente quando a estante tem ao menos uma prateleira e gênero definido; sua ação continua abrindo o catálogo filtrado para adicionar livros.
+- Cache PWA: `libria-v125`.
+
 ## LIBRIA - BOOK v124 — catálogo 3D e paginação por gênero
 
 - Todos os livros da tela inicial reutilizam o volume 3D já existente: capa, lombada, espessura, páginas, contracapa e rotação por gesto. Ao tocar, o mesmo livro abre no leitor 3D.

@@ -164,3 +164,60 @@ body.libria-shell.libria-catalog-view{background:#101916}
 .libria-catalog-empty{padding:20px 12px;text-align:center;color:#c9bca7;font:italic 14px/1.45 Georgia,serif}
 @media(min-width:650px){.libria-home-book-grid{gap:25px 18px}.libria-home-book{padding:10px 8px 13px}.libria-home-book-title{font-size:15px}.libria-home-book-author,.libria-home-book-type{font-size:11px}}
 @media(max-width:350px){.libria-home-book-grid{column-gap:7px}.libria-home-book{padding:5px 3px 8px}.libria-home-book-title{font-size:10px}}
+
+/* v125 — ações da estante em linha, sem o botão grande destacado. */
+#shelfSwitcher .shelf-actions{
+  display:flex!important;
+  flex-direction:row;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:center;
+  gap:10px 18px;
+  width:100%;
+  margin:10px auto 14px;
+  padding:0 10px;
+  box-sizing:border-box;
+}
+#shelfSwitcher .shelf-actions #addShelfBook,
+#shelfSwitcher .shelf-actions #editPersonalShelf,
+#shelfSwitcher .shelf-actions #createShelf{
+  display:inline-flex;
+  flex:0 0 auto;
+  align-items:center;
+  justify-content:center;
+  width:auto!important;
+  min-width:0!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:2px 0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:#f0dfc1!important;
+  box-shadow:none!important;
+  font:600 13px/1.35 system-ui,sans-serif!important;
+  letter-spacing:0!important;
+  text-decoration:underline!important;
+  text-decoration-color:#e3c99d!important;
+  text-underline-offset:4px;
+  white-space:nowrap;
+  cursor:pointer;
+}
+#shelfSwitcher .shelf-actions #addShelfBook:hover,
+#shelfSwitcher .shelf-actions #editPersonalShelf:hover,
+#shelfSwitcher .shelf-actions #createShelf:hover{
+  color:#f7d69e!important;
+  background:transparent!important;
+  filter:none;
+}
+#shelfSwitcher .shelf-actions #addShelfBook[hidden],
+#shelfSwitcher .shelf-actions #editPersonalShelf[hidden],
+#shelfSwitcher .shelf-actions #createShelf[hidden]{
+  display:none!important;
+}
+@media(max-width:390px){
+  #shelfSwitcher .shelf-actions{gap:8px 14px;margin-top:8px}
+  #shelfSwitcher .shelf-actions #addShelfBook,
+  #shelfSwitcher .shelf-actions #editPersonalShelf,
+  #shelfSwitcher .shelf-actions #createShelf{font-size:12px!important}
+}
