@@ -67,7 +67,7 @@
     // fora da tela, para que os livros antigos continuem acessíveis pelos gêneros.
     byId('library').hidden = false;
     byId('personalShelf').hidden = edit.hidden = false;
-    addBook.hidden = true;
+    addBook.hidden = false;
     window.AuroraEstanteExemplares.clear();
     scene.replaceChildren();
 
@@ -81,6 +81,8 @@
       canvas.style.filter = 'brightness(' + light + ')';
       canvas.querySelector('.canvas-light').style.opacity = Math.min(1, light);
       const sections = Math.max(0, Math.min(8, Number(shelf.sections) || 0));
+      addBook.hidden = !sections || !shelf.genre;
+      addBook.textContent = 'Adicionar livros';
       const objects = Array.isArray(shelf.objects) ? shelf.objects : [];
       for (let i = 0; i < sections; i++) scene.append(window.AuroraShelfScene.section(objects, i));
       addBook.disabled = !sections || !shelf.genre;
