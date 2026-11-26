@@ -65,7 +65,8 @@
     // A estante de exibição é independente do catálogo. O catálogo permanece no DOM,
     // fora da tela, para que os livros antigos continuem acessíveis pelos gêneros.
     byId('library').hidden = false;
-    byId('personalShelf').hidden = addBook.hidden = edit.hidden = false;
+    byId('personalShelf').hidden = edit.hidden = false;
+    addBook.hidden = true;
     window.AuroraEstanteExemplares.clear();
     scene.replaceChildren();
 
