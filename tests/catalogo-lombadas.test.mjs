@@ -63,9 +63,9 @@ test('o catálogo atualiza textura e identificação sem reconstruir o cartão d
 
 test('service worker abre a v118 e cria cache isolado da versão anterior',()=>{
   const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
-  assert.ok(sw.includes("const CACHE = 'libria-v118';"));
-  assert.ok(sw.includes("const HOME = './index.html?v=118';"));
-  assert.ok(sw.includes("const EDITOR = './nova-estante.html?v=118';"));
-  assert.ok(sw.includes("'./manifest.webmanifest?v=118'"));
+  assert.ok(sw.includes("const CACHE = 'libria-v119';"));
+  assert.ok(sw.includes("const HOME = './index.html?v=119';"));
+  assert.ok(sw.includes("const EDITOR = './nova-estante.html?v=119';"));
+  assert.ok(sw.includes("'./manifest.webmanifest?v=119'"));
   assert.doesNotMatch(sw,/indexedDB\.deleteDatabase|localStorage\.clear\(/);
 });
