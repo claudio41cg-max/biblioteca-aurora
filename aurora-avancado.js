@@ -96,7 +96,7 @@
       panel.hidden=true;
       button.setAttribute('aria-expanded','false');
     });
-    $('library').scrollIntoView({behavior:'smooth',block:'start'});
+    $('personalShelf').scrollIntoView({behavior:'smooth',block:'start'});
   }
   document.querySelectorAll('.back-to-shelf').forEach(button=>{
     button.addEventListener('click',returnToShelf);
@@ -146,7 +146,7 @@
   });
   $('arrangeBack').addEventListener('click',()=>{
     if(arranging)$('arrangeButton').click();
-    $('library').scrollIntoView({behavior:'smooth',block:'start'});
+    $('personalShelf').scrollIntoView({behavior:'smooth',block:'start'});
   });
   $('library').addEventListener('click',event=>{
     if(!arranging)return;
