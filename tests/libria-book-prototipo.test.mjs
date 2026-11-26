@@ -1,5 +1,5 @@
 import {readFileSync} from 'node:fs';
-import {Script} from 'node:vm';
+import {Script,runInNewContext} from 'node:vm';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -59,9 +59,13 @@ test('o catálogo geral é único e pode ser aberto pela home e por cada estante
   assert.ok(html.includes('id="openCatalogButton"'));
   assert.ok(html.includes('id="shelfCatalogButton"'));
   assert.ok(html.includes('id="libriaCatalogHome"'));
-  assert.ok(catalog.includes("$('openCatalogButton')?.addEventListener('click',open)"));
+  assert.ok(catalog.includes("$('openCatalogButton')?.addEventListener('click',()=>goCatalog())"));
   assert.ok(catalog.includes("$('shelfCatalogButton')?.addEventListener('click',()=>window.AuroraEstanteExemplares?.openPicker())"));
-  assert.ok(catalog.includes('window.AuroraCatalogos?.open(category)'));
+  assert.ok(catalog.includes('window.AuroraCatalogPreview?.homeCardFor(button)'));
+  assert.ok(html.includes('id="libriaGoShelves"'));
+  assert.match(css,/\.libria-home-books\{display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+  assert.ok(html.indexOf('id="libriaGenreGrid"')<html.indexOf('id="libriaGoShelves"'));
+  assert.ok(!html.includes('id="libriaCatalogClose"'));
   assert.ok(catalog.includes('window.AuroraShelf.categories'));
   assert.ok(html.includes('class="library libria-catalog-source"'));
   assert.ok(css.includes('.libria-catalog-source'));
@@ -132,8 +136,68 @@ test('importações entram no catálogo e não abrem automaticamente a leitura',
 });
 
 test('a versão de cache do protótipo não substitui o aplicativo publicado',()=>{
-  assert.equal(sw.includes("const CACHE = 'libria-v122';"),true);
-  assert.ok(sw.includes("const HOME = './index.html?v=122';"));
-  assert.ok(sw.includes("const EDITOR = './nova-estante.html?v=122';"));
-  assert.ok(html.includes('./manifest.webmanifest?v=122'));
+  assert.equal(sw.includes("const CACHE = 'libria-v123';"),true);
+  assert.ok(sw.includes("const HOME = './index.html?v=123';"));
+  assert.ok(sw.includes("const EDITOR = './nova-estante.html?v=123';"));
+  assert.ok(html.includes('./manifest.webmanifest?v=123'));
+});
+
+test('a tela inicial mostra livros reais do acervo, filtra e navega para as estantes',()=>{
+  class Node {
+    constructor(tag='div'){this.tagName=tag;this.children=[];this.dataset={};this.attrs={};this.listeners={};this.hidden=false;this.value='';this.textContent='';}
+    append(...items){this.children.push(...items);}
+    replaceChildren(...items){this.children=[...items];}
+    setAttribute(k,v){this.attrs[k]=v;}
+    addEventListener(k,fn){(this.listeners[k]??=[]).push(fn);}
+    fire(k,target=this){for(const fn of this.listeners[k]||[])fn({target,key:''});}
+    closest(){return this;}
+    contains(node){return this.children.includes(node)||node===this;}
+    querySelectorAll(){return this.children;}
+    querySelector(){return null;}
+    focus(){}
+  }
+  const ids=Object.fromEntries(['libriaCatalogHome','libriaGenreGrid','libriaHomeBooks','libriaGenreSearch','libriaHomeSearchWrap','libriaSearchToggle','libriaCatalogMore','libriaCatalogTotal','libriaCatalogHeading','libriaAppMenu','libriaMenuToggle','openCatalogButton','libriaGoShelves','shelfCatalogButton','shelf-romance','shelf-ficcao','library'].map(id=>[id,new Node()]));
+  ids.libriaAppMenu.hidden=true;
+  ids.libriaHomeSearchWrap.hidden=true;
+  const book=(title,author,source,id)=>{const n=new Node('button');n.dataset={rawTitle:title,author,source,bookId:id};return n;};
+  ids['shelf-romance'].append(book('Razão e Sensibilidade','Jane Austen','pdf','a'),book('Noite de amor','Autora','epub','b'));
+  ids['shelf-ficcao'].append(book('A Máquina do Tempo','H. G. Wells','epub','c'),book('A Máquina do Tempo','H. G. Wells','epub','c'));
+  const classes=new Set(),doc=new Node();
+  doc.getElementById=id=>ids[id]||null;
+  doc.createElement=tag=>new Node(tag);
+  doc.body={classList:{toggle:(name,on)=>on?classes.add(name):classes.delete(name)}};
+  const location={href:'https://example.com/app/index.html'};
+  const history={pushState:(_s,_t,url)=>{location.href=String(url);},replaceState:(_s,_t,url)=>{location.href=String(url);},state:null};
+  let refreshed=0,picked=0;
+  const window=new Node();
+  window.AuroraShelf={categories:[{id:'romance',name:'Romances'},{id:'ficcao',name:'Ficção'}]};
+  window.AuroraCatalogPreview={homeCardFor:button=>{const n=new Node('button');n.textContent=button.dataset.rawTitle;return n;}};
+  window.AuroraMinhasEstantes={refresh:()=>refreshed++};
+  window.AuroraEstanteExemplares={layout(){},openPicker:()=>picked++};
+  window.scrollTo=()=>{};
+  runInNewContext(catalog,{document:doc,window,location,history,URL,URLSearchParams,requestAnimationFrame:fn=>{fn();return 0;},console});
+  assert.equal(ids.libriaCatalogHome.hidden,false);
+  assert.equal(ids.libriaHomeBooks.children.length,3);
+  assert.equal(ids.libriaCatalogTotal.textContent,'3 livros');
+  assert.equal(ids.libriaGenreGrid.children[0].textContent,'Todos');
+  ids.libriaGenreGrid.fire('click',ids.libriaGenreGrid.children[1]);
+  assert.deepEqual(ids.libriaHomeBooks.children.map(n=>n.textContent),['Razão e Sensibilidade','Noite de amor']);
+  ids.libriaGenreSearch.value='razao';ids.libriaGenreSearch.fire('input');
+  assert.equal(ids.libriaCatalogTotal.textContent,'1 livro');
+  assert.equal(ids.libriaHomeBooks.children[0].textContent,'Razão e Sensibilidade');
+  ids.libriaGoShelves.fire('click');
+  assert.equal(new URL(location.href).searchParams.get('estantes'),'1');
+  assert.equal(ids.libriaCatalogHome.hidden,true);
+  assert.equal(classes.has('libria-catalog-view'),false);
+  assert.equal(refreshed,1);
+  ids.shelfCatalogButton.fire('click');assert.equal(picked,1);
+  ids.openCatalogButton.fire('click');
+  assert.equal(ids.libriaCatalogHome.hidden,false);
+  assert.equal(new URL(location.href).searchParams.has('estantes'),false);
+  assert.equal(ids.libriaCatalogTotal.textContent,'1 livro');
+  window.LibriaCatalogo.open();
+  assert.equal(ids.libriaCatalogTotal.textContent,'3 livros');
+  ids['shelf-romance'].append(book('Livro novo','Autor','pdf','new'));
+  doc.fire('aurora:library-data');
+  assert.equal(ids.libriaCatalogTotal.textContent,'4 livros');
 });

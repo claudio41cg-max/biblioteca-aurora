@@ -283,7 +283,29 @@
     $('auroraCatalogBack').focus({preventScroll:true});
   }
   // A seleção de livros usa exatamente o mesmo volume do catálogo principal.
-  window.AuroraCatalogPreview={volumeFor};
+  // A grade inicial usa a capa da mesma edição e abre o leitor já existente.
+  function homeCardFor(button){
+    const title=window.AuroraTitles?.display(button.dataset.rawTitle)||getTitle(button);
+    const card=document.createElement('button');
+    card.type='button';card.className='libria-home-book';
+    card.setAttribute('aria-label','Abrir '+title);
+    const cover=document.createElement('span');cover.className='libria-home-cover';
+    fillImage(cover,button,title);
+    const name=document.createElement('span');name.className='libria-home-book-title';name.textContent=title;
+    const author=document.createElement('span');author.className='libria-home-book-author';
+    author.textContent=button.dataset.author||'';
+    const type=document.createElement('span');type.className='libria-home-book-type';
+    const labels={demo:'Amostra',pdf:'PDF',epub:'EPUB',txt:'TXT',audio:'Audiolivro',online:'Online'};
+    type.textContent=labels[button.dataset.source]||'Livro';
+    card.append(cover,name,author,type);
+    card.addEventListener('click',()=>{
+      button.__auroraCatalogOrigin=cover.getBoundingClientRect();
+      button.__auroraCatalogFocus=card;
+      button.click();
+    });
+    return card;
+  }
+  window.AuroraCatalogPreview={volumeFor,homeCardFor};
   if(!overlay||!grid||!more)return;
   $('auroraCatalogBack').addEventListener('click',()=>close());
   more.addEventListener('click',()=>{
