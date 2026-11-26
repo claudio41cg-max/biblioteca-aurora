@@ -40,11 +40,11 @@ jobs:
           git archive HEAD | tar -x -C preview-site
           rm -rf preview-site/.github preview-site/tests preview-site/.vercel
           find preview-site -type f \( -name '.env' -o -name '.env.*' -o -name '*.pem' -o -name '*.key' \) -delete
-          printf 'LIBRIA - BOOK protótipo v118\\nCommit: %s\\nBranch: %s\\n' "$GITHUB_SHA" "$GITHUB_REF_NAME" > preview-site/PREVIEW-INFO.txt
+          printf 'LIBRIA - BOOK protótipo v119\\nCommit: %s\\nBranch: %s\\n' "$GITHUB_SHA" "$GITHUB_REF_NAME" > preview-site/PREVIEW-INFO.txt
       - name: Publicar pacote de prévia
         uses: actions/upload-artifact@v4
         with:
-          name: libria-book-prototipo-v118
+          name: libria-book-prototipo-v119
           path: preview-site/
           if-no-files-found: error
           retention-days: 7
