@@ -43,7 +43,7 @@
     catch(error){console.warn('Textura das folhas indisponível:',error);}
     return paperEdgeURL;
   }
-  let current=null,visible=PAGE_SIZE,returnFocus=null;
+  let current=null,currentShelf=null,visible=PAGE_SIZE,returnFocus=null;
   const showCount=count=>count===1?'1 livro':count+' livros';
 
   function buttonsInCategory(category){
@@ -250,17 +250,42 @@
     });
     return card;
   }
+  function shelfBookKey(button){
+    const data=button?.dataset||{};
+    const source=data.source||'demo';
+    return (data.bookId&&source!=='online'?'arquivo':source)+':'+(data.bookId||data.rawTitle||'');
+  }
+  function booksInCurrentShelf(){
+    if(!currentShelf)return [];
+    const key='aurora-estante-exemplares-v1:'+encodeURIComponent(currentShelf.id);
+    let members=[];
+    try{
+      const saved=JSON.parse(localStorage.getItem(key)||'[]');
+      if(Array.isArray(saved))members=saved.filter(item=>item&&typeof item.key==='string');
+    }catch(error){console.warn('Não foi possível ler os livros desta estante.',error);}
+    const keys=new Set(members.map(item=>item.key));
+    return shelf.categories.flatMap(category=>buttonsInCategory(category.id))
+      .filter(button=>keys.has(shelfBookKey(button)));
+  }
   function render(){
-    if(!current||overlay.hidden)return;
-    const category=shelf.categories.find(item=>item.id===current);
-    if(!category)return;
-    const books=buttonsInCategory(current);
-    $('auroraCatalogTitle').textContent=category.name;
+    if((!current&&!currentShelf)||overlay.hidden)return;
+    let books=[],emptyText='';
+    if(currentShelf){
+      books=booksInCurrentShelf();
+      $('auroraCatalogTitle').textContent='Catálogo · '+currentShelf.name;
+      emptyText='Esta estante ainda não tem livros. Use “Adicionar livro” para escolher títulos do catálogo geral.';
+    }else{
+      const category=shelf.categories.find(item=>item.id===current);
+      if(!category)return;
+      books=buttonsInCategory(current);
+      $('auroraCatalogTitle').textContent=category.name;
+      emptyText='Esta prateleira ainda não tem livros. Importe um livro para vê-lo aqui.';
+    }
     $('auroraCatalogTotal').textContent=showCount(books.length);
     const cards=books.slice(0,visible).map(cardFor);
     if(!cards.length){
       const empty=document.createElement('p');empty.className='aurora-catalog-empty';
-      empty.textContent='Esta prateleira ainda não tem livros. Importe um livro para vê-lo aqui.';
+      empty.textContent=emptyText;
       cards.push(empty);
     }
     grid.replaceChildren(...cards);
@@ -269,7 +294,7 @@
   function close(restore=true){
     if(overlay.hidden)return;
     overlay.hidden=true;document.body.classList.remove('aurora-catalog-open');
-    current=null;
+    current=null;currentShelf=null;
     if(restore&&returnFocus?.isConnected)returnFocus.focus({preventScroll:true});
     returnFocus=null;
   }
@@ -277,12 +302,23 @@
     if(!shelf.categories.some(item=>item.id===category))return;
     if(!overlay.hidden)close(false);
     returnFocus=document.activeElement;
-    current=category;visible=PAGE_SIZE;
+    current=category;currentShelf=null;visible=PAGE_SIZE;
     overlay.hidden=false;document.body.classList.add('aurora-catalog-open');
     render();overlay.scrollTop=0;
     $('auroraCatalogBack').focus({preventScroll:true});
   }
   // A seleção de livros usa exatamente o mesmo volume do catálogo principal.
+  function openShelf(shelfId,shelfName){
+    if(!shelfId)return;
+    if(!overlay.hidden)close(false);
+    returnFocus=document.activeElement;
+    current=null;
+    currentShelf={id:String(shelfId),name:String(shelfName||'Estante')};
+    visible=PAGE_SIZE;
+    overlay.hidden=false;document.body.classList.add('aurora-catalog-open');
+    render();overlay.scrollTop=0;
+    $('auroraCatalogBack').focus({preventScroll:true});
+  }
   window.AuroraCatalogPreview={volumeFor};
   if(!overlay||!grid||!more)return;
   $('auroraCatalogBack').addEventListener('click',()=>close());
@@ -305,7 +341,7 @@
   // Quando a linha recebe ou perde um livro, o catálogo aberto se atualiza.
   const library=$('library');
   if(library&&typeof MutationObserver!=='undefined'){
-    new MutationObserver(()=>{if(current&&!overlay.hidden)render();})
+    new MutationObserver(()=>{if((current||currentShelf)&&!overlay.hidden)render();})
       .observe(library,{subtree:true,childList:true});
     new MutationObserver(records=>{
       if(!current||overlay.hidden)return;
@@ -318,7 +354,9 @@
       attributeFilter:['data-real-spine','data-spine-crisp','data-cover-derived']
     });
   }
-  document.addEventListener('aurora:book-cover-updated',()=>{if(current&&!overlay.hidden)render();});
-  document.addEventListener('aurora:shelf-visibility',()=>{if(current&&!overlay.hidden)render();});
-  window.AuroraCatalogos={open,close};
+  document.addEventListener('aurora:book-cover-updated',()=>{if((current||currentShelf)&&!overlay.hidden)render();});
+  document.addEventListener('aurora:shelf-visibility',()=>{if((current||currentShelf)&&!overlay.hidden)render();});
+  document.addEventListener('aurora:shelf-books-changed',()=>{if(currentShelf&&!overlay.hidden)render();});
+  window.addEventListener('storage',event=>{if(currentShelf&&event.key==='aurora-estante-exemplares-v1:'+encodeURIComponent(currentShelf.id)&&!overlay.hidden)render();});
+  window.AuroraCatalogos={open,openShelf,close};
 })();
