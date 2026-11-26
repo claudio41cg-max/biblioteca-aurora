@@ -26,8 +26,8 @@ assert.match(catalog,/visible\+=PAGE_SIZE/);
 assert.match(css,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
 assert.match(css,/#library \.section-title::after\{display:none\}/);
 assert.match(html,/id="auroraCatalogOverlay"[^>]*role="dialog"[^>]*aria-modal="true"/);
-assert.match(html,/aurora-catalogos\.js\?v=6/);
-assert.match(html,/aurora-catalogos\.css\?v=3/);
+assert.match(html,/aurora-catalogos\.js\?v=7/);
+assert.match(html,/aurora-catalogos\.css\?v=4/);
 assert.match(sw,/libria-v122/);
 assert.match(sw,/const HOME = '\.\/index\.html\?v=122'/);
 
