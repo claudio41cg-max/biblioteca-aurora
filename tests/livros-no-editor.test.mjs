@@ -28,7 +28,7 @@ async function openEditor(t,contextOptions={},members=initialMembers){
   await page.goto(origin+'/nova-estante.html?id=romances');
   await page.evaluate(async({initialMembers,storageKey})=>{
     await AuroraFormats.saveRecord('books',{id:'epub-1',format:'epub',name:'Mar de Inverno',author:'Ana'});
-    AuroraEstantesSalvas.save({id:'romances',name:'Romances',sections:2,objects:[]},true);
+    AuroraEstantesSalvas.save({id:'romances',name:'Romances',genre:'brasileiros',sections:2,objects:[]},true);
     localStorage.setItem(storageKey,JSON.stringify(initialMembers));
   },{initialMembers:members,storageKey});
   const sections=page.locator('#shelfScene .shelf-section');
@@ -62,7 +62,7 @@ test('as medidas salvas pertencem ao exemplar desta estante e cancelar descarta 
   const otherKey='aurora-estante-exemplares-v1:outra';
   const otherMembers=[{key:importedKey,section:0}];
   await page.evaluate(({otherKey,otherMembers})=>{
-    AuroraEstantesSalvas.save({id:'outra',name:'Outra estante',sections:1,objects:[]},true);
+    AuroraEstantesSalvas.save({id:'outra',name:'Outra estante',genre:'brasileiros',sections:1,objects:[]},true);
     localStorage.setItem(otherKey,JSON.stringify(otherMembers));
   },{otherKey,otherMembers});
 

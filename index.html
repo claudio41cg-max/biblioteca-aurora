@@ -11,7 +11,7 @@
   <meta name="apple-mobile-web-app-title" content="LIBRIA - BOOK">
   <link rel="apple-touch-icon" href="./icons/aurora-192.png">
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/aurora-192.png">
-  <link rel="manifest" href="./manifest.webmanifest?v=125">
+  <link rel="manifest" href="./manifest.webmanifest?v=126">
   <link rel="stylesheet" href="./aurora-estante.css?v=23">
   <link rel="stylesheet" href="./aurora-livros-estante.css?v=1">
   <link rel="stylesheet" href="./aurora-avancado.css?v=5">
@@ -32,7 +32,7 @@
   <link rel="stylesheet" href="./libria-book.css?v=5">
   <title>LIBRIA - BOOK • Meu catálogo</title>
 <link rel="stylesheet" href="./aurora-exclusao-particulas.css?v=1">
-<link rel="stylesheet" href="./aurora-acoes-livro.css?v=1">
+<link rel="stylesheet" href="./aurora-acoes-livro.css?v=2">
 </head>
 <body class="libria-shell libria-catalog-view">
   <header class="tophead">
@@ -241,6 +241,7 @@
         </select>
       </label>
     </nav>
+    <p id="auroraShowCategoryStatus" class="aurora-category-status" role="status"></p>
     <header class="aurora-show-heading"><h2 id="auroraShowTitle"></h2><p id="auroraShowAuthor"></p></header>
     <div id="scene" class="aurora-show-scene" aria-label="Livro 3D. Arraste para girar e toque para ler.">
       <div id="book3d" class="aurora-css-book" role="button" tabindex="0" aria-label="Toque para abrir o livro">
@@ -249,12 +250,13 @@
         <div class="volume-cover"><img id="cover3d" alt="Capa original do PDF"></div>
       </div>
     </div>
+    <button id="auroraSkipRemoval" type="button" hidden>Pular animação</button>
     <section class="aurora-book-actions" aria-label="Reações e opções do livro">
       <div class="aurora-reactions"><button type="button" data-book-action="delete" aria-label="Excluir livro" aria-expanded="false"><span aria-hidden="true">🗑️</span><small>Excluir</small></button></div>
       <button type="button" data-book-action="restore" hidden>Devolver à estante</button>
       <div class="aurora-delete-options" hidden>
         <button type="button" data-remove-scope="shelf"><strong>Retirar da estante</strong><small>O livro e o progresso continuam no catálogo.</small></button>
-        <button type="button" data-remove-scope="app"><strong>Excluir do aplicativo</strong><small>Remove o livro e o progresso da Aurora, não o arquivo original.</small></button>
+        <button type="button" data-remove-scope="app"><strong>Excluir permanentemente</strong><small>Remove do catálogo, das buscas e de todas as estantes. O arquivo original fica no aparelho.</small></button>
         <button type="button" data-remove-scope="cancel">Cancelar</button>
       </div><p role="status" aria-live="polite"></p>
     </section>
@@ -309,12 +311,12 @@
   <script src="./aurora-titulos.js?v=1" defer></script>
   <script src="./aurora-sinopses.js?v=3" defer></script>
   <script src="./aurora-som-folhas.js?v=2" defer></script>
-  <script src="./aurora-acoes-livro.js?v=3" defer></script>
-  <script src="./aurora-estante.js?v=33" defer></script>
+  <script src="./aurora-acoes-livro.js?v=4" defer></script>
+  <script src="./aurora-estante.js?v=34" defer></script>
   <script src="./aurora-edition-surfaces.js?v=12" defer></script>
   <script src="./aurora-lombadas.js?v=9" defer></script>
-  <script src="./aurora-sala-3d.js?v=37" defer></script>
-<script src="./aurora-exclusao-particulas.js?v=9" defer></script>
+  <script src="./aurora-sala-3d.js?v=38" defer></script>
+<script src="./aurora-exclusao-particulas.js?v=10" defer></script>
   <script src="./aurora-avancado.js?v=7" defer></script>
   <script src="./aurora-online-estante.js?v=5" defer></script>
   <script src="./vendor/jszip.min.js" defer></script>
@@ -327,13 +329,13 @@
   <script src="./aurora-pdf-import.js?v=8" defer></script>
   <script src="./aurora-importados.js?v=32" defer></script>
   <script src="./aurora-estante-3d.js?v=6" defer></script>
-  <script type="module" src="./aurora-livro-3d.mjs?v=23"></script>
+  <script type="module" src="./aurora-livro-3d.mjs?v=24"></script>
   <script src="./aurora-chamas.js?v=1" defer></script>
   <script src="./aurora-aquario.js?v=1" defer></script>
   <script src="./aurora-estante-cena.js?v=3" defer></script>
   <script src="./aurora-estante-capa.js?v=1" defer></script>
   <script src="./aurora-volume-estante.js?v=2" defer></script>
-  <script src="./aurora-estante-exemplares.js?v=14" defer></script>
+  <script src="./aurora-estante-exemplares.js?v=15" defer></script>
   <script src="./aurora-estantes-salvas.js?v=1" defer></script>
   <script src="./aurora-minhas-estantes.js?v=6" defer></script>
   <script src="./aurora-pwa.js?v=2" defer></script>

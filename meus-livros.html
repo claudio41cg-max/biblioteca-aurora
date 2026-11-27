@@ -71,7 +71,7 @@
   <link rel="stylesheet" href="./aurora-edicao.css?v=1">
   <link rel="stylesheet" href="./aurora-vitrine.css?v=8">
   <link rel="stylesheet" href="./aurora-reader.css?v=13">
-<link rel="stylesheet" href="./aurora-acoes-livro.css?v=1">
+<link rel="stylesheet" href="./aurora-acoes-livro.css?v=2">
 <link rel="stylesheet" href="./aurora-exclusao-particulas.css?v=1">
 </head>
 <body>
@@ -117,12 +117,13 @@
         <div class="volume-cover"><img id="cover3d" alt="Capa original do livro"></div>
       </div>
     </div>
+    <button id="auroraSkipRemoval" type="button" hidden>Pular animação</button>
     <section class="aurora-book-actions" aria-label="Reações e opções do livro">
       <div class="aurora-reactions"><button type="button" data-book-action="delete" aria-label="Excluir livro" aria-expanded="false"><span aria-hidden="true">🗑️</span><small>Excluir</small></button></div>
       <button type="button" data-book-action="restore" hidden>Devolver à estante</button>
       <div class="aurora-delete-options" hidden>
         <button type="button" data-remove-scope="shelf"><strong>Retirar da estante</strong><small>O livro e o progresso continuam no catálogo.</small></button>
-        <button type="button" data-remove-scope="app"><strong>Excluir do aplicativo</strong><small>Remove o livro e o progresso da Aurora, não o arquivo original.</small></button>
+        <button type="button" data-remove-scope="app"><strong>Excluir permanentemente</strong><small>Remove do catálogo, das buscas e de todas as estantes. O arquivo original fica no aparelho.</small></button>
         <button type="button" data-remove-scope="cancel">Cancelar</button>
       </div><p role="status" aria-live="polite"></p>
     </section>
@@ -192,8 +193,8 @@
   <script src="./aurora-sinopses.js?v=2"></script>
   <script src="./aurora-artes.js?v=1"></script>
   <script src="./aurora-formatos.js?v=11"></script>
-  <script src="./aurora-exclusao-particulas.js?v=3"></script>
-  <script src="./aurora-acoes-livro.js?v=1"></script>
+  <script src="./aurora-exclusao-particulas.js?v=10"></script>
+  <script src="./aurora-acoes-livro.js?v=4"></script>
   <script src="./aurora-pdf-covers.js?v=2"></script>
   <!-- Carrega o mesmo Canvas de papel usado pelo livro 3D ANTES do leitor PDF. -->
   <script src="./aurora-edition-surfaces.js?v=12"></script>
@@ -382,8 +383,9 @@
     const actions=window.AuroraBookActions;
     const actionPanel=actions?.mount($('showcase'),()=>{
       const book=catalog.find(item=>item.id===selectedId);if(!book)return null;
-      return {source:book.format,id:book.id,title:book.name,key:actions.keyOf(book.format,book.id,book.name)};
-    },{done:()=>{hideBook();location.replace('./index.html?v=110');}});
+      const source=book.format||'pdf';
+      return {session:book,source,id:book.id,title:book.name,key:actions.keyOf(source,book.id,book.name)};
+    },{cancelDrag:()=>{down=null;},done:()=>{hideBook();location.replace('./index.html');}});
     function showBook(id) {
       const book = catalog.find(item => item.id === id);
       if (!book) { $('hint').textContent = 'Este livro não está mais disponível neste navegador.'; return; }
@@ -485,6 +487,8 @@
       } finally {recoveringCovers.delete(id);}
     }
     function hideBook() {
+      actionPanel?.stop();
+      actionPanel?.closeMenu();
       $('showcase').classList.remove('active');
       selectedId = null;
       document.body.style.overflow = '';
@@ -518,7 +522,7 @@
         void recoverOriginalCover(selectedId,true);
       }
     });
-    window.addEventListener('aurora:open-book',()=>{if(selectedId&&!actionPanel?.isBusy()) openReader(selectedId);});
+    window.addEventListener('aurora:open-book',()=>{if(selectedId&&!actionPanel?.isBusy()&&!actionPanel?.isOpen()) openReader(selectedId);});
     const model = $('book3d');
     model.addEventListener('pointerdown', event => {
       down = {x:event.clientX,y:event.clientY,startX:rotation.x,startY:rotation.y,id:event.pointerId};
@@ -536,11 +540,11 @@
       if (!down || event.pointerId !== down.id) return;
       const distance = Math.hypot(event.clientX-down.x,event.clientY-down.y);
       down = null;
-      if (distance < 12 && selectedId&&!actionPanel?.isBusy()) openReader(selectedId);
+      if (distance < 12 && selectedId&&!actionPanel?.isBusy()&&!actionPanel?.isOpen()) openReader(selectedId);
     });
     model.addEventListener('pointercancel',() => down = null);
     model.addEventListener('keydown',event => {
-      if ((event.key === 'Enter' || event.key === ' ') && selectedId&&!actionPanel?.isBusy()) {event.preventDefault();openReader(selectedId);}
+      if ((event.key === 'Enter' || event.key === ' ') && selectedId&&!actionPanel?.isBusy()&&!actionPanel?.isOpen()) {event.preventDefault();openReader(selectedId);}
     });
 
     const safePage = (number,total) => Math.max(0,Math.min(total-1,Math.round(number)));
@@ -1164,6 +1168,6 @@
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
   })();
   </script>
-  <script type="module" src="./aurora-livro-3d.mjs?v=22"></script>
+  <script type="module" src="./aurora-livro-3d.mjs?v=24"></script>
 </body>
 </html>

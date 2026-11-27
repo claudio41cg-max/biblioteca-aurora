@@ -61,7 +61,7 @@ test('som externo e vibração são opcionais e controlados pelos checkboxes',()
 });
 
 test('a captura do livro 3D é a mesma função usada na exclusão normal',()=>{
-  assert.ok(actions.includes('window.AuroraBookActions={keyOf,keyFor,isHidden,setHidden,mark,sync,reaction,setReaction,erase,capture,mount}'));
+  assert.match(actions,/window\.AuroraBookActions=\{[\s\S]*?erase,capture,mount/);
   assert.ok(actions.includes('function capture(scene,css,options={})'));
   assert.ok(three.includes('if(frontHinge)frontHinge.rotation.y=previous.hinge'));
 });

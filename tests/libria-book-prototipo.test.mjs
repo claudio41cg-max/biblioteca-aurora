@@ -104,7 +104,7 @@ test('cada estante abre o catálogo geral filtrado pelo gênero e permite adicio
   assert.ok(shelfPicker.includes('active.genre && book.category === active.genre'));
   assert.ok(shelfPicker.includes("element('h2','','Catálogo da estante')"));
   assert.ok(shelfPicker.includes("placed?'Retirar':'Adicionar'"));
-  assert.ok(shelfPicker.includes('O catálogo geral continua completo. Aqui aparecem apenas livros do gênero desta estante.'));
+  assert.ok(shelfPicker.includes('Você pode adicionar livros deste gênero ou retirar os que já estão nesta estante.'));
 });
 
 test('toda importação exige gênero e a busca online não classifica automaticamente',()=>{
@@ -112,7 +112,7 @@ test('toda importação exige gênero e a busca online não classifica automatic
   assert.ok(html.includes('<option value="" selected disabled>Selecione o gênero...</option>'));
   assert.ok(pdfImport.includes('if(!category.value)'));
   assert.ok(epubAudioImport.includes('if(!category.value)'));
-  assert.ok(shelfCore.includes('if(!importCategory.value)'));
+  assert.ok(shelfCore.includes('const category=importCategory.value;')&&shelfCore.includes('if(!category)'));
   assert.ok(onlineSearch.includes('Gênero no catálogo: '));
   assert.ok(onlineSearch.includes('＋ Adicionar ao catálogo'));
   assert.ok(onlineSearch.includes('if(!selector.value)'));
@@ -122,7 +122,7 @@ test('toda importação exige gênero e a busca online não classifica automatic
   assert.ok(onlineSearch.includes("['veterinaria','Medicina Veterinária']"));
   assert.ok(pdfImport.includes('category:chosenCategory'));
   assert.ok(epubAudioImport.includes('category:category.value'));
-  assert.ok(shelfCore.includes('txtCategories[title]=importCategory.value'));
+  assert.ok(shelfCore.includes('categories[title]=category'));
   assert.ok(onlineSearch.includes('category:selector.value'));
   assert.ok(onlineEstante.includes('shelf.getCategory(book.category,book.title)'));
 });
@@ -141,7 +141,7 @@ test('a configuração inicial é simples, local e não interrompe acervos antig
 test('importações entram no catálogo e não abrem automaticamente a leitura',()=>{
   assert.ok(pdf.includes("location.href='./index.html?catalogo=1&importado='+encodeURIComponent(id)"));
   assert.ok(formats.includes("location.href='./index.html?catalogo=1&importado='+encodeURIComponent(book.id)"));
-  assert.ok(txt.includes("if(duplicate)duplicate.replaceWith(button);else row?.append(button)"));
+  assert.ok(txt.includes("if(sample)sample.replaceWith(button)"));
   assert.ok(txt.includes("window.LibriaCatalogo?.open()"));
   assert.ok(txt.includes("window.LibriaCatalogo?.open()"));
   assert.equal(txt.includes('draw();\n      toggleMenu(false);'),false);
@@ -149,10 +149,10 @@ test('importações entram no catálogo e não abrem automaticamente a leitura',
 });
 
 test('a versão de cache do protótipo não substitui o aplicativo publicado',()=>{
-  assert.equal(sw.includes("const CACHE = 'libria-v125';"),true);
-  assert.ok(sw.includes("const HOME = './index.html?v=125';"));
-  assert.ok(sw.includes("const EDITOR = './nova-estante.html?v=125';"));
-  assert.ok(html.includes('./manifest.webmanifest?v=125'));
+  assert.equal(sw.includes("const CACHE = 'libria-v126';"),true);
+  assert.ok(sw.includes("const HOME = './index.html?v=126';"));
+  assert.ok(sw.includes("const EDITOR = './nova-estante.html?v=126';"));
+  assert.ok(html.includes('./manifest.webmanifest?v=126'));
 });
 
 test('todos os livros da home usam o volume 3D completo e abrem o mesmo leitor',()=>{

@@ -36,3 +36,20 @@ test('excluir arquivo usa transação conjunta de livro e progresso e limpa refe
  assert.deepEqual(deleted,[['books','1'],['progress','1']]);
  const members=JSON.parse(localStorage.getItem(membership));assert.equal(members.length,1);assert.equal(members[0].key,'arquivo:2');assert.equal(members[0].pose.stackOn,undefined);
 });
+
+test('falha no IndexedDB restaura vínculos, reações e o estado de retirada',async()=>{
+  const {a,window,localStorage}=setup();
+  const key=a.keyOf('epub','alvo','Livro');
+  const membership='aurora-estante-exemplares-v1:teste';
+  const original=JSON.stringify([{key,section:0}]);
+  localStorage.setItem(membership,original);
+  a.setHidden(key,true);
+  a.setReaction(key,'like');
+  a.toggleFavorite(key);
+  window.AuroraFormats={database:async()=>{throw new Error('Banco indisponível');}};
+  await assert.rejects(a.erase({source:'epub',id:'alvo',title:'Livro',key}),/Banco indisponível/);
+  assert.equal(localStorage.getItem(membership),original);
+  assert.equal(a.reaction(key),'like');
+  assert.equal(a.isFavorite(key),true);
+  assert.equal(a.isHidden(key),true);
+});

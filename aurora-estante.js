@@ -43,14 +43,14 @@
     };
   }
   function localBooks(category,{saved,txtCategories,hiddenTitles}) {
-    const books=new Map(category.books
-      .filter(([name])=>!hiddenTitles.has(normalize(name)))
-      .map(([name,author])=>[normalize(name),{title:name,author,source:'demo'}]));
-    for(const name of Object.keys(saved)){
-      if(getCategory(txtCategories[name],name)===category.id)
-        books.set(normalize(name),{title:name,author:'Meu arquivo',source:'txt'});
-    }
-    return books.values();
+    const texts=Object.keys(saved)
+      .filter(name=>getCategory(txtCategories[name],name)===category.id)
+      .map(title=>({title,author:'Meu arquivo',source:'txt'}));
+    const textTitles=new Set(texts.map(book=>normalize(book.title)));
+    const samples=category.books
+      .filter(([title])=>!hiddenTitles.has(normalize(title))&&!textTitles.has(normalize(title)))
+      .map(([title,author])=>({title,author,source:'demo'}));
+    return [...samples,...texts];
   }
   // Só os campos necessários para desenhar a lombada. O arquivo do livro fica no IndexedDB.
   function importedItem(book,progress) {
@@ -190,26 +190,7 @@
       row.className='bookrow';
       row.id='shelf-'+category.id;
       row.setAttribute('aria-label','Livros de '+category.name);
-      for (const book of localBooks(category,localState)){
-        const openSharedTxt=()=>{location.href='./ler-epub.html?txt='+encodeURIComponent(book.title)+'&v=8';};
-        const button=makeSpine(book);
-        button.addEventListener('click',()=>{
-          if(!window.AuroraShelfViewer?.open){book.source==='txt'?openSharedTxt():openText(book.title);return;}
-          const imported=book.source==='txt';
-          window.AuroraShelfViewer.open(button,{
-            id:(imported?'txt:':'demo:')+normalize(book.title),
-            format:imported?'txt':'demo',title:book.title,name:book.title,
-            author:book.author,category:getCategory(txtCategories[book.title],book.title),
-            total:Math.max(1,Math.ceil((texts[book.title]||demo).length/560)),ratio:.72,
-            cover:'',coverSource:'generated',openReader:()=>book.source==='txt'?openSharedTxt():openText(book.title),
-            updateCategory:imported?next=>{
-              txtCategories[book.title]=next;
-              localStorage.setItem('aurora-txt-categories',JSON.stringify(txtCategories));
-            }:undefined
-          });
-        });
-        row.append(button);
-      }
+      for (const book of localBooks(category,localState)) row.append(localBookButton(book));
       cabinet.append(row);
       const lip=document.createElement('div');
       lip.className='shelf-lip';
@@ -224,7 +205,6 @@
     try{localStorage.setItem('aurora-hidden-books',JSON.stringify([...hiddenTitles]));}catch{}
   }
   function hideTitle(title){hiddenTitles.add(normalize(title));persistHidden();}
-  function restoreTitle(title){hiddenTitles.delete(normalize(title));persistHidden();}
   function removeTextBook(title){
     if(!Object.prototype.hasOwnProperty.call(texts,title))return false;
     delete texts[title];delete saved[title];delete txtCategories[title];
@@ -253,43 +233,80 @@
   document.addEventListener('keydown',event=>{
     if (event.key==='Escape') toggleMenu(false);
   });
+  function localBookButton(book){
+    const {title,author,source}=book;
+    const button=makeSpine(book);
+    const imported=source==='txt';
+    const readBook=()=>imported
+      ?location.href='./ler-epub.html?txt='+encodeURIComponent(title)+'&v=8'
+      :openText(title);
+    button.addEventListener('click',()=>{
+      if(!window.AuroraShelfViewer?.open){readBook();return;}
+      window.AuroraShelfViewer.open(button,{
+        id:source+':'+title,format:source,title,name:title,author,
+        category:button.parentElement?.id.slice('shelf-'.length)||getCategory(txtCategories[title],title),
+        total:Math.max(1,Math.ceil((texts[title]||demo).length/560)),ratio:.72,
+        cover:'',coverSource:'generated',openReader:readBook,
+        updateCategory:imported?next=>{
+          const categories=readTextObject('aurora-txt-categories');
+          categories[title]=next;
+          localStorage.setItem('aurora-txt-categories',JSON.stringify(categories));
+          txtCategories[title]=next;
+        }:undefined
+      });
+    });
+    return button;
+  }
+  function readTextObject(key){
+    const value=JSON.parse(localStorage.getItem(key)||'{}');
+    if(!value||Array.isArray(value)||typeof value!=='object')throw new Error('O acervo de texto não pôde ser lido.');
+    return Object.assign(Object.create(null),value);
+  }
+  function persistTextCopy(base,content,category){
+    const books=readTextObject('aurora-books');
+    const categories=readTextObject('aurora-txt-categories');
+    const used=new Set(Object.keys(books).map(normalize));
+    let title=base;
+    for(let copy=2;used.has(normalize(title));copy++)title=base+' · cópia '+copy;
+    const previous=localStorage.getItem('aurora-txt-categories');
+    categories[title]=category;
+    books[title]=content;
+    localStorage.setItem('aurora-txt-categories',JSON.stringify(categories));
+    try{localStorage.setItem('aurora-books',JSON.stringify(books));}
+    catch(error){
+      if(previous===null)localStorage.removeItem('aurora-txt-categories');
+      else localStorage.setItem('aurora-txt-categories',previous);
+      throw error;
+    }
+    Object.assign(saved,books);
+    Object.assign(texts,books);
+    Object.assign(txtCategories,categories);
+    return title;
+  }
   $('txtFile').addEventListener('change',async event=>{
     const file=event.target.files?.[0];
     if (!file) return;
-    if(!importCategory.value){const status=$('pdfImportStatus');status.hidden=false;status.textContent='Escolha o gênero do livro no campo “Guardar na categoria” antes de importar.';event.target.value='';return;}
-    const title=file.name.replace(/\.txt$/i,'').replace(/[_-]+/g,' ').trim();
+    const category=importCategory.value;
+    const status=$('pdfImportStatus');
+    if(!category){
+      status.hidden=false;
+      status.textContent='Escolha o gênero do livro no campo “Guardar na categoria” antes de importar.';
+      event.target.value='';
+      return;
+    }
+    const base=file.name.replace(/\.txt$/i,'').replace(/[_-]+/g,' ').trim()||'Livro em texto';
     try {
       const content=await file.text();
       if (!content.trim()) throw new Error('O arquivo está vazio.');
-      texts[title]=content;
-      saved[title]=content;
-      txtCategories[title]=importCategory.value;
-      restoreTitle(title);
-      try {
-        localStorage.setItem('aurora-books',JSON.stringify(saved));
-        localStorage.setItem('aurora-txt-categories',JSON.stringify(txtCategories));
-      } catch {
-        alert('O livro é grande para o armazenamento local. Ele ficará disponível somente nesta sessão.');
-      }
-      const categoryId=getCategory(txtCategories[title],title);
-      const row=$('shelf-'+categoryId);
-      const button=makeSpine({title,author:'Meu arquivo',source:'txt'});
-      const openSharedTxt=()=>{location.href='./ler-epub.html?txt='+encodeURIComponent(title)+'&v=8';};
-      button.addEventListener('click',()=>{
-        if(!window.AuroraShelfViewer?.open){openSharedTxt();return;}
-        window.AuroraShelfViewer.open(button,{
-          id:'txt:'+normalize(title),format:'txt',title,name:title,author:'Meu arquivo',
-          category:categoryId,total:Math.max(1,Math.ceil((texts[title]||'').length/560)),ratio:.72,
-          cover:'',coverSource:'generated',openReader:openSharedTxt
-        });
-      });
-      const duplicate=Array.from(row?.querySelectorAll('.book-spine')||[]).find(node=>
-        node.dataset.title===normalize(title)&&!['pdf','epub','audio'].includes(node.dataset.source)
-      );
-      if(duplicate)duplicate.replaceWith(button);else row?.append(button);
-      refreshCount(categoryId);
+      const title=await window.AuroraBookActions.withLibraryLock(()=>persistTextCopy(base,content,category));
+      const row=$('shelf-'+category);
+      const button=localBookButton({title,author:'Meu arquivo',source:'txt'});
+      const sample=Array.from(row?.querySelectorAll('[data-source="demo"]')||[])
+        .find(node=>node.dataset.title===normalize(title));
+      if(sample)sample.replaceWith(button);
+      else row?.append(button);
+      refreshCount(category);
       toggleMenu(false);
-      const status=$('pdfImportStatus');
       status.hidden=false;
       status.textContent='“'+title+'” foi adicionado ao catálogo. Escolha uma estante quando quiser.';
       window.LibriaCatalogo?.open();

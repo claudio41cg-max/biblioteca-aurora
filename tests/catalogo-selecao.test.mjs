@@ -19,7 +19,7 @@ test('catálogos por imagem e A–Z conservam gêneros, busca e adição à prat
   });
   await page.goto('http://local.test/nova-estante.html?id=catalogo');
   await page.evaluate(async()=>{
-    AuroraEstantesSalvas.save({id:'catalogo',name:'Meus livros',sections:2,objects:[]},true);
+    AuroraEstantesSalvas.save({id:'catalogo',name:'Meus livros',genre:'romance',sections:2,objects:[]},true);
     // Inclui um arquivo em cada gênero, inclusive nos que não têm amostras.
     for(const category of AuroraShelf.categories){
       await AuroraFormats.saveRecord('books',{id:'teste-'+category.id,format:'epub',name:'Álbum '+category.name,author:'Autora Teste',category:category.id,
@@ -28,7 +28,7 @@ test('catálogos por imagem e A–Z conservam gêneros, busca e adição à prat
   });
   await page.goto('http://local.test/index.html?estante=catalogo');
   await page.locator('#library [data-book-id="teste-veterinaria"]').waitFor({state:'attached'});
-  await page.getByRole('button',{name:'Adicionar livro',exact:true}).click();
+  await page.getByRole('button',{name:'Adicionar livros',exact:true}).click();
   const dialog=page.locator('#shelfBookPicker');
   const visual=dialog.getByRole('button',{name:'Buscar catálogo por imagem',exact:true});
   const alphabetic=dialog.getByRole('button',{name:'Buscar catálogo de A a Z',exact:true});
@@ -40,21 +40,12 @@ test('catálogos por imagem e A–Z conservam gêneros, busca e adição à prat
   assert.equal(await visual.getAttribute('aria-pressed'),'true');
   assert.deepEqual(await actions.evaluateAll(buttons=>buttons.map(button=>button.dataset.bookKey).sort()),allKeys);
   assert.equal(await dialog.locator('.aurora-catalog-volume').count(),allKeys.length);
-  assert.equal(await dialog.locator('.shelf-picker-genre').count(),6);
+  assert.equal(await dialog.locator('.shelf-picker-genre h3').textContent(),'Romances');
+  assert.ok(allKeys.includes('arquivo:teste-romance'));
+  assert.equal(allKeys.filter(key=>key.startsWith('arquivo:teste-')).length,1);
   const original=await page.locator('#library [data-book-id="teste-romance"] .shelf-book-cover img').getAttribute('src');
   const card=dialog.locator('li:has([data-book-key="arquivo:teste-romance"])');
   assert.equal(await card.locator('.aurora-catalog-front img').getAttribute('src'),original);
-  const categories=await page.evaluate(()=>AuroraShelf.categories);
-  for(const category of categories){
-    await dialog.getByLabel('Gênero',{exact:true}).selectOption(category.id);
-    assert.equal(await dialog.locator('.shelf-picker-genre h3').textContent(),category.name);
-    const keys=await actions.evaluateAll(buttons=>buttons.map(button=>button.dataset.bookKey).sort());
-    assert.ok(keys.includes('arquivo:teste-'+category.id));
-    await alphabetic.tap();
-    assert.deepEqual(await actions.evaluateAll(buttons=>buttons.map(button=>button.dataset.bookKey).sort()),keys);
-    await visual.tap();
-  }
-  await dialog.getByLabel('Gênero',{exact:true}).selectOption('romance');
   await dialog.getByPlaceholder('Título ou autor').fill('autora teste');
   assert.equal(await actions.count(),1);
   await alphabetic.tap();
@@ -73,7 +64,6 @@ test('catálogos por imagem e A–Z conservam gêneros, busca e adição à prat
   await visual.tap();
   assert.equal(await dialog.locator('.shelf-picker-empty').count(),1);
   await dialog.getByPlaceholder('Título ou autor').fill('');
-  await dialog.getByLabel('Gênero',{exact:true}).selectOption('');
   assert.ok(await dialog.evaluate(el=>el.scrollWidth<=el.clientWidth),'o painel cabe na largura do celular');
   if(process.env.AURORA_QA_SCREENSHOTS){
     await page.screenshot({path:process.env.AURORA_QA_SCREENSHOTS+'/catalogo-imagens.png'});
