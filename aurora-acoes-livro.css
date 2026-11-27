@@ -12,3 +12,9 @@
 .aurora-delete-options button{text-align:left;padding:9px 12px}.aurora-delete-options button strong,.aurora-delete-options button small{display:block}
 .aurora-delete-options button small{font-size:11px;margin-top:3px}.aurora-delete-options [data-remove-scope=app]{color:#9a3028;border-color:#b55b5066}
 .aurora-book-actions [role=status]:empty{display:none}.aurora-book-actions [role=status]{margin:6px 0 0}.aurora-book-actions [data-book-action=restore]{margin-top:7px}
+
+.aurora-category-status{margin:3px auto 9px;max-width:500px;text-align:center;font:13px/1.4 system-ui,sans-serif;color:#65472f}
+.aurora-category-status:empty{display:none}
+#auroraSkipRemoval[hidden]{display:none}
+#auroraSkipRemoval{position:fixed;z-index:5;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));padding:10px 16px;min-height:44px;border:1px solid #af8f69;border-radius:12px;background:#fff6e8;color:#543923;font:600 14px system-ui,sans-serif;cursor:pointer}
+#scene :is(.aurora-webgl,#book3d){-webkit-touch-callout:none;user-select:none}

@@ -38,7 +38,8 @@
       if (updated) localStorage.setItem(key,JSON.stringify(updated));
       return (updated || records).filter(isMember);
     };
-    return navigator.locks ? navigator.locks.request(key,commit) : commit();
+    const withShelfLock=()=>navigator.locks?navigator.locks.request(key,commit):commit();
+    return window.AuroraBookActions?.withLibraryLock(withShelfLock)??withShelfLock();
   }
 
   function element(tag, className, text) {
@@ -989,7 +990,7 @@
   function updatePicker() {
     if (!active || !picker) return;
     const saved = new Map(read(active.key).map(item => [item.key,item.section]));
-    const books = [...catalog().values()].filter(book => active.genre && book.category === active.genre &&
+    const books = [...catalog().values()].filter(book => (saved.has(book.key) || (active.genre && book.category === active.genre)) &&
       normalize(book.title+' '+book.author).includes(normalize(picker.search.value).trim()));
     const categories = window.AuroraShelf?.categories || [];
     const selectedGenre = categories.find(category => category.id === active.genre);
@@ -1016,6 +1017,7 @@
       const label = element('div');
       const placed = saved.has(book.key);
       const details = [book.author,formats[book.source] || book.source];
+      if (placed && book.category !== active.genre) details.push('Já está nesta estante · outro gênero');
       if (placed && count) details.push('Prateleira '+(Math.min(saved.get(book.key),count-1)+1));
       label.append(element('strong','',book.title),element('small','',details.filter(Boolean).join(' · ')));
       const action = element('button','shelf-picker-action',placed?'Retirar':'Adicionar');
@@ -1035,7 +1037,7 @@
     picker.list.replaceChildren(items);
     if (!active.genre) picker.status.textContent = 'Escolha o gênero desta estante nas configurações antes de adicionar livros.';
     else if (!count) picker.status.textContent = 'Adicione uma prateleira no editor para colocar livros aqui.';
-    else picker.status.textContent = 'O catálogo geral continua completo. Aqui aparecem apenas livros do gênero desta estante.';
+    else picker.status.textContent = 'Você pode adicionar livros deste gênero ou retirar os que já estão nesta estante.';
     focusAfter?.focus({preventScroll:true});
   }
 
@@ -1043,8 +1045,9 @@
     if (!active || !picker || picker.pending.has(bookKey)) return;
     const key = active.key;
     const section = Number(picker.section.value);
-    const title = catalog().get(bookKey)?.title;
-    if (!title || (add && !picker.section.options.length)) return;
+    const book = catalog().get(bookKey);
+    const title=book?.title;
+    if (!title || (add && (!picker.section.options.length || book.category !== active.genre))) return;
     const snapshot=add?null:captureRemoval(bookKey);
     picker.pending.add(bookKey);
     for(const button of picker.list.querySelectorAll("[data-book-key]"))if(button.dataset.bookKey===bookKey)button.disabled=true;
@@ -1085,7 +1088,7 @@
   window.addEventListener('focus', () => { if (active?.editor) schedule(); });
   window.addEventListener('pageshow', event => { if (event.persisted && active?.editor) schedule(); });
   document.addEventListener('visibilitychange', () => { if (!document.hidden && active?.editor) schedule(); });
-  for (const name of ['aurora:library-data','aurora:shelves-drawn','aurora:online-books-ready','aurora:book-cover-updated']) {
+  for (const name of ['aurora:library-data','aurora:shelves-drawn','aurora:online-books-ready','aurora:book-cover-updated','aurora:book-category-changed']) {
     document.addEventListener(name,schedule);
   }
   window.AuroraEstanteExemplares = {render,layout,openPicker,clear,originFor,listBooks,removeBook,previewRemoval,removalPending,getSize,previewSize,saveSize,cancelSize,defaultPose,getPose,previewPose,cancelPose,savePose,saveAppearance,dragOrigin,dragPose,layerPose,stackTargets,stackPose,unstackPose,beginAppearanceSession,getDraftAppearance,saveAppearanceSession,cancelAppearanceSession};

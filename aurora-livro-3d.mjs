@@ -482,6 +482,23 @@ function initialize(){
   }
   let pointerStart=null;
   const canvas=renderer.domElement;
+  const raycaster=new THREE.Raycaster();
+  const mouse=new THREE.Vector2();
+  function hitsBook(x,y){
+    const box=canvas.getBoundingClientRect();
+    if(!currentBook||opening||!box.width||!box.height)return false;
+    mouse.set(2*(x-box.left)/box.width-1,1-2*(y-box.top)/box.height);
+    camera.updateMatrixWorld();
+    group.updateMatrixWorld(true);
+    raycaster.setFromCamera(mouse,camera);
+    return raycaster.intersectObject(group,true).length>0;
+  }
+  function cancelGesture(){
+    cancelAnimationFrame(inertiaId);
+    down=null;
+    pointerStart=null;
+    velocityY=0;
+  }
   canvas.addEventListener('pointerdown',event=>{
     if(!currentBook || opening) return;
     cancelAnimationFrame(inertiaId);
@@ -614,7 +631,7 @@ function initialize(){
     }
     return copy;
   }
-  window.Aurora3D={display,setPose,reset,playOpen,renderShelfPreview,captureFrame};
+  window.Aurora3D={display,setPose,reset,playOpen,renderShelfPreview,captureFrame,hitsBook,cancelGesture};
   window.addEventListener('aurora:book-selected',event=>display(event.detail));
   window.addEventListener('aurora:book-closed',()=>{
     stopMotion();

@@ -12,14 +12,18 @@
   let active=null;
   const actions=window.AuroraBookActions;
   const actionPanel=actions?.mount(showcase,()=>{
-    if(!active?.finished)return null;
+    if(!active?.finished||showcase.classList.contains('aurora-lab-demo'))return null;
     const {book,button,sourceButton}=active,source=book.format;
-    return {source,id:source==='online'?sourceButton.dataset.bookId:book.id,title:sourceButton.dataset.rawTitle||book.name||book.title,key:actions.keyFor(sourceButton),personal:button.dataset.personalBookKey||''};
+    return {session:active,source,id:source==='online'?sourceButton.dataset.bookId:book.id,title:sourceButton.dataset.rawTitle||book.name||book.title,key:actions.keyFor(sourceButton),personal:button.dataset.personalBookKey||''};
   },{
+    cancelDrag:()=>{drag=null;},
     removePersonal:book=>window.AuroraEstanteExemplares.removeBook(book.personal,{animate:false}),
-    done:scope=>{
-      if(scope==='app'){close(true);history.replaceState(null,'',location.href);location.replace('./index.html?v=110');}
-      else close();
+    done:(scope,book)=>{
+      if(scope==='app'){
+        if(active===book.session)close(true);
+        history.replaceState(null,'',location.href);
+        location.reload();
+      }else if(active===book.session)close();
     }
   });
   const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
@@ -105,6 +109,8 @@
   function close(fromHistory=false){
     const session=active;
     if(!session)return;
+    actionPanel?.stop();
+    actionPanel?.closeMenu();
     active=null;
     window.dispatchEvent(new Event('aurora:book-closed'));
     clearTimeout(session.fallback);
@@ -124,7 +130,7 @@
 
   function enterReader(){
     const session=active;
-    if(!session?.finished||actionPanel?.isBusy())return;
+    if(!session?.finished||actionPanel?.isBusy()||actionPanel?.isOpen())return;
     if(typeof session.book.openReader==='function'){
       const action=session.book.openReader;
       close();
@@ -209,6 +215,7 @@
     scene.classList.add('cover-loading');
     const displayTitle=niceTitle(window.AuroraBookInfo?.find(book.title||book.name)?.title||book.title||book.name);
     showBookDetails(session);
+    $('auroraShowCategoryStatus').textContent='';
     $('auroraShowCategory').value=categories.includes(book.category)?book.category:'ficcao';
     $('auroraShowCategory').disabled=book.format==='demo';
     // A sinopse já fica visível ao pegar o livro; pode ser recolhida ao toque.
@@ -301,47 +308,59 @@
     else close(true);
   });
   document.addEventListener('keydown',event=>{
-    if(event.key==='Escape'&&active?.finished && !actionPanel?.isBusy() && !event.target?.closest?.('details'))close();
+    if(event.key!=='Escape'||!active?.finished||actionPanel?.isBusy())return;
+    if(actionPanel?.isOpen()){actionPanel.closeMenu();return;}
+    if(!event.target?.closest?.('details'))close();
   });
-  $('auroraShowCategory').addEventListener('change',event=>{
+  async function saveFileCategory(id,category){
+    const db=await window.AuroraFormats.database();
+    try{
+      await new Promise((resolve,reject)=>{
+        const tx=db.transaction('books','readwrite');
+        const books=tx.objectStore('books');
+        let missing=false;
+        const request=books.get(id);
+        request.onsuccess=()=>{
+          if(!request.result){missing=true;tx.abort();return;}
+          books.put({...request.result,category});
+        };
+        tx.oncomplete=resolve;
+        tx.onabort=()=>reject(tx.error||new Error(missing?'O livro não está mais no acervo.':'Não foi possível salvar o gênero.'));
+      });
+    }finally{db.close();}
+  }
+
+  $('auroraShowCategory').addEventListener('change',async event=>{
     const session=active;
-    const category=event.target.value;
-    if(!session||!categories.includes(category))return;
-    const moveToCategory=()=>{
+    const select=event.target,category=select.value;
+    if(!session||!categories.includes(category)||session.categorySaving)return;
+    if(actionPanel?.isBusy()){select.value=session.book.category;return;}
+    session.categorySaving=true;
+    select.disabled=true;
+    const status=$('auroraShowCategoryStatus');
+    status.textContent='';
+    try{
+      await actions.withLibraryLock(()=>typeof session.book.updateCategory==='function'
+        ?session.book.updateCategory(category):saveFileCategory(session.book.id,category));
       session.book.category=category;
-      const target=$('shelf-'+category);
-      if(target){
-        const old=session.button.closest('.bookrow')?.id?.slice(6);
-        target.append(session.button);
+      const source=session.sourceButton,target=$('shelf-'+category);
+      if(source.isConnected&&target){
+        const old=source.closest('.bookrow')?.id?.slice(6);
+        target.append(source);
         window.AuroraShelf?.refreshCount(old);
         window.AuroraShelf?.refreshCount(category);
       }
-    };
-    if(typeof session.book.updateCategory==='function'){
-      Promise.resolve().then(()=>session.book.updateCategory(category)).then(moveToCategory).catch(error=>{
-        console.warn('Categoria não salva:',error);
-        event.target.value=session.book.category;
-      });
-      return;
+      document.dispatchEvent(new Event('aurora:book-category-changed'));
+      if(active===session)status.textContent='Gênero atualizado. Os vínculos atuais com as estantes foram preservados.';
+    }catch{
+      if(active===session){
+        select.value=session.book.category;
+        status.textContent='Não foi possível salvar o gênero. Tente novamente.';
+      }
+    }finally{
+      session.categorySaving=false;
+      if(active===session)select.disabled=false;
     }
-    const request=indexedDB.open('aurora-pdf-library',2);
-    request.onsuccess=()=>{
-      const db=request.result;
-      const tx=db.transaction('books','readwrite');
-      const store=tx.objectStore('books');
-      const get=store.get(session.book.id);
-      get.onsuccess=()=>{
-        if(!get.result)return;
-        get.result.category=category;
-        store.put(get.result);
-      };
-      tx.oncomplete=()=>{
-        moveToCategory();
-        db.close();
-      };
-      tx.onerror=()=>{db.close();event.target.value=session.book.category;};
-    };
-    request.onerror=()=>{event.target.value=session.book.category;};
   });
   window.AuroraShelfViewer={open,close};
 })();

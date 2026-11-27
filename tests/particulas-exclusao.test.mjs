@@ -20,7 +20,7 @@ async function editor(t,options={}){
   await page.goto('http://local.test/nova-estante.html?id=efeito');
   await page.evaluate(async key=>{
     await AuroraFormats.saveRecord('books',{id:'poemas',name:'Poemas da Aurora',author:'Ana',format:'epub',cover:AuroraFormats.createDigitalCover('Poemas da Aurora','Ana','epub')});
-    AuroraEstantesSalvas.save({id:'efeito',name:'Minha estante',sections:1,objects:[]},true);
+    AuroraEstantesSalvas.save({id:'efeito',name:'Minha estante',genre:'ficcao',sections:1,objects:[]},true);
     localStorage.setItem(key,JSON.stringify([{key:'arquivo:poemas',section:0,pose:{face:'cover',yaw:45}}]));
   },key);
   await page.reload();
@@ -94,17 +94,20 @@ test('movimento reduzido e origem desconectada terminam sem resíduos',enabled,a
   assert.equal(result.overlays,0);
   assert.equal(result.visibility,'');
 });
-test('exclusão na estante principal também anima após a confirmação',enabled,async t=>{
+test('exclusão no visor anima depois de confirmar e permite pular',enabled,async t=>{
   const {page}=await editor(t);
   await page.goto('http://local.test/index.html');
-  await page.locator('#arrangeButton').click();
-  const book=page.locator('#library .book-spine[data-raw-title="Dom Casmurro"]');
-  await book.click();
+  await page.getByRole('button',{name:/^Abrir Dom Casmurro em 3D/}).click();
+  await page.locator('#auroraShowcase.settled').waitFor();
+  await page.getByRole('button',{name:'Excluir livro',exact:true}).click();
   page.once('dialog',dialog=>dialog.accept());
-  await page.locator('#deleteBook').click();
-  await page.locator('canvas.aurora-book-particles').waitFor({state:'visible'});
-  await book.waitFor({state:'detached'});
-  assert.equal(await page.locator('canvas.aurora-book-particles').count(),0);
+  await page.locator('[data-remove-scope=app]').click();
+  const effect=page.locator('canvas.aurora-book-particles');
+  await effect.waitFor({state:'visible'});
+  await page.getByRole('button',{name:'Pular animação'}).click();
+  await page.locator('#auroraShowcase').waitFor({state:'hidden'});
+  assert.equal(await effect.count(),0);
+  const book=page.locator('#library .book-spine[data-raw-title="Dom Casmurro"]');
   await page.reload();
   assert.equal(await book.count(),0);
 });

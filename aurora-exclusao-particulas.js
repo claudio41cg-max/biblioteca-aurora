@@ -243,13 +243,14 @@
     catch{/* Vibração opcional. */}
   }
 
-  function play(snapshot) {
+  function play(snapshot,{signal}={}) {
     return new Promise(resolve=>{
-      if(!snapshot||document.hidden||active.size>=4){resolve();return;}
+      if(!snapshot||signal?.aborted||document.hidden||active.size>=4){resolve();return;}
       let overlay,frame,timer,finished=false,hidden=false,stopAudio=null;
       const source=snapshot.element,prior=source?.style.getPropertyValue('visibility'),priority=source?.style.getPropertyPriority('visibility');
       const finish=()=>{
         if(finished)return;finished=true;cancelAnimationFrame(frame);clearTimeout(timer);
+        signal?.removeEventListener('abort',finish);
         document.removeEventListener('visibilitychange',onVisibility);window.removeEventListener('resize',finish);
         overlay?.remove();active.delete(finish);stopAudio?.();stopAudio=null;
         if(hidden&&source){if(prior)source.style.setProperty('visibility',prior,priority);else source.style.removeProperty('visibility');}
@@ -273,6 +274,7 @@
           if(snapshot.hapticEnabled!==false)addGentleHaptic();
         }
         if(source?.isConnected){source.style.setProperty('visibility','hidden','important');hidden=true;}
+        signal?.addEventListener('abort',finish,{once:true});
         active.add(finish);document.addEventListener('visibilitychange',onVisibility);window.addEventListener('resize',finish,{once:true});
         timer=setTimeout(finish,duration*1000+500);
         const start=performance.now();let last=-Infinity;
