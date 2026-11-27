@@ -8,6 +8,7 @@ const html=read('index.html');
 const css=read('libria-book.css');
 const catalog=read('libria-catalogo.js');
 const catalog3d=read('aurora-catalogos.js');
+const catalogCss=read('aurora-catalogos.css');
 const onboarding=read('libria-onboarding.js');
 const shelves=read('aurora-minhas-estantes.js');
 const shelfEditor=read('aurora-nova-estante.js');
@@ -64,9 +65,10 @@ test('o catálogo geral é único e pode ser aberto pela home e por cada estante
   assert.ok(html.includes('id="libriaCatalogHome"'));
   assert.ok(catalog.includes("$('openCatalogButton')?.addEventListener('click',()=>goCatalog())"));
   assert.ok(catalog.includes("$('shelfCatalogButton')?.addEventListener('click',()=>window.AuroraEstanteExemplares?.openPicker())"));
-  assert.ok(catalog.includes('window.AuroraCatalogPreview?.homeCardFor(button)'));
+  assert.ok(catalog.includes('preview.homeSectionFor(category,items'));
+  assert.ok(shelfPicker.includes('preview.homeSectionFor(category,items'));
   assert.ok(html.includes('id="libriaGoShelves"'));
-  assert.match(css,/\.libria-home-book-grid\{display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+  assert.match(catalogCss,/\.libria-home-book-grid\{display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
   assert.ok(html.indexOf('id="libriaGenreGrid"')<html.indexOf('id="libriaGoShelves"'));
   assert.ok(!html.includes('id="libriaCatalogClose"'));
   assert.ok(catalog.includes('window.AuroraShelf.categories'));
@@ -104,7 +106,7 @@ test('cada estante abre o catálogo geral filtrado pelo gênero e permite adicio
   assert.ok(shelfPicker.includes('active.genre && book.category === active.genre'));
   assert.ok(shelfPicker.includes("element('h2','','Catálogo da estante')"));
   assert.ok(shelfPicker.includes("placed?'Retirar':'Adicionar'"));
-  assert.ok(shelfPicker.includes('Você pode adicionar livros deste gênero ou retirar os que já estão nesta estante.'));
+  assert.ok(shelfPicker.includes('saved.has(book.key)'));
 });
 
 test('toda importação exige gênero e a busca online não classifica automaticamente',()=>{
@@ -149,10 +151,10 @@ test('importações entram no catálogo e não abrem automaticamente a leitura',
 });
 
 test('a versão de cache do protótipo não substitui o aplicativo publicado',()=>{
-  assert.equal(sw.includes("const CACHE = 'libria-v126';"),true);
-  assert.ok(sw.includes("const HOME = './index.html?v=126';"));
-  assert.ok(sw.includes("const EDITOR = './nova-estante.html?v=126';"));
-  assert.ok(html.includes('./manifest.webmanifest?v=126'));
+  assert.equal(sw.includes("const CACHE = 'libria-v127';"),true);
+  assert.ok(sw.includes("const HOME = './index.html?v=127';"));
+  assert.ok(sw.includes("const EDITOR = './nova-estante.html?v=127';"));
+  assert.ok(html.includes('./manifest.webmanifest?v=127'));
 });
 
 test('todos os livros da home usam o volume 3D completo e abrem o mesmo leitor',()=>{
@@ -164,15 +166,15 @@ test('todos os livros da home usam o volume 3D completo e abrem o mesmo leitor',
   assert.ok(catalog3d.includes('aurora-catalog-pages'));
   assert.ok(catalog3d.includes('aurora-catalog-spine'));
   assert.ok(catalog3d.includes('aurora-catalog-back-face'));
-  assert.ok(css.includes('.libria-home-cover{position:relative;display:block'));
+  assert.ok(catalogCss.includes('.libria-home-cover{position:relative;display:block'));
 });
 
 test('cada gênero mostra 30 livros por lote e pagina separadamente',()=>{
-  assert.ok(catalog.includes('const PAGE_SIZE=30'));
+  assert.ok(catalog3d.includes('const homePageSize=30'));
   assert.ok(catalog.includes('const visibleByGenre=new Map()'));
-  assert.ok(catalog.includes('more.dataset.moreGenre=category.id'));
+  assert.ok(catalog3d.includes('moreButton.dataset.moreGenre=category.id'));
   assert.ok(catalog.includes('visibleByGenre.set(id,(visibleByGenre.get(id)||PAGE_SIZE)+PAGE_SIZE)'));
-  assert.ok(catalog.includes('Mostrar mais '));
+  assert.ok(catalog3d.includes('Mostrar mais '));
 });
 
 test('o catálogo inicial agrupa livros por gênero, filtra e navega para as estantes',()=>{
@@ -210,7 +212,12 @@ test('o catálogo inicial agrupa livros por gênero, filtra e navega para as est
   let refreshed=0,picked=0;
   const window=new Node();
   window.AuroraShelf={categories:[{id:'romance',name:'Romances'},{id:'ficcao',name:'Ficção'}]};
-  window.AuroraCatalogPreview={homeCardFor:button=>{const n=new Node('button');n.textContent=button.dataset.rawTitle;return n;}};
+  runInNewContext(catalog3d,{document:doc,window,console});
+  const homeSectionFor=window.AuroraCatalogPreview.homeSectionFor;
+  window.AuroraCatalogPreview.homeSectionFor=(category,items,options)=>homeSectionFor(category,items,{
+    ...options,
+    makeCard:button=>{const n=new Node('button');n.textContent=button.dataset.rawTitle;return n;}
+  });
   window.AuroraMinhasEstantes={refresh:()=>refreshed++};
   window.AuroraEstanteExemplares={layout(){},openPicker:()=>picked++};
   window.scrollTo=()=>{};
