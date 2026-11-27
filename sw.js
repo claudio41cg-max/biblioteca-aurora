@@ -1,6 +1,6 @@
-const CACHE = 'libria-v126';
-const HOME = './index.html?v=126';
-const EDITOR = './nova-estante.html?v=126';
+const CACHE = 'libria-v127';
+const HOME = './index.html?v=127';
+const EDITOR = './nova-estante.html?v=127';
 const SCOPE = new URL(self.registration.scope);
 const PROJECT_CACHE = /^(aurora|libria)-v\d+$/;
 const NAVIGATION_TIMEOUT_MS = 6000;

@@ -16,8 +16,9 @@
   document.addEventListener('click',event=>{
     if(menu&&!menu.hidden&&!menu.contains(event.target)&&!menuToggle?.contains(event.target))closeMenu();
   });
-  if(!home||!tabs||!books||!search||!window.AuroraShelf)return;
-  const PAGE_SIZE=30;
+  const preview=window.AuroraCatalogPreview;
+  if(!home||!tabs||!books||!search||!window.AuroraShelf||!preview)return;
+  const PAGE_SIZE=preview.homePageSize;
   let genre='',tabSignature='',view='',lastShelfId='',frame=0;
   const visibleByGenre=new Map();
   const normalize=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
@@ -53,36 +54,6 @@
     if(genre&&!entries.some(c=>c.id===genre))genre='';
     for(const button of tabs.children)button.setAttribute('aria-pressed',String(button.dataset.genre===genre));
   }
-  function makeSection(category,items){
-    const section=document.createElement('section');
-    section.className='libria-home-genre-section';
-    section.dataset.genreSection=category.id;
-    const header=document.createElement('header');header.className='libria-home-genre-heading';
-    const title=document.createElement('h3');title.textContent=category.name;
-    const total=document.createElement('span');total.textContent=countText(items.length);
-    header.append(title,total);
-    const grid=document.createElement('div');grid.className='libria-home-book-grid';
-    const limit=Math.min(items.length,visibleByGenre.get(category.id)||PAGE_SIZE);
-    for(const button of items.slice(0,limit)){
-      const card=window.AuroraCatalogPreview?.homeCardFor(button);
-      if(card)grid.append(card);
-    }
-    section.append(header,grid);
-    if(items.length>limit){
-      const remaining=items.length-limit;
-      const more=document.createElement('button');more.type='button';
-      more.className='libria-home-more';more.dataset.moreGenre=category.id;
-      const next=Math.min(PAGE_SIZE,remaining);
-      more.textContent='Mostrar mais '+next+' '+(next===1?'livro':'livros');
-      section.append(more);
-    }
-    if(!items.length){
-      const empty=document.createElement('p');empty.className='libria-catalog-empty';
-      empty.textContent=search.value.trim()?'Nenhum livro corresponde à pesquisa.':'Ainda não há livros neste gênero. Importe um livro para começar.';
-      section.append(empty);
-    }
-    return section;
-  }
   function render(){
     if(home.hidden)return;
     renderTabs();
@@ -95,7 +66,12 @@
       const items=collectBooks(category.id);
       total+=items.length;
       if(!items.length&&!genre)continue;
-      sections.push(makeSection(category,items));
+      sections.push(preview.homeSectionFor(category,items,{
+        limit:visibleByGenre.get(category.id)||PAGE_SIZE,
+        emptyMessage:search.value.trim()
+          ?'Nenhum livro corresponde à pesquisa.'
+          :'Ainda não há livros neste gênero. Importe um livro para começar.'
+      }));
     }
     count.textContent=countText(total);
     books.replaceChildren(...sections);

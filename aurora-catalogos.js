@@ -284,7 +284,7 @@
   }
   // A home reutiliza o mesmo volume tridimensional dos catálogos anteriores:
   // capa, lombada, espessura, páginas, contracapa e gesto de rotação.
-  function homeCardFor(button){
+  function homeCardFor(button,{beforeOpen}={}){
     const title=window.AuroraTitles?.display(button.dataset.rawTitle)||getTitle(button);
     const card=document.createElement('button');
     card.type='button';card.className='libria-home-book';
@@ -301,13 +301,53 @@
     card.append(holder,name,author,type);
     card.addEventListener('click',event=>{
       if(wasTurning()){event.preventDefault();return;}
-      button.__auroraCatalogOrigin=holder.getBoundingClientRect();
+      const origin=holder.getBoundingClientRect();
+      if(beforeOpen?.(card)===false)return;
+      button.__auroraCatalogOrigin=origin;
       button.__auroraCatalogFocus=card;
       button.click();
     });
     return card;
   }
-  window.AuroraCatalogPreview={volumeFor,homeCardFor};
+  const homePageSize=30;
+  const bookCount=count=>count===1?'1 livro':count+' livros';
+
+  function homeSectionFor(category,items,{limit=homePageSize,makeCard=homeCardFor,emptyMessage}={}){
+    const section=document.createElement('section');
+    section.className='libria-home-genre-section';
+    section.dataset.genreSection=category.id;
+    const header=document.createElement('header');
+    header.className='libria-home-genre-heading';
+    const title=document.createElement('h3');
+    title.textContent=category.name;
+    const total=document.createElement('span');
+    total.textContent=bookCount(items.length);
+    header.append(title,total);
+    const books=document.createElement('div');
+    books.className='libria-home-book-grid';
+    for(const item of items.slice(0,limit)){
+      const card=makeCard(item);
+      if(card)books.append(card);
+    }
+    section.append(header,books);
+    if(items.length>limit){
+      const moreButton=document.createElement('button');
+      moreButton.type='button';
+      moreButton.className='libria-home-more';
+      moreButton.dataset.moreGenre=category.id;
+      moreButton.textContent='Mostrar mais '+bookCount(Math.min(homePageSize,items.length-limit));
+      section.append(moreButton);
+    }
+    if(!items.length&&emptyMessage){
+      const empty=document.createElement('p');
+      empty.className='libria-catalog-empty';
+      empty.textContent=emptyMessage;
+      section.append(empty);
+    }
+    return section;
+  }
+
+  window.AuroraCatalogPreview={volumeFor,homeCardFor,homeSectionFor,homePageSize};
   if(!overlay||!grid||!more)return;
   $('auroraCatalogBack').addEventListener('click',()=>close());
   more.addEventListener('click',()=>{
