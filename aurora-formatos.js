@@ -375,7 +375,7 @@
     request.onerror=()=>reject(request.error||new Error('Não foi possível consultar o acervo.'));
     tx.oncomplete=()=>db.close();tx.onerror=()=>db.close();
   }));}
-  const normalizeDuplicate=value=>String(value||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+  const normalizeDuplicate=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
   async function inspectDuplicate({name,author='',format='pdf',data}){
     let fingerprint='';
     try{
@@ -398,7 +398,7 @@
     if(possible)return {kind:'possible',fingerprint,existing:{name:possible.name,author:possible.author,format:possible.format,id:possible.id}};
     return {kind:'none',fingerprint,existing:null};
   }
-  function readRecord(store,id){return database().then(db=>new Promise((resolve,reject)=>({
+  function readRecord(store,id){return database().then(db=>new Promise((resolve,reject)=>{
     const tx=db.transaction(store,'readonly');const req=tx.objectStore(store).get(id);
     req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);
     tx.oncomplete=()=>db.close();tx.onerror=()=>db.close();
