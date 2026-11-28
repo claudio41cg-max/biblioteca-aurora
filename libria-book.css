@@ -189,3 +189,15 @@ body.libria-shell.libria-catalog-view{background:#101916}
   #shelfSwitcher .shelf-actions #editPersonalShelf,
   #shelfSwitcher .shelf-actions #createShelf{font-size:12px!important}
 }
+
+/* v129 — filtros discretos, visíveis apenas quando a pesquisa é aberta. */
+.libria-home-search{display:block;margin:0 0 17px}
+.libria-home-search[hidden]{display:none!important}
+.libria-search-field{display:block}
+.libria-search-field>span,.libria-catalog-filters label>span{display:block;margin:0 0 6px;color:#cbbfa9;font:600 11px system-ui,sans-serif}
+.libria-search-field input{box-sizing:border-box;width:100%;min-height:44px;padding:0 12px;background:#22312b;color:#f5e8d6;border:1px solid #9e896367;border-radius:9px;font:14px system-ui,sans-serif}
+.libria-catalog-filters{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
+.libria-catalog-filters label{display:block;min-width:0}
+.libria-catalog-filters select{box-sizing:border-box;width:100%;height:39px;padding:0 9px;border:1px solid #8f80634d;border-radius:8px;background:#1b2b25;color:#eadcc4;font:12px system-ui,sans-serif}
+.libria-catalog-filters select:focus-visible,.libria-search-field input:focus-visible{outline:2px solid #d9b77d;outline-offset:2px}
+@media(max-width:340px){.libria-catalog-filters{gap:7px}.libria-catalog-filters select{font-size:11px;padding:0 6px}}
