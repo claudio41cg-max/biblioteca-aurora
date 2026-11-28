@@ -151,10 +151,10 @@ test('importações entram no catálogo e não abrem automaticamente a leitura',
 });
 
 test('a versão de cache do protótipo não substitui o aplicativo publicado',()=>{
-  assert.equal(sw.includes("const CACHE = 'libria-v128';"),true);
-  assert.ok(sw.includes("const HOME = './index.html?v=128';"));
-  assert.ok(sw.includes("const EDITOR = './nova-estante.html?v=128';"));
-  assert.ok(html.includes('./manifest.webmanifest?v=128'));
+  assert.equal(sw.includes("const CACHE = 'libria-v129';"),true);
+  assert.ok(sw.includes("const HOME = './index.html?v=129';"));
+  assert.ok(sw.includes("const EDITOR = './nova-estante.html?v=129';"));
+  assert.ok(html.includes('./manifest.webmanifest?v=129'));
 });
 
 test('todos os livros da home usam o volume 3D completo e abrem o mesmo leitor',()=>{
