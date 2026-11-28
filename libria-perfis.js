@@ -126,7 +126,8 @@
   // O banco principal antigo continua sendo o perfil principal. Cada novo perfil
   // recebe outro banco IndexedDB, preservando PDF, EPUB, áudio e progresso sem migração binária.
   const factoryProto=window.indexedDB?Object.getPrototypeOf(window.indexedDB):window.IDBFactory?.prototype;
-  if(factoryProto?.open){
+  if(!factoryProto?.open){console.error('Perfis locais indisponíveis: IndexedDB não está acessível.');return;}
+  {
     const originalOpen=factoryProto.open;
     Object.defineProperty(factoryProto,'open',{
       configurable:true,writable:true,
