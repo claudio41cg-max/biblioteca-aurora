@@ -30,6 +30,15 @@
       details.name=window.AuroraTitles?.display(details.title||formats.cleanName(file.name))||details.title||formats.cleanName(file.name);
       details.total=Math.max(130,Math.floor(data.byteLength/50000));
     }
+    const duplicate=await formats.inspectDuplicate?.({name:details.name,author:details.author||'',format,data});
+    if(duplicate?.kind==='exact'){
+      report('Este mesmo arquivo já está no catálogo como “'+duplicate.existing.name+'”. Nenhuma cópia foi criada.');
+      return null;
+    }
+    if(duplicate?.kind==='possible'&&!window.confirm('Já existe “'+duplicate.existing.name+'” de '+(duplicate.existing.author||'autor não informado')+' no catálogo. Pode ser outra edição. Deseja importar mesmo assim?')){
+      report('Importação cancelada. O livro que já estava no catálogo foi preservado.');
+      return null;
+    }
     if(!details.cover&&format==='epub'){
       const catalog=await formats.catalogCover?.(details.name,details.author);
       if(catalog?.cover){details.cover=catalog.cover;details.coverSource=catalog.coverSource;}
@@ -41,7 +50,7 @@
     const item={id:crypto.randomUUID(),name:details.name,author:details.author||'',
       description:details.description||'',format,mime:file.type|| (format==='audio'?'audio/mpeg':'application/epub+zip'),
       data,cover,coverSource:details.coverSource||(details.cover?'original':'generated'),back:details.back||'',editionArtVersion:1,coverCheckedVersion:52,backChecked:true,spine:details.spine||'',spineAspect:details.spineAspect||0,total:details.total,ratio,category:category.value,
-      status:'quero-ler',created:Date.now(),page:0};
+      status:'quero-ler',created:Date.now(),page:0,fingerprint:duplicate?.fingerprint||''};
     report('Guardando no catálogo do seu aparelho…');
     await formats.saveRecord('books',item);
     return item;
@@ -56,6 +65,7 @@
       try{
         const book=await importFile(file,format);
         selectedAudioCover=null;$('audioCoverFile').value='';
+        if(!book)return;
         report('“'+book.name+'” foi adicionado ao catálogo. Escolha uma estante quando quiser.');
         location.href='./index.html?catalogo=1&importado='+encodeURIComponent(book.id);
       }catch(error){
