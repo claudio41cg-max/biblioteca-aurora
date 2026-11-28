@@ -33,6 +33,7 @@
   if(!window.AuroraShelf)return;
   const shelf=window.AuroraShelf;
   const savedGenerated=new Map();
+  const deferredHomeSections=new WeakMap();
   const PAGE_SIZE=9;
   const DEFAULT_TURN=22;
   const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
@@ -312,7 +313,7 @@
   const homePageSize=30;
   const bookCount=count=>count===1?'1 livro':count+' livros';
 
-  function homeSectionFor(category,items,{limit=homePageSize,makeCard=homeCardFor,emptyMessage}={}){
+  function homeSectionFor(category,items,{limit=homePageSize,makeCard=homeCardFor,emptyMessage,deferCards=false}={}){
     const section=document.createElement('section');
     section.className='libria-home-genre-section';
     section.dataset.genreSection=category.id;
@@ -325,9 +326,44 @@
     header.append(title,total);
     const books=document.createElement('div');
     books.className='libria-home-book-grid';
-    for(const item of items.slice(0,limit)){
-      const card=makeCard(item);
-      if(card)books.append(card);
+    const visibleItems=items.slice(0,limit);
+    if(deferCards&&visibleItems.length){
+      const skeletons=document.createDocumentFragment();
+      for(const item of visibleItems){
+        const skeleton=document.createElement('div');
+        skeleton.className='libria-home-book-skeleton';
+        skeleton.setAttribute('aria-hidden','true');
+        const cover=document.createElement('span');
+        cover.className='libria-home-skeleton-cover';
+        const titleLine=document.createElement('span');
+        titleLine.className='libria-home-skeleton-title';
+        const authorLine=document.createElement('span');
+        authorLine.className='libria-home-skeleton-line libria-home-skeleton-author';
+        const typeLine=document.createElement('span');
+        typeLine.className='libria-home-skeleton-line libria-home-skeleton-type';
+        skeleton.append(cover,titleLine,authorLine,typeLine);
+        skeletons.append(skeleton);
+      }
+      books.append(skeletons);
+      section.dataset.cardsPending='true';
+      deferredHomeSections.set(section,()=>{
+        if(!section.isConnected)return false;
+        const fragment=document.createDocumentFragment();
+        for(const item of visibleItems){
+          const card=makeCard(item);
+          if(card)fragment.append(card);
+        }
+        books.replaceChildren(fragment);
+        section.dataset.cardsPending='false';
+        section.dataset.cardsReady='true';
+        return true;
+      });
+    }else{
+      for(const item of visibleItems){
+        const card=makeCard(item);
+        if(card)books.append(card);
+      }
+      section.dataset.cardsReady='true';
     }
     section.append(header,books);
     if(items.length>limit){
@@ -347,7 +383,13 @@
     return section;
   }
 
-  window.AuroraCatalogPreview={volumeFor,homeCardFor,homeSectionFor,homePageSize};
+  function hydrateHomeSection(section){
+    const hydrate=deferredHomeSections.get(section);
+    if(!hydrate)return false;
+    deferredHomeSections.delete(section);
+    return hydrate();
+  }
+  window.AuroraCatalogPreview={volumeFor,homeCardFor,homeSectionFor,hydrateHomeSection,homePageSize};
   if(!overlay||!grid||!more)return;
   $('auroraCatalogBack').addEventListener('click',()=>close());
   more.addEventListener('click',()=>{
