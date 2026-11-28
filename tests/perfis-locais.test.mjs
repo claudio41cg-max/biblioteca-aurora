@@ -7,6 +7,7 @@ const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const script=read('libria-perfis.js');
 const settings=read('configuracoes.html');
 const backup=read('aurora-backup-acervo.js');
+const sw=read('sw.js');
 const htmlFiles=[
   'index.html','configuracoes.html','nova-estante.html','meus-livros.html',
   'ler-epub.html','ouvir-livro.html','ler-online.html','explorar-livros.html',
@@ -97,6 +98,7 @@ test('o backup não exporta nem substitui o nome do perfil de destino',()=>{
   assert.match(backup,/profileIdentityKey/);
   assert.match(backup,/!profileIdentityKey\(key\)/);
   assert.match(backup,/if\(profileIdentityKey\(key\)\)continue/);
+  assert.match(backup,/libria-active-profile-v1/);
 });
 
 test('as páginas funcionais carregam o isolamento antes dos scripts de dados',()=>{
@@ -107,6 +109,9 @@ test('as páginas funcionais carregam o isolamento antes dos scripts de dados',(
   }
   assert.match(settings,/id="profileSwitcher"/);
   assert.match(settings,/id="createProfileForm"/);
+  assert.match(sw,/const CACHE = 'libria-v130'/);
+  for(const page of ['./meus-livros.html','./ler-epub.html','./ouvir-livro.html'])assert.ok(sw.includes(page));
+  assert.match(sw,/for \(const \[pageResponse,pageURL\] of pageResponses\)/);
 });
 
 test('o gerenciador de perfis tem sintaxe válida',()=>{
