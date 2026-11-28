@@ -138,6 +138,7 @@
     home.hidden=next!=='catalog';
     document.body.classList.toggle('libria-catalog-view',next==='catalog');
     if(next==='shelves'){
+      cardObserver?.disconnect();cardObserver=null;
       lastShelfId=url.searchParams.get('estante')||'';
       if(refreshShelf)window.AuroraMinhasEstantes?.refresh();
       if(changed||refreshShelf)requestAnimationFrame(()=>window.AuroraEstanteExemplares?.layout());
