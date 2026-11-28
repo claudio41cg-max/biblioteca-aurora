@@ -19,7 +19,7 @@
     removeItem:storageProto.removeItem,
     key:storageProto.key,
     clear:storageProto.clear,
-    length:Object.getOwnPropertyDescriptor(storageProto,'length')?.get
+    length:Object.getOwnPropertyDescriptor(storageProto,'length')?.get||function(){let count=0;while(this.key(count)!==null)count++;return count;}
   };
   const rawGet=key=>original.getItem.call(storage,key);
   const rawSet=(key,value)=>original.setItem.call(storage,key,String(value));
@@ -118,13 +118,11 @@
     if(this!==storage)return original.clear.call(this);
     for(const key of scopedKeys(this))rawRemove(profileKey(key));
   });
-  if(original.length){
-    Object.defineProperty(storageProto,'length',{
-      configurable:true,
-      enumerable:true,
-      get(){return this===storage?scopedKeys(this).length:original.length.call(this);}
-    });
-  }
+  Object.defineProperty(storageProto,'length',{
+    configurable:true,
+    enumerable:true,
+    get(){return this===storage?scopedKeys(this).length:original.length.call(this);}
+  });
   // O banco principal antigo continua sendo o perfil principal. Cada novo perfil
   // recebe outro banco IndexedDB, preservando PDF, EPUB, áudio e progresso sem migração binária.
   const factoryProto=window.indexedDB?Object.getPrototypeOf(window.indexedDB):window.IDBFactory?.prototype;
