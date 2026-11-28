@@ -1,3 +1,13 @@
+## LIBRIA - BOOK v129 — pesquisa e organização inteligente
+
+- A pesquisa principal mantém a lupa existente. Ao abrir, revela campo de busca, filtro de formato e ordenação; não adiciona ícones nem itens ao menu principal.
+- O catálogo pode filtrar PDF, EPUB, audiolivros, TXT, livros online e amostras. A ordenação oferece título A–Z, autor A–Z e data de inclusão mais recente.
+- A paginação de 30 livros continua independente por gênero e reinicia quando os filtros mudam.
+- A importação de PDF, EPUB e audiolivro calcula uma assinatura SHA-256 quando o navegador permite. Um arquivo idêntico já cadastrado é reconhecido e não é duplicado. Mesmo título/autor com arquivo diferente gera confirmação para permitir outra edição.
+- A importação TXT avisa quando o conteúdo exato já está no catálogo. Arquivos com mesmo nome, mas conteúdo diferente, continuam preservados como cópias distintas.
+- Nenhum livro existente é apagado, substituído ou reclassificado automaticamente.
+- Cache PWA: `libria-v129`.
+
 ## LIBRIA - BOOK v128 — backup e restauração do acervo
 
 - A tela Configurações oferece exportação do acervo local para ZIP: livros PDF/EPUB/audiolivros armazenados no IndexedDB, progresso de leitura, TXT, categorias, favoritos, reações, vínculos e decoração das estantes, preferências e dados locais do aplicativo.
