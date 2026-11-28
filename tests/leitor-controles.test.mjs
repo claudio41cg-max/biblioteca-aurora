@@ -23,6 +23,9 @@ assert.match(html,/active\.zoom===1\|\|active\.textMode/,'O zoom do texto não b
 assert.match(html,/active\.flip\.flipNext\('bottom'\)/,'O PDF ampliado deve poder virar folhas para frente');
 assert.match(html,/active\.flip\.flipPrev\('bottom'\)/,'O PDF ampliado deve poder virar folhas para trás');
 assert.match(html,/persistProgress\(active\)/,'Marcador continua salvando progresso');
+assert.match(html,/document\.addEventListener\('visibilitychange',\(\)=>\{\s*if\(document\.hidden&&active\)persistProgress\(active\)/,'PDF salva o ponto de leitura quando o app vai para segundo plano');
+assert.match(html,/window\.addEventListener\('pagehide',\(\)=>\{\s*if\(active\)persistProgress\(active\)/,'PDF salva o ponto de leitura ao sair da página');
+assert.match(html,/lastReadAt:now/,'PDF registra a última leitura');
 assert.match(html,/aurora-reader\.css\?v=5/);
 assert.match(css,/\.reader-prefs\[hidden\]/);
 assert.match(css,/\.reader\.zoomed \.viewport/);

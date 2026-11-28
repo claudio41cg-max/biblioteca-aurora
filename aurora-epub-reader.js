@@ -20,7 +20,8 @@
   const report=message=>{$('pageLabel').textContent=message;};
   const remember=()=>{
     if(!book||!epub)return;
-    formats.saveRecord('progress',{id:book.id,chapter,page,bookmark:$('bookmark').dataset.bookmarked==='true'?page:null,percent:pct(),updated:Date.now()}).catch(console.warn);
+    const now=Date.now();
+    formats.saveRecord('progress',{id:book.id,chapter,page,bookmark:$('bookmark').dataset.bookmarked==='true'?page:null,percent:pct(),lastReadAt:now,updated:now}).catch(console.warn);
   };
   function refresh(){
     const currentContent=pages[page];
@@ -355,6 +356,7 @@
     if(event.key==='ArrowRight'){event.preventDefault();goPage(1);}
     if(event.key==='ArrowLeft'){event.preventDefault();goPage(-1);}
   });
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)remember();});
   window.addEventListener('pagehide',()=>{remember();stopSpeech();});
   let resizeTimer;
   window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(epub)loadChapter(chapter,page);},250);});

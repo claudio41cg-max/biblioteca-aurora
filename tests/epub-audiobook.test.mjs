@@ -18,8 +18,12 @@ assert.match(read('aurora-avancado.js'),/\['pdf','epub','audio'\]\.includes\(sou
 assert.match(pdf,/new St\.PageFlip\(host,/,'O leitor PDF mantém o folheio original');
 assert.match(read('aurora-epub-reader.js'),/new St\.PageFlip\(host,/,'O EPUB usa páginas físicas');
 assert.match(read('aurora-epub-reader.js'),/formats\.saveRecord\('progress'/);
+assert.match(read('aurora-epub-reader.js'),/document\.addEventListener\('visibilitychange'/,'EPUB salva ao ir para segundo plano');
+assert.match(read('aurora-epub-reader.js'),/lastReadAt:now/,'EPUB registra a última leitura');
 assert.match(read('aurora-audiobook.js'),/playbackRate/);
 assert.match(read('aurora-audiobook.js'),/formats\.saveRecord\('progress'/);
+assert.match(read('aurora-audiobook.js'),/document\.addEventListener\('visibilitychange'/,'Audiolivro salva ao ir para segundo plano');
+assert.match(read('aurora-audiobook.js'),/lastReadAt:now/,'Audiolivro registra a última leitura');
 assert.match(read('sw.js'),/\.\/ler-epub\.html/);
 assert.match(read('sw.js'),/\.\/ouvir-livro\.html/);
 

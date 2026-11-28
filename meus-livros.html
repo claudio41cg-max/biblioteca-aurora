@@ -605,12 +605,20 @@
     function persistProgress(session) {
       if (!session || session.closed || !session.total) return;
       const elapsed=Math.max(0,Math.floor((Date.now()-(session.startedAt||Date.now()))/1000));
+      const now=Date.now();
       const record = {id:session.id,page:session.page,bookmark:session.bookmark,
-        seconds:(session.initialSeconds||0)+elapsed,updated:Date.now()};
+        seconds:(session.initialSeconds||0)+elapsed,lastReadAt:now,updated:now};
       dbPut('progress',record).catch(error => console.warn('Não foi possível salvar a página',error));
       const meta = catalog.find(b => b.id === session.id);
-      if (meta) {meta.page = session.page;meta.bookmark = session.bookmark;}
+      if (meta) {meta.page = session.page;meta.bookmark = session.bookmark;meta.lastReadAt=now;}
     }
+    document.addEventListener('visibilitychange',()=>{
+      if(document.hidden&&active)persistProgress(active);
+    });
+    window.addEventListener('pagehide',()=>{
+      if(active)persistProgress(active);
+      stopPdfSpeech();
+    });
     function highlightBookmark(session) {
       session.pages.forEach((element,index) => element.classList.toggle('bookmarked',index === session.bookmark));
       $('bookmark').classList.toggle('marked',session.page === session.bookmark);

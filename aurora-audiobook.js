@@ -24,9 +24,10 @@
   const save=force=>{
     if(!book||(!force&&Date.now()-lastSaved<3500))return;
     lastSaved=Date.now();
+    const now=Date.now();
     formats.saveRecord('progress',{id:book.id,seconds:audio.currentTime||0,
       percent:Number.isFinite(audio.duration)&&audio.duration?Math.floor(audio.currentTime/audio.duration*100):0,
-      updated:Date.now()}).catch(console.warn);
+      lastReadAt:now,updated:now}).catch(console.warn);
   };
   $('play').addEventListener('click',async()=>{
     if(!audio.src)return;
