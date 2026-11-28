@@ -1,0 +1,39 @@
+name: Gerar backup do código-fonte LIBRIA - BOOK
+
+on:
+  push:
+    branches:
+      - backup/codigo-fonte-completo-v127
+
+permissions:
+  contents: read
+
+jobs:
+  source-archive:
+    name: Empacotar código-fonte completo
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar a versão exata do projeto
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Criar arquivo ZIP do código-fonte
+        shell: bash
+        run: |
+          mkdir -p dist
+          zip -qr dist/LIBRIA-BOOK-codigo-fonte-v127.zip . \
+            -x ".git/*" "*/.git/*" \
+               "node_modules/*" "*/node_modules/*" \
+               ".vercel/*" "*/.vercel/*" \
+               ".env" ".env.*" "*/.env" "*/.env.*" \
+               "*.pem" "*.key" \
+               "dist/*"
+
+      - name: Disponibilizar backup para download
+        uses: actions/upload-artifact@v4
+        with:
+          name: LIBRIA-BOOK-codigo-fonte-v127
+          path: dist/LIBRIA-BOOK-codigo-fonte-v127.zip
+          if-no-files-found: error
+          retention-days: 90
