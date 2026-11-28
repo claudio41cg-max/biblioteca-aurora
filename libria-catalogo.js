@@ -85,14 +85,15 @@
       pending.forEach(section=>preview.hydrateHomeSection?.(section));
       return;
     }
-    cardObserver=new IntersectionObserver(entries=>{
+    const observer=new IntersectionObserver(entries=>{
       for(const entry of entries){
         if(!entry.isIntersecting)continue;
-        cardObserver?.unobserve(entry.target);
+        observer.unobserve(entry.target);
         preview.hydrateHomeSection?.(entry.target);
       }
     },{root:null,rootMargin:'520px 0px'});
-    pending.forEach(section=>cardObserver.observe(section));
+    cardObserver=observer;
+    pending.forEach(section=>observer.observe(section));
   }
   function render(){
     if(home.hidden)return;
