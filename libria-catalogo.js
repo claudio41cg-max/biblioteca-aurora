@@ -23,11 +23,25 @@
   let genre='',tabSignature='',view='',lastShelfId='',frame=0;
   const visibleByGenre=new Map();
   const normalize=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+  const collator=new Intl.Collator('pt-BR',{sensitivity:'base',numeric:true});
+  const searchIndex=new WeakMap();
+  let cardObserver=null;
   const countText=n=>n===1?'1 livro':n+' livros';
   const categories=()=>window.AuroraShelf.categories||[];
   function booksIn(category){
     const row=$('shelf-'+category);
     return row?[...row.querySelectorAll('.book-spine')]:[];
+  }
+  function indexedBook(button){
+    const data=button.dataset;
+    const raw=String(data.rawTitle||data.title||button.querySelector('.spine-title')?.textContent||'');
+    const author=String(data.author||'');
+    const cached=searchIndex.get(button);
+    if(cached&&cached.raw===raw&&cached.author===author)return cached;
+    const title=window.AuroraTitles?.display(raw)||raw;
+    const entry={raw,author,title,search:normalize(title+' '+author),created:Number(data.created||0)};
+    searchIndex.set(button,entry);
+    return entry;
   }
   function collectBooks(categoryId){
     const result=[],seen=new Set(),term=normalize(search.value),format=formatFilter?.value||'',order=sortOrder?.value||'title';
@@ -36,16 +50,15 @@
       const source=d.source||'demo';
       if(format&&source!==format)continue;
       const key=(d.bookId&&source!=='online'?'arquivo':source)+':'+(d.bookId||d.rawTitle||d.title||'');
-      const title=window.AuroraTitles?.display(d.rawTitle)||d.rawTitle||button.querySelector('.spine-title')?.textContent||'';
-      if(seen.has(key)||!normalize(title+' '+(d.author||'')).includes(term))continue;
+      const indexed=indexedBook(button);
+      if(seen.has(key)||!indexed.search.includes(term))continue;
       seen.add(key);result.push(button);
     }
-    const collator=new Intl.Collator('pt-BR',{sensitivity:'base',numeric:true});
-    const titleOf=button=>window.AuroraTitles?.display(button.dataset.rawTitle)||button.dataset.rawTitle||button.dataset.title||'';
     result.sort((a,b)=>{
-      if(order==='recent')return Number(b.dataset.created||0)-Number(a.dataset.created||0)||collator.compare(titleOf(a),titleOf(b));
-      if(order==='author')return collator.compare(a.dataset.author||'',b.dataset.author||'')||collator.compare(titleOf(a),titleOf(b));
-      return collator.compare(titleOf(a),titleOf(b));
+      const left=indexedBook(a),right=indexedBook(b);
+      if(order==='recent')return right.created-left.created||collator.compare(left.title,right.title);
+      if(order==='author')return collator.compare(left.author,right.author)||collator.compare(left.title,right.title);
+      return collator.compare(left.title,right.title);
     });
     return result;
   }
@@ -63,6 +76,25 @@
     if(genre&&!entries.some(c=>c.id===genre))genre='';
     for(const button of tabs.children)button.setAttribute('aria-pressed',String(button.dataset.genre===genre));
   }
+  function hydrateVisibleSections(sections){
+    cardObserver?.disconnect();
+    cardObserver=null;
+    const pending=sections.filter(section=>section.dataset.cardsPending==='true');
+    if(!pending.length)return;
+    if(typeof IntersectionObserver==='undefined'){
+      pending.forEach(section=>preview.hydrateHomeSection?.(section));
+      return;
+    }
+    const observer=new IntersectionObserver(entries=>{
+      for(const entry of entries){
+        if(!entry.isIntersecting)continue;
+        observer.unobserve(entry.target);
+        preview.hydrateHomeSection?.(entry.target);
+      }
+    },{root:null,rootMargin:'520px 0px'});
+    cardObserver=observer;
+    pending.forEach(section=>observer.observe(section));
+  }
   function render(){
     if(home.hidden)return;
     renderTabs();
@@ -76,6 +108,7 @@
       total+=items.length;
       if(!items.length&&!genre)continue;
       sections.push(preview.homeSectionFor(category,items,{
+        deferCards:true,
         limit:visibleByGenre.get(category.id)||PAGE_SIZE,
         emptyMessage:search.value.trim()||formatFilter?.value
           ?'Nenhum livro corresponde à pesquisa ou aos filtros selecionados.'
@@ -84,6 +117,7 @@
     }
     count.textContent=countText(total);
     books.replaceChildren(...sections);
+    hydrateVisibleSections(sections);
     if(!total){
       const empty=document.createElement('p');empty.className='libria-catalog-empty';
       empty.textContent=search.value.trim()||formatFilter?.value?'Nenhum livro corresponde à pesquisa ou aos filtros selecionados.':'Seu catálogo está vazio. Toque em + para importar um livro.';
@@ -105,6 +139,7 @@
     home.hidden=next!=='catalog';
     document.body.classList.toggle('libria-catalog-view',next==='catalog');
     if(next==='shelves'){
+      cardObserver?.disconnect();cardObserver=null;
       lastShelfId=url.searchParams.get('estante')||'';
       if(refreshShelf)window.AuroraMinhasEstantes?.refresh();
       if(changed||refreshShelf)requestAnimationFrame(()=>window.AuroraEstanteExemplares?.layout());

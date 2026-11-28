@@ -215,3 +215,24 @@ body.aurora-catalog-open{overflow:hidden}
 .libria-home-cover img{display:block;width:100%;height:100%;object-fit:contain}
 .libria-home-cover .aurora-catalog-fallback{padding:7px;font:600 12px/1.35 Georgia,serif;color:#d7c49e;text-align:center}
 .libria-home-book:focus-visible,.libria-home-more:focus-visible{outline:2px solid #e5bf85;outline-offset:2px}
+
+/* v132 — espaços reservados leves: os volumes 3D só são montados perto da tela. */
+.libria-home-book-skeleton{
+  display:flex;flex-direction:column;align-items:stretch;gap:7px;min-width:0;width:100%;
+  padding:7px 5px 10px;box-sizing:border-box;border:1px solid #e0c49916;border-radius:12px;
+  background:#ffffff04;
+}
+.libria-home-skeleton-cover{
+  display:block;width:calc(100% - 2px);aspect-ratio:.72;margin:3px auto 2px;border-radius:3px;
+  background:linear-gradient(145deg,#293b34 0%,#3b4d42 48%,#263830 100%);
+  box-shadow:3px 7px 12px #0003,inset 0 0 0 1px #d6bf9630;
+}
+.libria-home-skeleton-title{
+  display:block;height:2.5em;margin:4px 1px 0;border-radius:4px;
+  background:linear-gradient(180deg,#d8c6a41c,#d8c6a40b);
+}
+.libria-home-skeleton-line{display:block;height:10px;align-self:center;border-radius:5px;background:#d8c6a412}
+.libria-home-skeleton-author{width:58%}
+.libria-home-skeleton-type{width:31%;height:8px}
+@media(min-width:650px){.libria-home-book-skeleton{padding:10px 8px 13px}}
+@media(max-width:350px){.libria-home-book-skeleton{padding:5px 3px 8px}}

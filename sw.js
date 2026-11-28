@@ -1,9 +1,9 @@
-const CACHE = 'libria-v131';
-const HOME = './index.html?v=131';
-const EDITOR = './nova-estante.html?v=131';
+const CACHE = 'libria-v132';
+const HOME = './index.html?v=132';
+const EDITOR = './nova-estante.html?v=132';
 const SCOPE = new URL(self.registration.scope);
 const PROJECT_CACHE = /^(aurora|libria)-v\d+$/;
-const SETTINGS = './configuracoes.html?v=131';
+const SETTINGS = './configuracoes.html?v=132';
 const NAVIGATION_TIMEOUT_MS = 6000;
 
 async function fetchWithTimeout(resource, milliseconds) {
@@ -46,6 +46,8 @@ async function prepareHome() {
       if (localResource(url) && /\.(?:m?js|css|webmanifest|png)$/i.test(url.pathname)) resources.add(url.href);
     }
   }
+  // O módulo 3D é importado dinamicamente pelo loader, então precisa entrar no cache offline explicitamente.
+  resources.add(new URL('./aurora-livro-3d.mjs?v=25', SCOPE).href);
   if (!resources.size) throw new Error('Recursos do catálogo indisponíveis para instalação.');
   const cache = await caches.open(CACHE);
   await cache.addAll([...resources]);
