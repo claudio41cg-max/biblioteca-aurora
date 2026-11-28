@@ -15,7 +15,7 @@ test('backup contempla os dados locais e os dois stores do IndexedDB',()=>{
   assert.match(script,/localStorage\.getItem\(key\)/);
   assert.match(script,/aurora-pdf-library/);
   assert.match(script,/libria-acervo-backup/);
-  assert.match(script,/dataPath='books\\/'\\+String\\(index\\+1\\)/);
+  assert.ok(script.includes("dataPath='books/'+String(index+1).padStart(6,'0')+'.bin'"));
   assert.match(script,/zip\.file\(dataPath,bytes/);
   assert.match(script,/zip\.file\('libria-backup\.json'/);
 });
