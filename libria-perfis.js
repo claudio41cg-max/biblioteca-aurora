@@ -19,7 +19,7 @@
     removeItem:storageProto.removeItem,
     key:storageProto.key,
     clear:storageProto.clear,
-    length:Object.getOwnPropertyDescriptor(storageProto,'length')?.get||function(){let count=0;while(this.key(count)!==null)count++;return count;}
+    length:Object.getOwnPropertyDescriptor(storageProto,'length')?.get||function(){let count=0;while(original.key.call(this,count)!==null)count++;return count;}
   };
   const rawGet=key=>original.getItem.call(storage,key);
   const rawSet=(key,value)=>original.setItem.call(storage,key,String(value));
