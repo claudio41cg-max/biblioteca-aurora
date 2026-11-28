@@ -1,3 +1,12 @@
+## LIBRIA - BOOK v128 — backup e restauração do acervo
+
+- A tela Configurações oferece exportação do acervo local para ZIP: livros PDF/EPUB/audiolivros armazenados no IndexedDB, progresso de leitura, TXT, categorias, favoritos, reações, vínculos e decoração das estantes, preferências e dados locais do aplicativo.
+- O arquivo é montado no próprio aparelho. O app não envia livros ou preferências para um servidor.
+- A restauração valida o formato e mescla os dados do backup com o aparelho: registros com o mesmo ID são atualizados; livros e dados atuais que não constam do backup são mantidos. Não apaga o acervo atual.
+- O ZIP contém `libria-backup.json` e os binários originais dos livros importados.
+- A página de configurações e seus recursos locais ficam disponíveis offline depois que a versão v128 é instalada e a página é aberta uma vez com conexão.
+- Cache PWA: `libria-v128`.
+
 ## LIBRIA - BOOK v125 — ações compactas da estante
 
 - O atalho **Adicionar livros** fica na mesma linha visual de **Editar estante** e **Nova estante**, com estilo de link simples, sem fundo, caixa, borda ou bloco bege grande.
