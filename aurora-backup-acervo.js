@@ -13,7 +13,7 @@
   const input=$('restoreLibraryFile');
   const progress=$('backupProgress');
   const report=message=>{if(status)status.textContent=message;};
-  const showProgress=value=>{if(progress)progress.value=Math.max(0,Math.min(100,value));};
+  const showProgress=value=>{if(progress){progress.hidden=false;progress.value=Math.max(0,Math.min(100,value));}};
   function openDatabase(){
     return new Promise((resolve,reject)=>{
       const request=indexedDB.open(DB_NAME,DB_VERSION);
@@ -84,6 +84,8 @@
           dataPath='books/'+String(index+1).padStart(6,'0')+'.bin';
           zip.file(dataPath,await data.arrayBuffer(),{binary:true,compression:'STORE'});
           totalBytes+=data.size;
+        }else if(data!==undefined&&data!==null){
+          throw new Error('O formato binário de um livro não pôde ser incluído no backup: '+(item.name||item.id));
         }
         books.push({record,dataPath});
         showProgress(5+Math.round(35*(index+1)/Math.max(1,storedBooks.length)));
