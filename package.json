@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "node dev-server.mjs",
     "test": "node --test",
-    "test:catalogo": "node --test tests/backup-acervo.test.mjs tests/acoes-livro.test.mjs tests/catalogo-lombadas.test.mjs tests/catalogos-v44.test.mjs tests/catalogos-3d-v53.test.mjs tests/lombadas-v47.test.mjs tests/lombadas-v49.test.mjs tests/lombadas-v50.test.mjs tests/libria-book-prototipo.test.mjs tests/catalogo-inteligente.test.mjs tests/perfis-locais.test.mjs",
+    "test:catalogo": "node --test tests/backup-acervo.test.mjs tests/acoes-livro.test.mjs tests/catalogo-lombadas.test.mjs tests/catalogos-v44.test.mjs tests/catalogos-3d-v53.test.mjs tests/lombadas-v47.test.mjs tests/lombadas-v49.test.mjs tests/lombadas-v50.test.mjs tests/libria-book-prototipo.test.mjs tests/catalogo-inteligente.test.mjs tests/perfis-locais.test.mjs tests/performance-v132.test.mjs",
     "test:desfragmentacao": "node --test tests/desfragmentacao-cinematografica.test.mjs tests/laboratorio-3d-integrado.test.mjs"
   }
 }
