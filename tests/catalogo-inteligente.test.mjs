@@ -25,7 +25,7 @@ test('a pesquisa avançada fica recolhida e não acrescenta botões ao cabeçalh
   assert.match(html,/id="libriaSortOrder"/);
   assert.match(catalog,/formatFilter\?\.addEventListener\('change'/);
   assert.match(catalog,/sortOrder\?\.addEventListener\('change'/);
-  assert.match(catalog,/button\.dataset\.created/);
+  assert.match(shelf,/button\.dataset\.created/);
   assert.match(css,/\.libria-catalog-filters\{display:grid;grid-template-columns:1fr 1fr/);
 });
 
@@ -39,7 +39,7 @@ test('o catálogo filtra por formato e ordena por título, autor ou data',()=>{
 });
 
 test('identificação de duplicados compara assinatura do arquivo e metadados',()=>{
-  assert.match(formats,/crypto\.subtle\.digest\('SHA-256'/);
+  assert.match(formats,/crypto\?\.subtle\.digest\('SHA-256'/);
   assert.match(formats,/item\.fingerprint===fingerprint/);
   assert.match(formats,/normalizeDuplicate\(item\.name\)!==titleKey/);
   assert.match(formats,/kind:'exact'/);
