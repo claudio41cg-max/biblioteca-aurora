@@ -12,7 +12,7 @@
   const GLOBAL_KEYS=new Set([ACTIVE_KEY,REGISTRY_KEY]);
   const APP_KEY=/^(aurora-|libria-|shelf-)/i;
   const storage=window.localStorage;
-  const storageProto=window.Storage?.prototype||window.Storage?.constructor?.prototype||Storage.prototype;
+  const storageProto=Object.getPrototypeOf(storage);
   const original={
     getItem:storageProto.getItem,
     setItem:storageProto.setItem,
@@ -127,10 +127,10 @@
   }
   // O banco principal antigo continua sendo o perfil principal. Cada novo perfil
   // recebe outro banco IndexedDB, preservando PDF, EPUB, áudio e progresso sem migração binária.
-  const factory=window.IDBFactory;
-  if(factory?.prototype?.open){
-    const originalOpen=factory.prototype.open;
-    Object.defineProperty(factory.prototype,'open',{
+  const factoryProto=window.indexedDB?Object.getPrototypeOf(window.indexedDB):window.IDBFactory?.prototype;
+  if(factoryProto?.open){
+    const originalOpen=factoryProto.open;
+    Object.defineProperty(factoryProto,'open',{
       configurable:true,writable:true,
       value:function(name,version){
         if(String(name)!==DB_NAME)return originalOpen.apply(this,arguments);
