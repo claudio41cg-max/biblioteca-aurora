@@ -4,6 +4,7 @@ import vm from 'node:vm';
 
 const read=name=>readFileSync(new URL('../'+name,import.meta.url),'utf8');
 const webgl=read('aurora-livro-3d.mjs');
+const loader=read('aurora-livro-3d-loader.js');
 const surfaces=read('aurora-edition-surfaces.js');
 const html=read('index.html');
 const worker=read('sw.js');
@@ -19,10 +20,14 @@ assert.match(webgl,/clamp\(\(rotation\.y-previous\)\/elapsed,-\.008,\.008\)/,
   'velocidade limitada para não provocar giro descontrolado');
 assert.match(webgl,/img\.crossOrigin='anonymous'/,'capas remotas respeitam CORS no WebGL');
 assert.doesNotMatch(webgl,/attempt\(false\)/,'não tenta enviar imagens remotas sem CORS à GPU');
-assert.match(html,/aurora-edition-surfaces\.js\?v=4/);
-assert.match(html,/aurora-livro-3d\.mjs\?v=7/);
-assert.match(worker,/aurora-v48/);
-assert.match(worker,/index\.html\?v=46/);
+assert.match(html,/aurora-edition-surfaces\.js\?v=12/);
+assert.match(html,/aurora-livro-3d-loader\.js\?v=1/);
+assert.match(loader,/import\('\.\/aurora-livro-3d\.mjs\?v=25'\)/);
+assert.match(loader,/aurora:book-selected/);
+assert.doesNotMatch(html,/<script type="module" src="\.\/aurora-livro-3d\.mjs/);
+assert.match(worker,/libria-v132/);
+assert.match(worker,/aurora-livro-3d\.mjs\?v=25/);
+assert.match(worker,/index\.html\?v=132/);
 
 function fakeContext(){
   return {
