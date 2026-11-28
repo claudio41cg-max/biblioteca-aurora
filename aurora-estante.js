@@ -66,7 +66,7 @@
     }
     return {id:book.id,name,title,author,source,cover,coverSource,
       spine:book.spine||'',spineAspect:book.spineAspect||0,ratio:book.ratio||.72,total:book.total||0,
-      category:getCategory(book.category,name),bookmarked:Number.isInteger(progress?.bookmark)};
+      category:getCategory(book.category,name),created:Number(book.created)||0,bookmarked:Number.isInteger(progress?.bookmark)};
   }
   function makeSpine(item) {
     const seed = hash(item.title);
@@ -78,6 +78,7 @@
     button.dataset.rawTitle = item.title;
     button.dataset.author = item.author || '';
     button.dataset.source = item.source || 'demo';
+    button.dataset.created=String(Number(item.created||item.addedAt)||0);
     if(item.id!=null)button.dataset.bookId=item.id;
     if(item.cover&&item.source!=='demo')button.dataset.coverSource=item.coverSource||'original';
     button.title = displayTitle + (item.source === 'demo' ? ' • livro demonstrativo' : ' • tocar para pegar');
@@ -298,6 +299,8 @@
     try {
       const content=await file.text();
       if (!content.trim()) throw new Error('O arquivo está vazio.');
+      const existing=Object.entries(saved).find(([,value])=>value===content);
+      if(existing){status.hidden=false;status.textContent='Este conteúdo já está no catálogo como “'+existing[0]+'”. Nenhuma cópia foi criada.';return;}
       const title=await window.AuroraBookActions.withLibraryLock(()=>persistTextCopy(base,content,category));
       const row=$('shelf-'+category);
       const button=localBookButton({title,author:'Meu arquivo',source:'txt'});
