@@ -29,7 +29,7 @@ function runtime(entries=[]){
   const localStorage=new FakeStorage(entries);
   let reloads=0;
   const window={
-    localStorage,Storage:FakeStorage,IDBFactory:FakeIDBFactory,
+    localStorage,indexedDB,Storage:FakeStorage,IDBFactory:FakeIDBFactory,
     crypto:{randomUUID:()=> '11111111-2222-4333-8444-555555555555'},
     location:{reload(){reloads++;}},
     addEventListener(){}
@@ -82,7 +82,7 @@ test('novo perfil recebe localStorage e IndexedDB independentes e o perfil princ
 });
 
 test('enumeração, clear e chaves globais respeitam o perfil ativo',()=>{
-  const rt=runtime([['aurora-books','owner']]);
+  const rt=runtime([['aurora-books','owner'],['aurora-perfil-nome','Flavio']]);
   rt.localStorage.setItem('aurora-reading-preferences-v2','{}');
   const keys=Array.from({length:rt.localStorage.length},(_,i)=>rt.localStorage.key(i));
   assert.deepEqual(new Set(keys),new Set(['aurora-books','libria-profile-v1','aurora-perfil-nome','aurora-reading-preferences-v2']));
