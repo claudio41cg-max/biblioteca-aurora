@@ -1,3 +1,12 @@
+## LIBRIA - BOOK v131 — retomada de leitura mais confiável
+
+- O leitor PDF salva o progresso ao virar páginas, quando o app vai para segundo plano e quando a página é encerrada. O registro inclui `lastReadAt`.
+- O leitor EPUB salva a posição atual também no evento `visibilitychange`, além de cada virada de página e do encerramento. O registro inclui `lastReadAt`.
+- O audiolivro mantém o salvamento periódico e ao pausar, avançar, retroceder, sair ou suspender o app. O registro inclui `lastReadAt`.
+- O ponto de leitura continua armazenado no IndexedDB do perfil ativo; a separação de perfis da v130 permanece.
+- A mudança não acrescenta botões nem telas à interface.
+- Cache PWA: `libria-v131`.
+
 ## LIBRIA - BOOK v130 — perfis locais independentes
 
 - O primeiro perfil preserva o acervo já existente no aparelho e continua usando o banco IndexedDB antigo, sem mover nem reprocessar os arquivos dos livros.
