@@ -1,3 +1,13 @@
+## LIBRIA - BOOK v132 — desempenho do catálogo e 3D sob demanda
+
+- O catálogo inicial mantém os cartões dos gêneros próximos da área visível em modo 3D; as demais seções usam espaços reservados leves e só montam capas, faces, eventos de arraste e volumes quando se aproximam da tela.
+- Ao pesquisar, trocar gênero ou ordenar, o observador anterior é desconectado e os cartões relevantes são hidratados conforme a posição atual da página.
+- Pesquisa e ordenação reutilizam um índice por exemplar (`WeakMap`) e um único `Intl.Collator`, evitando normalizar título/autor e recriar o comparador a cada tecla.
+- O motor Three.js/WebGL deixa de ser importado na abertura do catálogo. Um loader local só solicita o módulo quando um livro é selecionado; a prévia especializada `?previa=estante-3d` também continua suportada.
+- Enquanto o WebGL carrega ou se não estiver disponível, o livro 3D CSS continua sendo a apresentação de reserva. O service worker inclui o módulo dinâmico no cache para uso offline após a instalação/atualização.
+- Em aparelhos reportando até 3 GB de memória, o framebuffer 3D limita a densidade a 1,5×; aparelhos com mais memória mantêm o limite de 2×. Texturas originais e dimensões físicas do livro não são alteradas.
+- Cache PWA: `libria-v132`.
+
 ## LIBRIA - BOOK v131 — retomada de leitura mais confiável
 
 - O leitor PDF salva o progresso ao virar páginas, quando o app vai para segundo plano e quando a página é encerrada. O registro inclui `lastReadAt`.
