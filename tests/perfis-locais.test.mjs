@@ -28,6 +28,7 @@ function runtime(entries=[]){
     open(name,version){return {name,version};}
   }
   const localStorage=new FakeStorage(entries);
+  const indexedDB=new FakeIDBFactory();
   let reloads=0;
   const window={
     localStorage,indexedDB,Storage:FakeStorage,IDBFactory:FakeIDBFactory,
@@ -35,7 +36,6 @@ function runtime(entries=[]){
     location:{reload(){reloads++;}},
     addEventListener(){}
   };
-  const indexedDB=new FakeIDBFactory();
   runInNewContext(script,{window,localStorage,Storage:FakeStorage,IDBFactory:FakeIDBFactory,indexedDB,console,Date,JSON,Map,Set,Array,String,Number,Math});
   return {window,localStorage,indexedDB,get reloads(){return reloads;}};
 }
