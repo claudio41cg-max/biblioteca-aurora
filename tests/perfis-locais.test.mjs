@@ -109,7 +109,7 @@ test('as páginas funcionais carregam o isolamento antes dos scripts de dados',(
   }
   assert.match(settings,/id="profileSwitcher"/);
   assert.match(settings,/id="createProfileForm"/);
-  assert.match(sw,/const CACHE = 'libria-v130'/);
+  assert.match(sw,/const CACHE = 'libria-v131'/);
   for(const page of ['./meus-livros.html','./ler-epub.html','./ouvir-livro.html'])assert.ok(sw.includes(page));
   assert.match(sw,/for \(const \[pageResponse,pageURL\] of pageResponses\)/);
 });
