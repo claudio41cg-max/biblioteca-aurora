@@ -39,7 +39,7 @@ test('o catálogo filtra por formato e ordena por título, autor ou data',()=>{
 });
 
 test('identificação de duplicados compara assinatura do arquivo e metadados',()=>{
-  assert.ok(formats.includes("window.crypto?.subtle.digest('SHA-256',bytes)"));
+  assert.ok(formats.includes("window.crypto.subtle.digest('SHA-256',bytes)"));
   assert.match(formats,/item\.fingerprint===fingerprint/);
   assert.match(formats,/normalizeDuplicate\(item\.name\)!==titleKey/);
   assert.match(formats,/kind:'exact'/);
