@@ -40,7 +40,7 @@ test('tela Configurações apresenta exportação e restauração',()=>{
 
 test('configurações e backup ficam acessíveis offline depois de instalados',()=>{
   assert.match(sw,/const SETTINGS = '\.\/configuracoes\.html\?v=128'/);
-  assert.match(sw,/settingsHTML/);
+  assert.match(sw,/settingsResponse/);
   assert.match(sw,/url\.pathname === settings\.pathname \? settings/);
   assert.match(sw,/const CACHE = 'libria-v128'/);
 });
