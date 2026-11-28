@@ -369,6 +369,35 @@
     request.onsuccess=()=>resolve(request.result);
     request.onerror=()=>reject(request.error||new Error('Não foi possível abrir o acervo.'));
   });}
+  function readAllRecords(store){return database().then(db=>new Promise((resolve,reject)=>{
+    const tx=db.transaction(store,'readonly'),request=tx.objectStore(store).getAll();
+    request.onsuccess=()=>resolve(request.result||[]);
+    request.onerror=()=>reject(request.error||new Error('Não foi possível consultar o acervo.'));
+    tx.oncomplete=()=>db.close();tx.onerror=()=>db.close();
+  }));}
+  const normalizeDuplicate=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+  async function inspectDuplicate({name,author='',format='pdf',data}){
+    let fingerprint='';
+    try{
+      if(window.crypto?.subtle&&data){
+        const bytes=data instanceof ArrayBuffer?data:ArrayBuffer.isView(data)?data.buffer.slice(data.byteOffset,data.byteOffset+data.byteLength):await data.arrayBuffer();
+        const digest=await window.crypto.subtle.digest('SHA-256',bytes);
+        fingerprint=Array.from(new Uint8Array(digest),byte=>byte.toString(16).padStart(2,'0')).join('');
+      }
+    }catch(error){console.warn('Não foi possível calcular a assinatura do arquivo:',error);}
+    const records=await readAllRecords('books');
+    const exact=records.find(item=>fingerprint&&item.fingerprint===fingerprint);
+    if(exact)return {kind:'exact',fingerprint,existing:{name:exact.name,author:exact.author,format:exact.format,id:exact.id}};
+    const titleKey=normalizeDuplicate(name),authorKey=normalizeDuplicate(author);
+    const possible=records.find(item=>{
+      if(normalizeDuplicate(item.name)!==titleKey)return false;
+      const savedAuthor=normalizeDuplicate(item.author);
+      if(authorKey&&savedAuthor)return authorKey===savedAuthor;
+      return (item.format||'pdf')===format;
+    });
+    if(possible)return {kind:'possible',fingerprint,existing:{name:possible.name,author:possible.author,format:possible.format,id:possible.id}};
+    return {kind:'none',fingerprint,existing:null};
+  }
   function readRecord(store,id){return database().then(db=>new Promise((resolve,reject)=>{
     const tx=db.transaction(store,'readonly');const req=tx.objectStore(store).get(id);
     req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);
@@ -390,5 +419,5 @@
     tx.oncomplete=()=>{db.close();resolve(current);};
     tx.onabort=()=>{db.close();reject(tx.error);};
   }));}
-  window.AuroraFormats={updateBookArt,openEpub,epubChapter,epubChapterContent,audioMetadata,database,readRecord,saveRecord,cleanName,blobToData,createEpubCover,createDigitalCover,catalogCover,catalogCoverURL};
+  window.AuroraFormats={updateBookArt,openEpub,epubChapter,epubChapterContent,audioMetadata,database,readRecord,readAllRecords,inspectDuplicate,saveRecord,cleanName,blobToData,createEpubCover,createDigitalCover,catalogCover,catalogCoverURL};
 })();

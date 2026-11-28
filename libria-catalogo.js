@@ -4,6 +4,7 @@
   const $=id=>document.getElementById(id);
   const home=$('libriaCatalogHome'),tabs=$('libriaGenreGrid'),books=$('libriaHomeBooks');
   const search=$('libriaGenreSearch'),searchWrap=$('libriaHomeSearchWrap'),searchToggle=$('libriaSearchToggle');
+  const formatFilter=$('libriaFormatFilter'),sortOrder=$('libriaSortOrder');
   const count=$('libriaCatalogTotal'),heading=$('libriaCatalogHeading');
   const menu=$('libriaAppMenu'),menuToggle=$('libriaMenuToggle');
   function closeMenu(){if(!menu||!menuToggle)return;menu.hidden=true;menuToggle.setAttribute('aria-expanded','false');}
@@ -29,15 +30,23 @@
     return row?[...row.querySelectorAll('.book-spine')]:[];
   }
   function collectBooks(categoryId){
-    const result=[],seen=new Set(),term=normalize(search.value);
+    const result=[],seen=new Set(),term=normalize(search.value),format=formatFilter?.value||'',order=sortOrder?.value||'title';
     for(const button of booksIn(categoryId)){
       const d=button.dataset;
       const source=d.source||'demo';
+      if(format&&source!==format)continue;
       const key=(d.bookId&&source!=='online'?'arquivo':source)+':'+(d.bookId||d.rawTitle||d.title||'');
       const title=window.AuroraTitles?.display(d.rawTitle)||d.rawTitle||button.querySelector('.spine-title')?.textContent||'';
       if(seen.has(key)||!normalize(title+' '+(d.author||'')).includes(term))continue;
       seen.add(key);result.push(button);
     }
+    const collator=new Intl.Collator('pt-BR',{sensitivity:'base',numeric:true});
+    const titleOf=button=>window.AuroraTitles?.display(button.dataset.rawTitle)||button.dataset.rawTitle||button.dataset.title||'';
+    result.sort((a,b)=>{
+      if(order==='recent')return Number(b.dataset.created||0)-Number(a.dataset.created||0)||collator.compare(titleOf(a),titleOf(b));
+      if(order==='author')return collator.compare(a.dataset.author||'',b.dataset.author||'')||collator.compare(titleOf(a),titleOf(b));
+      return collator.compare(titleOf(a),titleOf(b));
+    });
     return result;
   }
   function renderTabs(){
@@ -68,8 +77,8 @@
       if(!items.length&&!genre)continue;
       sections.push(preview.homeSectionFor(category,items,{
         limit:visibleByGenre.get(category.id)||PAGE_SIZE,
-        emptyMessage:search.value.trim()
-          ?'Nenhum livro corresponde à pesquisa.'
+        emptyMessage:search.value.trim()||formatFilter?.value
+          ?'Nenhum livro corresponde à pesquisa ou aos filtros selecionados.'
           :'Ainda não há livros neste gênero. Importe um livro para começar.'
       }));
     }
@@ -77,7 +86,7 @@
     books.replaceChildren(...sections);
     if(!total){
       const empty=document.createElement('p');empty.className='libria-catalog-empty';
-      empty.textContent=search.value.trim()?'Nenhum livro corresponde à pesquisa.':'Seu catálogo está vazio. Toque em + para importar um livro.';
+      empty.textContent=search.value.trim()||formatFilter?.value?'Nenhum livro corresponde à pesquisa ou aos filtros selecionados.':'Seu catálogo está vazio. Toque em + para importar um livro.';
       books.append(empty);
     }
   }
@@ -106,7 +115,7 @@
     const url=new URL(location.href);
     if(shelfView(url))lastShelfId=url.searchParams.get('estante')||'';
     for(const key of ['estante','estantes','livros','catalogo','importado'])url.searchParams.delete(key);
-    if(reset){genre='';search.value='';visibleByGenre.clear();}
+    if(reset){genre='';search.value='';if(formatFilter)formatFilter.value='';if(sortOrder)sortOrder.value='title';visibleByGenre.clear();}
     if(url.href!==location.href)history.pushState(null,'',url);
     closeMenu();syncView();
   }
@@ -122,7 +131,10 @@
     searchWrap.hidden=!open;
     searchToggle?.setAttribute('aria-expanded',String(open));
     if(open)search.focus({preventScroll:true});
-    else if(search.value){search.value='';visibleByGenre.clear();render();}
+    else if(search.value||formatFilter?.value||sortOrder?.value!=='title'){
+      search.value='';if(formatFilter)formatFilter.value='';if(sortOrder)sortOrder.value='title';
+      visibleByGenre.clear();render();
+    }
   }
   $('openCatalogButton')?.addEventListener('click',()=>goCatalog());
   $('libriaGoShelves')?.addEventListener('click',goShelves);
@@ -137,6 +149,8 @@
     genre=button.dataset.genre||'';render();
   });
   search.addEventListener('input',()=>{visibleByGenre.clear();render();});
+  formatFilter?.addEventListener('change',()=>{visibleByGenre.clear();render();});
+  sortOrder?.addEventListener('change',()=>{visibleByGenre.clear();render();});
   books.addEventListener('click',event=>{
     const button=event.target.closest('button[data-more-genre]');
     if(!button||!books.contains(button))return;
@@ -162,7 +176,7 @@
     const url=new URL(location.href);
     for(const key of ['catalogo','importado','estantes','estante','livros'])url.searchParams.delete(key);
     history.replaceState(history.state,'',url);
-    genre='';search.value='';visibleByGenre.clear();
+    genre='';search.value='';if(formatFilter)formatFilter.value='';if(sortOrder)sortOrder.value='title';visibleByGenre.clear();
   }
   syncView();
 })();
