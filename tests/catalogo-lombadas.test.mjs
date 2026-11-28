@@ -61,7 +61,7 @@ test('o catálogo atualiza textura e identificação sem reconstruir o cartão d
   assert.match(source,/new MutationObserver\(\(\)=>\{if\(current&&!overlay\.hidden\)render\(\);\}\)/);
 });
 
-test('service worker abre a v131 e guarda os recursos do catálogo',()=>{
+test('service worker abre a v132 e guarda os recursos do catálogo',()=>{
   const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
   assert.ok(sw.includes("const CACHE = 'libria-v132';"));
   assert.ok(sw.includes("const HOME = './index.html?v=132';"));
