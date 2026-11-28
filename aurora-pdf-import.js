@@ -61,6 +61,16 @@
         description:subject.length>50?subject.slice(0,2800):'',
         created:Date.now(),page:0,category:chosenCategory,
         ratio:faces.ratio||Math.max(.59,Math.min(.84,size.width/size.height)),status:'quero-ler'};
+      const duplicate=await window.AuroraFormats?.inspectDuplicate?.({name,author:item.author,format:'pdf',data});
+      if(duplicate?.kind==='exact'){
+        report('Este mesmo arquivo já está no catálogo como “'+duplicate.existing.name+'”. Nenhuma cópia foi criada.');
+        return null;
+      }
+      if(duplicate?.kind==='possible'&&!window.confirm('Já existe “'+duplicate.existing.name+'” de '+(duplicate.existing.author||'autor não informado')+' no catálogo. Pode ser outra edição. Deseja importar mesmo assim?')){
+        report('Importação cancelada. O livro que já estava no catálogo foi preservado.');
+        return null;
+      }
+      if(duplicate?.fingerprint)item.fingerprint=duplicate.fingerprint;
       report('Guardando o livro no catálogo…');
       database=await openDatabase();
       await new Promise((resolve,reject)=>{
@@ -91,6 +101,7 @@
     report('Preparando '+file.name+'…');
     try{
       const id=await importPDF(file,category.value);
+      if(!id)return;
       // O livro fica no catálogo central; a pessoa decide depois em qual estante colocá-lo.
       location.href='./index.html?catalogo=1&importado='+encodeURIComponent(id);
     }catch(error){
