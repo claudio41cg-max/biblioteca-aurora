@@ -6,7 +6,7 @@
   const version=1;
   const DB_NAME='aurora-pdf-library';
   const DB_VERSION=2;
-  const allowed=key=>/^(aurora-|libria-|shelf-)/i.test(String(key||''));
+  const allowed=key=>/^(aurora-|libria-|shelf-)/i.test(String(key||''))&&!['libria-active-profile-v1','libria-profiles-v1'].includes(String(key||''));
   const profileIdentityKey=key=>['libria-profile-v1','aurora-perfil-nome'].includes(String(key||''));
   const status=$('backupStatus');
   const exportButton=$('exportLibraryBackup');
