@@ -31,9 +31,9 @@ async function prepareHome() {
   const resources = new Set();
   for (const [pageResponse, pageURL] of [[response,homeURL],[settingsResponse,settingsURL]]) {
     const html = await pageResponse.clone().text();
-    for (const match of html.matchAll(/<(?:script|link)\\b[^>]*?\\s(?:src|href)=["']([^"']+)["']/gi)) {
+    for (const match of html.matchAll(/<(?:script|link)\b[^>]*?\s(?:src|href)=["']([^"']+)["']/gi)) {
       const url = new URL(match[1], pageURL);
-      if (localResource(url) && /\\.(?:m?js|css|webmanifest|png)$/i.test(url.pathname)) resources.add(url.href);
+      if (localResource(url) && /\.(?:m?js|css|webmanifest|png)$/i.test(url.pathname)) resources.add(url.href);
     }
   }
   if (!resources.size) throw new Error('Recursos do catálogo indisponíveis para instalação.');
