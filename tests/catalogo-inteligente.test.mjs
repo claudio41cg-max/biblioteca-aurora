@@ -62,9 +62,9 @@ test('duplicado exato é bloqueado sem apagar o registro existente',()=>{
 });
 
 test('a versão PWA e os arquivos principais estão atualizados para v131',()=>{
-  assert.match(sw,/const CACHE = 'libria-v131'/);
-  assert.match(sw,/const HOME = '\.\/index\.html\?v=131'/);
-  assert.equal(manifest.start_url,'./index.html?v=131');
+  assert.match(sw,/const CACHE = 'libria-v132'/);
+  assert.match(sw,/const HOME = '\.\/index\.html\?v=132'/);
+  assert.equal(manifest.start_url,'./index.html?v=132');
   assert.match(html,/libria-catalogo\.js\?v=7/);
   assert.match(html,/aurora-formatos\.js\?v=12/);
 });
