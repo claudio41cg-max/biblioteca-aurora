@@ -6,7 +6,8 @@
   const version=1;
   const DB_NAME='aurora-pdf-library';
   const DB_VERSION=2;
-  const allowed=key=>/^(aurora-|libria-|shelf-)/i.test(String(key||''));
+  const allowed=key=>/^(aurora-|libria-|shelf-)/i.test(String(key||''))&&!['libria-active-profile-v1','libria-profiles-v1'].includes(String(key||''));
+  const profileIdentityKey=key=>['libria-profile-v1','aurora-perfil-nome'].includes(String(key||''));
   const status=$('backupStatus');
   const exportButton=$('exportLibraryBackup');
   const restoreButton=$('restoreLibraryBackup');
@@ -39,7 +40,7 @@
     const values=[];
     for(let i=0;i<localStorage.length;i++){
       const key=localStorage.key(i);
-      if(allowed(key))values.push([key,localStorage.getItem(key)]);
+      if(allowed(key)&&!profileIdentityKey(key))values.push([key,localStorage.getItem(key)]);
     }
     return values;
   }
@@ -152,6 +153,7 @@
       const previous=new Map();
       try{
         for(const [key,value] of manifest.localStorage){
+          if(profileIdentityKey(key))continue;
           previous.set(key,localStorage.getItem(key));
           localStorage.setItem(key,value);
         }

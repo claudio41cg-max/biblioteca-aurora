@@ -35,6 +35,7 @@
     try{
       localStorage.setItem(PROFILE_KEY,JSON.stringify(next));
       if(next.name)localStorage.setItem(LEGACY_NAME_KEY,next.name);
+      window.LibriaProfiles?.renameActive(next.name);
       close();
       document.dispatchEvent(new CustomEvent('libria:profile-ready',{detail:next}));
     }catch{

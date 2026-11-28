@@ -1,3 +1,13 @@
+## LIBRIA - BOOK v130 — perfis locais independentes
+
+- O primeiro perfil preserva o acervo já existente no aparelho e continua usando o banco IndexedDB antigo, sem mover nem reprocessar os arquivos dos livros.
+- É possível criar e alternar perfis em **Configurações → Perfis neste aparelho**. Cada perfil mantém seus próprios livros PDF/EPUB/audiolivros, progresso, preferências, TXT, vínculos de estantes, decoração e catálogo online.
+- O isolamento usa um espaço próprio no `localStorage` e um banco IndexedDB separado por perfil. A troca de perfil recarrega o aplicativo para evitar misturar telas ou dados.
+- O backup exporta apenas o perfil ativo. Ao restaurar, os livros e configurações são mesclados no perfil atual, preservando o nome e a identidade do perfil de destino.
+- Os perfis são locais e **não têm senha nem sincronização em nuvem**. Em outro celular, crie o perfil da pessoa e use backup/restauração para transferir uma biblioteca quando necessário.
+- A tela principal e o menu não ganharam botões novos; a gestão de perfis fica dentro de Configurações.
+- Cache PWA: `libria-v130`.
+
 ## LIBRIA - BOOK v129 — pesquisa e organização inteligente
 
 - A pesquisa principal mantém a lupa existente. Ao abrir, revela campo de busca, filtro de formato e ordenação; não adiciona ícones nem itens ao menu principal.

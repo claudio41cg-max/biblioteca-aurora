@@ -1,9 +1,9 @@
-const CACHE = 'libria-v129';
-const HOME = './index.html?v=129';
-const EDITOR = './nova-estante.html?v=129';
+const CACHE = 'libria-v130';
+const HOME = './index.html?v=130';
+const EDITOR = './nova-estante.html?v=130';
 const SCOPE = new URL(self.registration.scope);
 const PROJECT_CACHE = /^(aurora|libria)-v\d+$/;
-const SETTINGS = './configuracoes.html?v=129';
+const SETTINGS = './configuracoes.html?v=130';
 const NAVIGATION_TIMEOUT_MS = 6000;
 
 async function fetchWithTimeout(resource, milliseconds) {
@@ -22,14 +22,24 @@ function localResource(url) {
 async function prepareHome() {
   const homeURL = new URL(HOME, SCOPE);
   const settingsURL = new URL(SETTINGS, SCOPE);
-  const [response, settingsResponse] = await Promise.all([
+  const readerURLs = [
+    './meus-livros.html','./ler-epub.html','./ouvir-livro.html',
+    './ler-online.html','./explorar-livros.html','./minha-biblioteca-privada.html'
+  ].map(path => new URL(path, SCOPE));
+  const [response, settingsResponse, ...readerResponses] = await Promise.all([
     fetchWithTimeout(homeURL, 12000),
-    fetchWithTimeout(settingsURL, 12000)
+    fetchWithTimeout(settingsURL, 12000),
+    ...readerURLs.map(url => fetchWithTimeout(url, 12000))
   ]);
   if (!response.ok) throw new Error('Catálogo indisponível para instalação.');
   if (!settingsResponse.ok) throw new Error('Configurações indisponíveis para instalação.');
+  if (readerResponses.some(page => !page.ok)) throw new Error('Uma das páginas de leitura está indisponível para instalação.');
+  const pageResponses = [
+    [response,homeURL],[settingsResponse,settingsURL],
+    ...readerResponses.map((page,index) => [page,readerURLs[index]])
+  ];
   const resources = new Set();
-  for (const [pageResponse, pageURL] of [[response,homeURL],[settingsResponse,settingsURL]]) {
+  for (const [pageResponse, pageURL] of pageResponses) {
     const html = await pageResponse.clone().text();
     for (const match of html.matchAll(/<(?:script|link)\b[^>]*?\s(?:src|href)=["']([^"']+)["']/gi)) {
       const url = new URL(match[1], pageURL);
@@ -39,8 +49,7 @@ async function prepareHome() {
   if (!resources.size) throw new Error('Recursos do catálogo indisponíveis para instalação.');
   const cache = await caches.open(CACHE);
   await cache.addAll([...resources]);
-  await cache.put(homeURL, response);
-  await cache.put(settingsURL, settingsResponse);
+  for (const [pageResponse,pageURL] of pageResponses) await cache.put(pageURL,pageResponse);
   await Promise.allSettled(['./icons/aurora-192.png','./icons/aurora-512.png']
     .map(icon => cache.add(new URL(icon, SCOPE))));
 }
@@ -91,6 +100,10 @@ async function navigate(request, url) {
     return response;
   } catch {
     // As consultas guardam apenas o ID a abrir. O mesmo HTML serve cada livro.
+    if(url.pathname===editor.pathname){
+      const current=await (await caches.open(CACHE)).match(resource);
+      return current||offlinePage();
+    }
     return (await cached(resource)) || (await cached(request, {ignoreSearch:true})) || offlinePage();
   }
 }
