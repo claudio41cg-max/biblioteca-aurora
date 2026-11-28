@@ -4,7 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#171b1b">
-  <link rel="stylesheet" href="./aurora-configuracoes.css?v=2">
+  <script src="./libria-perfis.js?v=1"></script>
+  <link rel="stylesheet" href="./aurora-configuracoes.css?v=3">
   <link rel="stylesheet" href="./libria-book.css?v=1">
   <title>Configurações • LIBRIA - BOOK</title>
 </head>
@@ -38,6 +39,27 @@
         <label for="profileLanguage">Idioma</label>
         <select id="profileLanguage"><option value="pt-BR">Português (Brasil)</option><option value="pt-PT">Português (Portugal)</option><option value="en">English</option><option value="es">Español</option></select>
         <p class="config-note">Preferências salvas neste aparelho nesta versão de protótipo.</p>
+      </div>
+    </section>
+
+    <section aria-labelledby="profilesHeading">
+      <h2 class="config-label" id="profilesHeading">Perfis neste aparelho</h2>
+      <div class="config-card profile-manager">
+        <p class="profile-manager-note">Cada perfil mantém seus livros, progresso, estantes e preferências separados neste aparelho.</p>
+        <label for="profileSwitcher">Perfil ativo</label>
+        <div class="profile-switch-row">
+          <select id="profileSwitcher" aria-label="Selecionar perfil"></select>
+          <button class="config-save" id="activateProfile" type="button">Usar perfil</button>
+        </div>
+        <form id="createProfileForm" class="profile-create-form">
+          <label for="newProfileName">Adicionar outro perfil</label>
+          <div class="config-name-row">
+            <input id="newProfileName" type="text" maxlength="48" autocomplete="off" placeholder="Nome da pessoa" required>
+            <button class="config-save" type="submit">Criar</button>
+          </div>
+        </form>
+        <p class="config-feedback profile-manager-status" id="profileManagerStatus" role="status" aria-live="polite"></p>
+        <p class="profile-manager-note">Os perfis locais não têm senha. Para levar uma biblioteca a outro celular, use o backup e a restauração.</p>
       </div>
     </section>
 
@@ -79,7 +101,7 @@
   </main>
   <script src="./vendor/jszip.min.js"></script>
   <script src="./aurora-estantes-salvas.js?v=1"></script>
-  <script src="./aurora-backup-acervo.js?v=1"></script>
+  <script src="./aurora-backup-acervo.js?v=2"></script>
   <script>
     (() => {
       const key = 'aurora-perfil-nome';
@@ -105,6 +127,7 @@
           else localStorage.removeItem(key);
           profile = {...profile,name,country:country.value,language:language.value,setupComplete:true};
           localStorage.setItem(profileKey,JSON.stringify(profile));
+          window.LibriaProfiles?.renameActive(name);
           status.textContent = name ? 'Perfil salvo neste aparelho.' : 'Preferências salvas neste aparelho.';
         } catch (_) {
           status.textContent = 'Não foi possível salvar neste aparelho.';
@@ -112,6 +135,36 @@
       });
       country.addEventListener('change',()=>{profile={...profile,country:country.value,language:language.value};try{localStorage.setItem(profileKey,JSON.stringify(profile));}catch(_){}});
       language.addEventListener('change',()=>{profile={...profile,country:country.value,language:language.value};try{localStorage.setItem(profileKey,JSON.stringify(profile));}catch(_){}});
+      const profileSelect=document.getElementById('profileSwitcher');
+      const profileStatus=document.getElementById('profileManagerStatus');
+      const profiles=window.LibriaProfiles;
+      function renderProfiles(){
+        if(!profiles?.ready){profileStatus.textContent='Não foi possível preparar os perfis locais. Seus dados antigos foram preservados.';return;}
+        const active=profiles.active();
+        profileSelect.replaceChildren();
+        profiles.list().forEach(item=>{
+          const option=document.createElement('option');
+          option.value=item.id;option.textContent=item.name+(item.active?' · atual':'');
+          profileSelect.append(option);
+        });
+        profileSelect.value=active.id;
+      }
+      renderProfiles();
+      document.getElementById('activateProfile').addEventListener('click',()=>{
+        try{
+          if(profileSelect.value===profiles.activeId){profileStatus.textContent='Este perfil já está ativo.';return;}
+          profileStatus.textContent='Trocando de perfil…';
+          profiles.switchTo(profileSelect.value);
+        }catch(error){profileStatus.textContent=error.message||'Não foi possível trocar de perfil.';}
+      });
+      document.getElementById('createProfileForm').addEventListener('submit',event=>{
+        event.preventDefault();
+        try{
+          const created=profiles.create(document.getElementById('newProfileName').value);
+          profileStatus.textContent='Perfil criado. Abrindo biblioteca independente…';
+          profiles.switchTo(created.id);
+        }catch(error){profileStatus.textContent=error.message||'Não foi possível criar o perfil.';}
+      });
       const list=document.getElementById('savedShelves');
       const listHeading=document.getElementById('savedShelvesHeading');
       function readShelves(){
