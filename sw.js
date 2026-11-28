@@ -22,14 +22,27 @@ function localResource(url) {
 async function prepareHome() {
   const homeURL = new URL(HOME, SCOPE);
   const settingsURL = new URL(SETTINGS, SCOPE);
-  const [response, settingsResponse] = await Promise.all([
+  const editorURL = new URL(EDITOR, SCOPE);
+  const readerURLs = [
+    './meus-livros.html','./ler-epub.html','./ouvir-livro.html',
+    './ler-online.html','./explorar-livros.html','./minha-biblioteca-privada.html'
+  ].map(path => new URL(path, SCOPE));
+  const [response, settingsResponse, editorResponse, ...readerResponses] = await Promise.all([
     fetchWithTimeout(homeURL, 12000),
-    fetchWithTimeout(settingsURL, 12000)
+    fetchWithTimeout(settingsURL, 12000),
+    fetchWithTimeout(editorURL, 12000),
+    ...readerURLs.map(url => fetchWithTimeout(url, 12000))
   ]);
   if (!response.ok) throw new Error('Catálogo indisponível para instalação.');
   if (!settingsResponse.ok) throw new Error('Configurações indisponíveis para instalação.');
+  if (!editorResponse.ok) throw new Error('Editor de estantes indisponível para instalação.');
+  if (readerResponses.some(page => !page.ok)) throw new Error('Uma das páginas de leitura está indisponível para instalação.');
+  const pageResponses = [
+    [response,homeURL],[settingsResponse,settingsURL],[editorResponse,editorURL],
+    ...readerResponses.map((page,index) => [page,readerURLs[index]])
+  ];
   const resources = new Set();
-  for (const [pageResponse, pageURL] of [[response,homeURL],[settingsResponse,settingsURL]]) {
+  for (const [pageResponse, pageURL] of pageResponses) {
     const html = await pageResponse.clone().text();
     for (const match of html.matchAll(/<(?:script|link)\b[^>]*?\s(?:src|href)=["']([^"']+)["']/gi)) {
       const url = new URL(match[1], pageURL);
@@ -39,8 +52,7 @@ async function prepareHome() {
   if (!resources.size) throw new Error('Recursos do catálogo indisponíveis para instalação.');
   const cache = await caches.open(CACHE);
   await cache.addAll([...resources]);
-  await cache.put(homeURL, response);
-  await cache.put(settingsURL, settingsResponse);
+  for (const [pageResponse,pageURL] of pageResponses) await cache.put(pageURL,pageResponse);
   await Promise.allSettled(['./icons/aurora-192.png','./icons/aurora-512.png']
     .map(icon => cache.add(new URL(icon, SCOPE))));
 }
