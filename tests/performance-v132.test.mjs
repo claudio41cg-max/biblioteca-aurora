@@ -25,7 +25,7 @@ test('os cartões 3D de gêneros fora da tela ficam adiados',()=>{
   assert.match(preview,/deferredHomeSections=new WeakMap\(\)/);
   assert.match(preview,/section\.dataset\.cardsPending='true'/);
   assert.match(preview,/function hydrateHomeSection\(section\)/);
-  assert.match(preview,/books\.replaceChildren\(fragment\)/);
+  assert.match(preview,/books\.replaceChildren\(\.\.\.cards\)/);
   assert.match(css,/\.libria-home-book-skeleton/);
   assert.match(css,/\.libria-home-skeleton-cover/);
 });
