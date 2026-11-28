@@ -12,5 +12,5 @@
     });
   }
   window.addEventListener('aurora:book-selected',load,{once:true});
-  if(window.__auroraSelectedBook)load();
+  if(window.__auroraSelectedBook||new URLSearchParams(location.search).get('previa')==='estante-3d')load();
 })();
