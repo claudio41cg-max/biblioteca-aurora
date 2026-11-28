@@ -1,8 +1,9 @@
-const CACHE = 'libria-v127';
-const HOME = './index.html?v=127';
-const EDITOR = './nova-estante.html?v=127';
+const CACHE = 'libria-v128';
+const HOME = './index.html?v=128';
+const EDITOR = './nova-estante.html?v=128';
 const SCOPE = new URL(self.registration.scope);
 const PROJECT_CACHE = /^(aurora|libria)-v\d+$/;
+const SETTINGS = './configuracoes.html?v=128';
 const NAVIGATION_TIMEOUT_MS = 6000;
 
 async function fetchWithTimeout(resource, milliseconds) {
@@ -20,18 +21,26 @@ function localResource(url) {
 // só fica pronta quando o catálogo puder ser aberto sem a rede.
 async function prepareHome() {
   const homeURL = new URL(HOME, SCOPE);
-  const response = await fetchWithTimeout(homeURL, 12000);
+  const settingsURL = new URL(SETTINGS, SCOPE);
+  const [response, settingsResponse] = await Promise.all([
+    fetchWithTimeout(homeURL, 12000),
+    fetchWithTimeout(settingsURL, 12000)
+  ]);
   if (!response.ok) throw new Error('Catálogo indisponível para instalação.');
-  const html = await response.clone().text();
+  if (!settingsResponse.ok) throw new Error('Configurações indisponíveis para instalação.');
   const resources = new Set();
-  for (const match of html.matchAll(/<(?:script|link)\b[^>]*?\s(?:src|href)=["']([^"']+)["']/gi)) {
-    const url = new URL(match[1], homeURL);
-    if (localResource(url) && /\.(?:m?js|css|webmanifest|png)$/i.test(url.pathname)) resources.add(url.href);
+  for (const [pageResponse, pageURL] of [[response,homeURL],[settingsResponse,settingsURL]]) {
+    const html = await pageResponse.clone().text();
+    for (const match of html.matchAll(/<(?:script|link)\b[^>]*?\s(?:src|href)=["']([^"']+)["']/gi)) {
+      const url = new URL(match[1], pageURL);
+      if (localResource(url) && /\.(?:m?js|css|webmanifest|png)$/i.test(url.pathname)) resources.add(url.href);
+    }
   }
   if (!resources.size) throw new Error('Recursos do catálogo indisponíveis para instalação.');
   const cache = await caches.open(CACHE);
   await cache.addAll([...resources]);
   await cache.put(homeURL, response);
+  await cache.put(settingsURL, settingsResponse);
   await Promise.allSettled(['./icons/aurora-192.png','./icons/aurora-512.png']
     .map(icon => cache.add(new URL(icon, SCOPE))));
 }
@@ -69,8 +78,9 @@ function offlinePage() {
 async function navigate(request, url) {
   const home = new URL(HOME, SCOPE);
   const editor = new URL(EDITOR, SCOPE);
+  const settings = new URL(SETTINGS, SCOPE);
   const isHome = url.pathname === SCOPE.pathname || url.pathname === home.pathname;
-  const page = isHome ? home : url.pathname === editor.pathname ? editor : null;
+  const page = isHome ? home : url.pathname === editor.pathname ? editor : url.pathname === settings.pathname ? settings : null;
   const resource = page ? new Request(page) : request;
   try {
     const response = await fetchWithTimeout(resource, NAVIGATION_TIMEOUT_MS);

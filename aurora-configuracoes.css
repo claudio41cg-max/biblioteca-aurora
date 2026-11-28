@@ -32,3 +32,16 @@
 
 #savedShelves[hidden],#savedShelvesHeading[hidden]{display:none}
 #savedShelves .config-option{min-height:64px}
+
+/* Proteção do acervo — backup local e restauração mesclada. */
+.backup-card{padding:16px}
+.backup-intro{display:flex;align-items:flex-start;gap:12px;margin-bottom:15px}
+.backup-icon{flex:0 0 43px;width:43px;height:43px;border-radius:13px;display:grid;place-items:center;background:#3a3022;color:#e1bd84;font-size:25px}
+.backup-intro strong{display:block;color:#f5ead8;font-size:14px}
+.backup-intro p{margin:4px 0 0;color:#aaa69e;font-size:12px;line-height:1.5}
+.backup-action{display:flex;align-items:center;justify-content:center;width:100%;min-height:46px;margin:9px 0 0;padding:10px 14px;border:1px solid #b58c59;border-radius:11px;background:#d7ad70;color:#21190f;font-size:13px;font-weight:800;cursor:pointer}
+.backup-action:disabled{opacity:.55;cursor:wait}
+.backup-restore{background:#283a33;border-color:#8f9a80;color:#f0e5d0}
+.backup-status{min-height:34px;margin:12px 2px 0;line-height:1.45}
+#backupProgress{display:block;width:100%;height:7px;margin:14px 0 0;accent-color:#d7ad70}
+#backupProgress[hidden]{display:none}
