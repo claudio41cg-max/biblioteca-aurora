@@ -40,8 +40,8 @@
   const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
   function migrateLegacyStorage(){
     const currentRegistry=parse(rawGet(REGISTRY_KEY),null);
-    if(Array.isArray(currentRegistry)&&currentRegistry.some(item=>item?.id))return currentRegistry;
     const oldKeys=rawKeys().filter(key=>APP_KEY.test(key)&&!GLOBAL_KEYS.has(key)&&!key.startsWith(STORAGE_PREFIX));
+    if(Array.isArray(currentRegistry)&&currentRegistry.some(item=>item?.id))return {registry:currentRegistry,legacyKeys:oldKeys};
     const oldProfile=parse(rawGet(PROFILE_KEY),{});
     const oldName=rawGet(LEGACY_NAME_KEY)||oldProfile.name||'';
     const id='principal';
@@ -66,15 +66,15 @@
       const registry=[{id,name:profile.name||'Minha biblioteca',createdAt:Date.now()}];
       rawSet(REGISTRY_KEY,JSON.stringify(registry));
       rawSet(ACTIVE_KEY,id);
-      for(const key of oldKeys)rawRemove(key);
-      return registry;
+      return {registry,legacyKeys:oldKeys};
     }catch(error){
       console.error('Não foi possível preparar os perfis locais. O acervo antigo foi mantido.',error);
       return null;
     }
   }
-  let registry=migrateLegacyStorage();
-  if(!registry)return;
+  const migration=migrateLegacyStorage();
+  if(!migration)return;
+  let registry=migration.registry;
   let activeId=rawGet(ACTIVE_KEY)||registry[0]?.id||'principal';
   if(!registry.some(item=>item?.id===activeId)){
     activeId=registry[0]?.id||'principal';
@@ -185,6 +185,9 @@
     window.location.reload();
     return true;
   }
+  // A migração antiga só é removida depois que os dois mecanismos de isolamento
+  // estiverem ativos. Se o navegador não permitir a interceptação, os originais ficam intactos.
+  for(const key of migration.legacyKeys)rawRemove(key);
   window.LibriaProfiles={
     ready:true,
     list,active,create,switchTo,renameActive,
