@@ -58,7 +58,7 @@
         name:String(profile.name||oldName||'').trim(),
         country:profile.country||'BR',
         language:profile.language||'pt-BR',
-        setupComplete:profile.setupComplete===true||oldKeys.length>0,
+        setupComplete:profile.setupComplete===true||oldKeys.some(key=>['aurora-estantes-personalizadas-v1','aurora-books','aurora-perfil-nome'].includes(key)),
         migratedFromLegacy:oldKeys.length>0||profile.migratedFromLegacy===true
       };
       rawSet(prefix+PROFILE_KEY,JSON.stringify(profile));
