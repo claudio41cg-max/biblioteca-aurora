@@ -11,7 +11,10 @@ if(stage && fallback){
 
 function initialize(){
   const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1,2));
+  // Em aparelhos com até 3 GB, limitar a densidade do framebuffer reduz a carga da GPU
+  // sem alterar as texturas originais nem o tamanho físico do livro.
+  const pixelRatioLimit=(Number(navigator.deviceMemory)||4)<=3?1.5:2;
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1,pixelRatioLimit));
   renderer.setClearColor(0x000000,0);
   renderer.outputColorSpace=THREE.SRGBColorSpace;
   // Neutral mantém a arte das capas mais próxima das cores originais.
