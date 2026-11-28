@@ -61,7 +61,7 @@ test('duplicado exato é bloqueado sem apagar o registro existente',()=>{
   assert.doesNotMatch(formats,/objectStore\(['"]books['"]\)\.clear\(/);
 });
 
-test('a versão PWA e os arquivos principais estão atualizados para v131',()=>{
+test('a versão PWA e os arquivos principais estão atualizados para v132',()=>{
   assert.match(sw,/const CACHE = 'libria-v132'/);
   assert.match(sw,/const HOME = '\.\/index\.html\?v=132'/);
   assert.equal(manifest.start_url,'./index.html?v=132');
