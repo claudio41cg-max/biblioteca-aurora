@@ -328,7 +328,6 @@
     books.className='libria-home-book-grid';
     const visibleItems=items.slice(0,limit);
     if(deferCards&&visibleItems.length){
-      const skeletons=document.createDocumentFragment();
       for(const item of visibleItems){
         const skeleton=document.createElement('div');
         skeleton.className='libria-home-book-skeleton';
@@ -342,18 +341,17 @@
         const typeLine=document.createElement('span');
         typeLine.className='libria-home-skeleton-line libria-home-skeleton-type';
         skeleton.append(cover,titleLine,authorLine,typeLine);
-        skeletons.append(skeleton);
+        books.append(skeleton);
       }
-      books.append(skeletons);
       section.dataset.cardsPending='true';
       deferredHomeSections.set(section,()=>{
         if(!section.isConnected)return false;
-        const fragment=document.createDocumentFragment();
+        const cards=[];
         for(const item of visibleItems){
           const card=makeCard(item);
-          if(card)fragment.append(card);
+          if(card)cards.push(card);
         }
-        books.replaceChildren(fragment);
+        books.replaceChildren(...cards);
         section.dataset.cardsPending='false';
         section.dataset.cardsReady='true';
         return true;
