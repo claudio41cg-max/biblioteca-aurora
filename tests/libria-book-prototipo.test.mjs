@@ -151,7 +151,7 @@ test('importações entram no catálogo e não abrem automaticamente a leitura',
 });
 
 test('a versão de cache do protótipo não substitui o aplicativo publicado',()=>{
-  assert.equal(sw.includes("const CACHE = 'libria-v130';"),true);
+  assert.equal(sw.includes("const CACHE = 'libria-v131';"),true);
   assert.ok(sw.includes("const HOME = './index.html?v=130';"));
   assert.ok(sw.includes("const EDITOR = './nova-estante.html?v=130';"));
   assert.ok(html.includes('./manifest.webmanifest?v=130'));
