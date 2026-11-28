@@ -11,7 +11,7 @@
   <meta name="apple-mobile-web-app-title" content="LIBRIA - BOOK">
   <link rel="apple-touch-icon" href="./icons/aurora-192.png">
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/aurora-192.png">
-  <link rel="manifest" href="./manifest.webmanifest?v=128">
+  <link rel="manifest" href="./manifest.webmanifest?v=129">
   <link rel="stylesheet" href="./aurora-estante.css?v=23">
   <link rel="stylesheet" href="./aurora-livros-estante.css?v=1">
   <link rel="stylesheet" href="./aurora-avancado.css?v=5">
@@ -29,7 +29,7 @@
   <link rel="stylesheet" href="./aurora-volume-estante.css?v=1">
   <link rel="stylesheet" href="./aurora-estante-exemplares.css?v=8">
   <link rel="stylesheet" href="./aurora-estante-capa.css?v=1">
-  <link rel="stylesheet" href="./libria-book.css?v=6">
+  <link rel="stylesheet" href="./libria-book.css?v=7">
   <title>LIBRIA - BOOK • Meu catálogo</title>
 <link rel="stylesheet" href="./aurora-exclusao-particulas.css?v=1">
 <link rel="stylesheet" href="./aurora-acoes-livro.css?v=2">
@@ -171,10 +171,32 @@
         <h2 id="libriaCatalogHeading">Meu catálogo</h2>
         <span id="libriaCatalogTotal" aria-live="polite">0 livros</span>
       </div>
-      <label class="libria-home-search" id="libriaHomeSearchWrap" hidden>
-        <span>Pesquisar no catálogo</span>
-        <input id="libriaGenreSearch" type="search" autocomplete="off" placeholder="Título ou autor...">
-      </label>
+      <div class="libria-home-search" id="libriaHomeSearchWrap" hidden>
+        <label class="libria-search-field" for="libriaGenreSearch">
+          <span>Pesquisar no catálogo</span>
+          <input id="libriaGenreSearch" type="search" autocomplete="off" placeholder="Título ou autor...">
+        </label>
+        <div class="libria-catalog-filters" aria-label="Filtros do catálogo">
+          <label for="libriaFormatFilter"><span>Formato</span>
+            <select id="libriaFormatFilter">
+              <option value="">Todos</option>
+              <option value="pdf">PDF</option>
+              <option value="epub">EPUB</option>
+              <option value="audio">Audiolivro</option>
+              <option value="txt">TXT</option>
+              <option value="online">Online</option>
+              <option value="demo">Amostras</option>
+            </select>
+          </label>
+          <label for="libriaSortOrder"><span>Ordenar por</span>
+            <select id="libriaSortOrder">
+              <option value="title">Título A–Z</option>
+              <option value="author">Autor A–Z</option>
+              <option value="recent">Adicionados recentemente</option>
+            </select>
+          </label>
+        </div>
+      </div>
       <div class="libria-home-books" id="libriaHomeBooks" aria-label="Livros do catálogo"></div>
     </div>
   </main>
@@ -312,7 +334,7 @@
   <script src="./aurora-sinopses.js?v=3" defer></script>
   <script src="./aurora-som-folhas.js?v=2" defer></script>
   <script src="./aurora-acoes-livro.js?v=4" defer></script>
-  <script src="./aurora-estante.js?v=34" defer></script>
+  <script src="./aurora-estante.js?v=35" defer></script>
   <script src="./aurora-edition-surfaces.js?v=12" defer></script>
   <script src="./aurora-lombadas.js?v=9" defer></script>
   <script src="./aurora-sala-3d.js?v=38" defer></script>
@@ -321,12 +343,12 @@
   <script src="./aurora-online-estante.js?v=5" defer></script>
   <script src="./vendor/jszip.min.js" defer></script>
   <script src="./aurora-artes.js?v=1" defer></script>
-  <script src="./aurora-formatos.js?v=11" defer></script>
+  <script src="./aurora-formatos.js?v=12" defer></script>
   <script src="./aurora-catalogos.js?v=10" defer></script>
-  <script src="./aurora-novos-formatos.js?v=7" defer></script>
+  <script src="./aurora-novos-formatos.js?v=8" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
   <script src="./aurora-pdf-covers.js?v=2" defer></script>
-  <script src="./aurora-pdf-import.js?v=8" defer></script>
+  <script src="./aurora-pdf-import.js?v=9" defer></script>
   <script src="./aurora-importados.js?v=32" defer></script>
   <script src="./aurora-estante-3d.js?v=6" defer></script>
   <script type="module" src="./aurora-livro-3d.mjs?v=24"></script>
@@ -339,7 +361,7 @@
   <script src="./aurora-estantes-salvas.js?v=1" defer></script>
   <script src="./aurora-minhas-estantes.js?v=6" defer></script>
   <script src="./aurora-pwa.js?v=2" defer></script>
-  <script src="./libria-catalogo.js?v=6" defer></script>
+  <script src="./libria-catalogo.js?v=7" defer></script>
   <script src="./libria-onboarding.js?v=1" defer></script>
   <script src="./aurora-desfragmentacao-lab.js?v=4" defer></script>
 </body>
