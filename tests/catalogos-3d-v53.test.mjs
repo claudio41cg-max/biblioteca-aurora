@@ -28,5 +28,5 @@ assert.match(html,/Arraste a capa para ver a lombada e a contracapa/);
 assert.match(html,/aurora-catalogos\.css\?v=5/);
 assert.match(html,/aurora-catalogos\.js\?v=10/);
 assert.match(sw,/libria-v131/);
-assert.match(sw,/const HOME = '\.\/index\.html\?v=130'/);
+assert.match(sw,/const HOME = '\.\/index\.html\?v=131'/);
 console.log('V53: capas em 3D, contracapa original ou ilustrativa, gesto, acessibilidade e cache.');
