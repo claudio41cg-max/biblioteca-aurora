@@ -22,23 +22,20 @@ function localResource(url) {
 async function prepareHome() {
   const homeURL = new URL(HOME, SCOPE);
   const settingsURL = new URL(SETTINGS, SCOPE);
-  const editorURL = new URL(EDITOR, SCOPE);
   const readerURLs = [
     './meus-livros.html','./ler-epub.html','./ouvir-livro.html',
     './ler-online.html','./explorar-livros.html','./minha-biblioteca-privada.html'
   ].map(path => new URL(path, SCOPE));
-  const [response, settingsResponse, editorResponse, ...readerResponses] = await Promise.all([
+  const [response, settingsResponse, ...readerResponses] = await Promise.all([
     fetchWithTimeout(homeURL, 12000),
     fetchWithTimeout(settingsURL, 12000),
-    fetchWithTimeout(editorURL, 12000),
     ...readerURLs.map(url => fetchWithTimeout(url, 12000))
   ]);
   if (!response.ok) throw new Error('Catálogo indisponível para instalação.');
   if (!settingsResponse.ok) throw new Error('Configurações indisponíveis para instalação.');
-  if (!editorResponse.ok) throw new Error('Editor de estantes indisponível para instalação.');
   if (readerResponses.some(page => !page.ok)) throw new Error('Uma das páginas de leitura está indisponível para instalação.');
   const pageResponses = [
-    [response,homeURL],[settingsResponse,settingsURL],[editorResponse,editorURL],
+    [response,homeURL],[settingsResponse,settingsURL],
     ...readerResponses.map((page,index) => [page,readerURLs[index]])
   ];
   const resources = new Set();
@@ -103,6 +100,10 @@ async function navigate(request, url) {
     return response;
   } catch {
     // As consultas guardam apenas o ID a abrir. O mesmo HTML serve cada livro.
+    if(url.pathname===editor.pathname){
+      const current=await (await caches.open(CACHE)).match(resource);
+      return current||offlinePage();
+    }
     return (await cached(resource)) || (await cached(request, {ignoreSearch:true})) || offlinePage();
   }
 }
