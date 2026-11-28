@@ -1,9 +1,9 @@
-const CACHE = 'libria-v129';
-const HOME = './index.html?v=129';
-const EDITOR = './nova-estante.html?v=129';
+const CACHE = 'libria-v130';
+const HOME = './index.html?v=130';
+const EDITOR = './nova-estante.html?v=130';
 const SCOPE = new URL(self.registration.scope);
 const PROJECT_CACHE = /^(aurora|libria)-v\d+$/;
-const SETTINGS = './configuracoes.html?v=129';
+const SETTINGS = './configuracoes.html?v=130';
 const NAVIGATION_TIMEOUT_MS = 6000;
 
 async function fetchWithTimeout(resource, milliseconds) {
